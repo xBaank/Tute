@@ -1,0 +1,242 @@
+[
+    {
+        "name": "Ace of Cups",
+        "value": 11,
+        "spritename": "ace_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Two of Cups",
+        "value": 0,
+        "spritename": "two_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Three of Cups",
+        "value": 10,
+        "spritename": "three_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Four of Cups",
+        "value": 0,
+        "spritename": "four_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Five of Cups",
+        "value": 0,
+        "spritename": "five_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Six of Cups",
+        "value": 0,
+        "spritename": "six_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Seven of Cups",
+        "value": 0,
+        "spritename": "seven_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Jack of Cups",
+        "value": 2,
+        "spritename": "jack_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Knight of Cups",
+        "value": 3,
+        "spritename": "knight_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "King of Cups",
+        "value": 4,
+        "spritename": "king_cups",
+        "type": "Cups"
+    },
+    {
+        "name": "Ace of Swords",
+        "value": 11,
+        "spritename": "ace_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Two of Swords",
+        "value": 0,
+        "spritename": "two_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Three of Swords",
+        "value": 10,
+        "spritename": "three_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Four of Swords",
+        "value": 0,
+        "spritename": "four_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Five of Swords",
+        "value": 0,
+        "spritename": "five_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Six of Swords",
+        "value": 0,
+        "spritename": "six_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Seven of Swords",
+        "value": 0,
+        "spritename": "seven_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Jack of Swords",
+        "value": 2,
+        "spritename": "jack_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Knight of Swords",
+        "value": 3,
+        "spritename": "knight_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "King of Swords",
+        "value": 4,
+        "spritename": "king_swords",
+        "type": "Swords"
+    },
+    {
+        "name": "Ace of Coins",
+        "value": 11,
+        "spritename": "ace_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Two of Coins",
+        "value": 0,
+        "spritename": "two_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Three of Coins",
+        "value": 10,
+        "spritename": "three_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Four of Coins",
+        "value": 0,
+        "spritename": "four_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Five of Coins",
+        "value": 0,
+        "spritename": "five_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Six of Coins",
+        "value": 0,
+        "spritename": "six_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Seven of Coins",
+        "value": 0,
+        "spritename": "seven_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Jack of Coins",
+        "value": 2,
+        "spritename": "jack_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Knight of Coins",
+        "value": 3,
+        "spritename": "knight_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "King of Coins",
+        "value": 4,
+        "spritename": "king_coins",
+        "type": "Coins"
+    },
+    {
+        "name": "Ace of Clubs",
+        "value": 11,
+        "spritename": "ace_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Two of Clubs",
+        "value": 0,
+        "spritename": "two_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Three of Clubs",
+        "value": 10,
+        "spritename": "three_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Four of Clubs",
+        "value": 0,
+        "spritename": "four_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Five of Clubs",
+        "value": 0,
+        "spritename": "five_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Six of Clubs",
+        "value": 0,
+        "spritename": "six_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Seven of Clubs",
+        "value": 0,
+        "spritename": "seven_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Jack of Clubs",
+        "value": 2,
+        "spritename": "jack_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "Knight of Clubs",
+        "value": 3,
+        "spritename": "knight_clubs",
+        "type": "Clubs"
+    },
+    {
+        "name": "King of Clubs",
+        "value": 4,
+        "spritename": "king_clubs",
+        "type": "Clubs"
+    }
+]
