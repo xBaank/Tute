@@ -74,4 +74,10 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# End of https://www.toptal.com/developers/gitignore/api/unity
+# gRPC Plugins
+# https://packages.grpc.io/
+[Aa]ssets/Plugins/Google.Protobuf/
+[Aa]ssets/Plugins/Google.Protobuf.meta
+
+# Allow: Unity packages and NuGet packages
+!Packages/
