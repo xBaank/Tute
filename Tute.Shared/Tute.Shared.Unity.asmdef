@@ -1,6 +1,9 @@
 {
     "name": "Tute.Shared.Unity",
-    "references": [],
+    "references": [
+        "MessagePack.Annotations",
+        "MagicOnion.Abstractions"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],

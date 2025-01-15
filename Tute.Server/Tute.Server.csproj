@@ -1,7 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Assets\SharedLibrary\SharedLibrary.csproj" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
+    <PackageReference Include="MagicOnion.Server" Version="6.1.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tute.Shared\Tute.Shared.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
