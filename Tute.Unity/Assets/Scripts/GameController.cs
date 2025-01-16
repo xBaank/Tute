@@ -66,9 +66,9 @@ namespace Assets.Scripts
                 new GrpcChannelTarget("localhost", 5000, true)
             );
 
-            var me = await gamingHubClient.ConnectAsync(channel, "room", Guid.NewGuid());
-
-            await gamingHubClient.MakeMoveAsync(new CardData());
+            await gamingHubClient.ConnectAsync(channel, "room", Guid.NewGuid());
+            await gamingHubClient.StartAsync();
+            await gamingHubClient.MakeMoveAsync(new CardData { Name = "Something" });
 
             // NOTE: If your project targets non-.NET Standard 2.1, use `Grpc.Core.Channel` class instead.
             // var channel = new Channel("localhost", 5001, new SslCredentials());

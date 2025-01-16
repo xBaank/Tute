@@ -1,5 +1,6 @@
 ﻿using MagicOnion;
 using MagicOnion.Server;
+
 using Tute.Shared;
 
 namespace Tute.Server.Services
@@ -8,7 +9,6 @@ namespace Tute.Server.Services
     {
         public async UnaryResult<int> SumAsync(int x, int y)
         {
-            Console.WriteLine($"Received:{x}, {y}");
             return x + y;
         }
     }

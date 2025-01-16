@@ -11,9 +11,17 @@ namespace Tute.Server.Services
         private Player? self;
         private IInMemoryStorage<Player>? storage;
 
-        public ValueTask<IList<CardData>> GetCardsAsync()
+        public async ValueTask<IList<CardData>> GetCardsAsync()
         {
-            throw new NotImplementedException();
+            return [];
+        }
+
+        public async ValueTask StartAsync()
+        {
+            if (room is null)
+                return;
+
+            Broadcast(room).OnGameStart([]);
         }
 
         public async ValueTask<Player[]> JoinAsync(string roomname, Guid guid)
@@ -21,6 +29,11 @@ namespace Tute.Server.Services
             self = new Player() { Id = guid };
 
             // Group can bundle many connections and it has inmemory-storage so add any type per group.
+            if (storage?.AllValues.Count == 0)
+            {
+                self.IsLeader = true;
+            }
+
             (room, storage) = await Group.AddAsync(roomname, self);
 
             // Typed Server->Client broadcast.
@@ -37,9 +50,9 @@ namespace Tute.Server.Services
             Broadcast(room).OnLeave(self);
         }
 
-        public ValueTask MakeMoveAsync(CardData card)
+        public async ValueTask MakeMoveAsync(CardData card)
         {
-            throw new NotImplementedException();
+            Console.WriteLine(card.Name);
         }
     }
 }

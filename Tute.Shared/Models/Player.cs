@@ -8,5 +8,8 @@ namespace Tute.Shared.Models
     {
         [Key(0)]
         public Guid Id { get; set; }
+
+        [Key(1)]
+        public bool IsLeader { get; set; }
     }
 }

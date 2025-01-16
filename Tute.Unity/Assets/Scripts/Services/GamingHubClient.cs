@@ -57,6 +57,11 @@ namespace Assets.Scripts.Services
             return client.MakeMoveAsync(card);
         }
 
+        public ValueTask StartAsync()
+        {
+            return client.StartAsync();
+        }
+
         public ValueTask<IList<CardData>> GetCardsAsync()
         {
             return client.GetCardsAsync();
@@ -64,7 +69,7 @@ namespace Assets.Scripts.Services
 
         public void OnGameStart(IList<CardData> card)
         {
-            throw new NotImplementedException();
+            Debug.Log("Game started");
         }
 
         public void OnJoin(Player player)
