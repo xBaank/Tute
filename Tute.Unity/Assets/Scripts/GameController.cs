@@ -4,7 +4,6 @@ using Grpc.Net.Client;
 using MagicOnion;
 using MagicOnion.Unity;
 using Newtonsoft.Json;
-using Tute.Shared;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -12,7 +11,6 @@ namespace Assets.Scripts
     using System;
     using Assets.Scripts.Services;
     using Cysharp.Threading.Tasks;
-    using MagicOnion.Client;
     using Tute.Shared.Models;
 
     public class GameController : MonoBehaviour
@@ -69,14 +67,6 @@ namespace Assets.Scripts
             await gamingHubClient.ConnectAsync(channel, "room", Guid.NewGuid());
             await gamingHubClient.StartAsync();
             await gamingHubClient.MakeMoveAsync(new CardData { Name = "Something" });
-
-            // NOTE: If your project targets non-.NET Standard 2.1, use `Grpc.Core.Channel` class instead.
-            // var channel = new Channel("localhost", 5001, new SslCredentials());
-
-            // Create a proxy to call the server transparently.
-            ITestService serviceClient = MagicOnionClient.Create<ITestService>(channel);
-            int result = await serviceClient.SumAsync(1, 2);
-            Debug.Log(result);
         }
     }
 }
