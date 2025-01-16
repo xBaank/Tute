@@ -26,7 +26,7 @@ namespace Assets.Scripts
         private void OnMouseDown()
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            startDif = mousePos - transform.position;
+            startDif = transform.position - mousePos;
         }
 
         private void OnMouseUp()
@@ -36,7 +36,7 @@ namespace Assets.Scripts
 
         private void OnMouseDrag()
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + startDif;
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
             transform.position = new Vector3(mousePos.x, mousePos.y, 0);
         }
     }
