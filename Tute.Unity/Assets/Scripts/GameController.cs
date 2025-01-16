@@ -9,6 +9,8 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
+    using System;
+    using Assets.Scripts.Services;
     using Cysharp.Threading.Tasks;
     using MagicOnion.Client;
     using Tute.Shared.Models;
@@ -40,6 +42,8 @@ namespace Assets.Scripts
         [SerializeField]
         private Sprite[] spriteSheet;
 
+        private readonly GamingHubClient gamingHubClient = new();
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
@@ -58,7 +62,13 @@ namespace Assets.Scripts
         private async UniTaskVoid Server()
         {
             // Connect to the server using gRPC channel.
-            GrpcChannelx channel = GrpcChannelx.ForTarget(new GrpcChannelTarget("localhost", 5000, true));
+            GrpcChannelx channel = GrpcChannelx.ForTarget(
+                new GrpcChannelTarget("localhost", 5000, true)
+            );
+
+            var me = await gamingHubClient.ConnectAsync(channel, "room", Guid.NewGuid());
+
+            await gamingHubClient.MakeMoveAsync(new CardData());
 
             // NOTE: If your project targets non-.NET Standard 2.1, use `Grpc.Core.Channel` class instead.
             // var channel = new Channel("localhost", 5001, new SslCredentials());

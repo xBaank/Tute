@@ -1,16 +1,22 @@
 ﻿using MagicOnion.Server.Hubs;
+
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
 namespace Tute.Server.Services
 {
-    internal class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGamingHub
+    public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGamingHub
     {
-        private IGroup room;
-        private Player self;
-        private IInMemoryStorage<Player> storage;
+        private IGroup? room;
+        private Player? self;
+        private IInMemoryStorage<Player>? storage;
 
-        public async ValueTask<Guid[]> JoinAsync(string roomname, Guid guid)
+        public ValueTask<IList<CardData>> GetCardsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async ValueTask<Player[]> JoinAsync(string roomname, Guid guid)
         {
             self = new Player() { Id = guid };
 
@@ -19,15 +25,19 @@ namespace Tute.Server.Services
 
             // Typed Server->Client broadcast.
             Broadcast(room).OnJoin(self);
-            return storage.AllValues.ToArray();
+            return [.. storage.AllValues];
         }
 
-        public ValueTask LeaveAsync()
+        public async ValueTask LeaveAsync()
         {
-            throw new NotImplementedException();
+            if (room is null)
+                return;
+
+            await room.RemoveAsync(this.Context);
+            Broadcast(room).OnLeave(self);
         }
 
-        public ValueTask MoveAsync()
+        public ValueTask MakeMoveAsync(CardData card)
         {
             throw new NotImplementedException();
         }
