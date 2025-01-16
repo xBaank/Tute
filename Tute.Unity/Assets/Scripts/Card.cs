@@ -1,3 +1,4 @@
+using Tute.Shared.Models;
 using UnityEngine;
 
 namespace Assets.Scripts

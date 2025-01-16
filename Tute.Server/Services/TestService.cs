@@ -2,7 +2,7 @@
 using MagicOnion.Server;
 using Tute.Shared;
 
-namespace Tute.Server
+namespace Tute.Server.Services
 {
     public class TestService : ServiceBase<ITestService>, ITestService
     {

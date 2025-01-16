@@ -1,6 +1,6 @@
-﻿namespace Assets.Scripts
+﻿namespace Tute.Shared.Models
 {
-    enum CardType
+    public enum CardType
     {
         Coins,
         Swords,

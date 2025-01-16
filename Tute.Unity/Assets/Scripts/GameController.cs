@@ -11,6 +11,7 @@ namespace Assets.Scripts
 {
     using Cysharp.Threading.Tasks;
     using MagicOnion.Client;
+    using Tute.Shared.Models;
 
     public class GameController : MonoBehaviour
     {
@@ -47,14 +48,7 @@ namespace Assets.Scripts
             foreach (CardData item in data)
             {
                 Card card = Instantiate(cardPrefab, transform);
-                card.cardType = item.Type switch
-                {
-                    "Cups" => CardType.Cups,
-                    "Coins" => CardType.Coins,
-                    "Clubs" => CardType.Clubs,
-                    "Swords" => CardType.Swords,
-                    _ => throw new System.Exception($"Unknow type {item.Type}")
-                };
+                card.cardType = item.Type;
                 card.value = item.Value;
                 card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
