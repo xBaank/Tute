@@ -12,9 +12,8 @@ namespace Tute.Shared.GamingHub
     {
         // The method must return `ValueTask`, `ValueTask<T>`, `Task` or `Task<T>` and can have up to 15 parameters of any type.
         ValueTask<Player[]> JoinAsync(string roomName, Guid guid);
-        ValueTask StartAsync();
+        ValueTask StartAsync(IList<CardData> cards);
         ValueTask LeaveAsync();
         ValueTask MakeMoveAsync(CardData card);
-        ValueTask<IList<CardData>> GetCardsAsync();
     }
 }

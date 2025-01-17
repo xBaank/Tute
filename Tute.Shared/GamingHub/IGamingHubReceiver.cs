@@ -8,5 +8,6 @@ namespace Tute.Shared.GamingHub
         void OnJoin(Player player);
         void OnLeave(Player player);
         void OnGameStart(IList<CardData> card);
+        void OnGameData(GameData gameData);
     }
 }

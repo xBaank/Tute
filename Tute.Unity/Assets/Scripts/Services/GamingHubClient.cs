@@ -12,8 +12,10 @@ namespace Assets.Scripts.Services
     public class GamingHubClient : IGamingHubReceiver
     {
         private readonly Dictionary<Guid, GameObject> players = new();
+        private IGamingHub client;
 
-        IGamingHub client;
+        public event Action<IList<CardData>> OnGameStartEvent;
+        public event Action<GameData> OnGameDataEvent;
 
         public async ValueTask<GameObject> ConnectAsync(
             ChannelBase grpcChannel,
@@ -26,8 +28,8 @@ namespace Assets.Scripts.Services
                 this
             );
 
-            var roomPlayers = await client.JoinAsync(roomName, id);
-            foreach (var player in roomPlayers)
+            Player[] roomPlayers = await client.JoinAsync(roomName, id);
+            foreach (Player player in roomPlayers)
             {
                 (this as IGamingHubReceiver).OnJoin(player);
             }
@@ -57,20 +59,11 @@ namespace Assets.Scripts.Services
             return client.MakeMoveAsync(card);
         }
 
-        public ValueTask StartAsync()
+        public ValueTask StartAsync(IList<CardData> cardDatas)
         {
-            return client.StartAsync();
+            return client.StartAsync(cardDatas);
         }
 
-        public ValueTask<IList<CardData>> GetCardsAsync()
-        {
-            return client.GetCardsAsync();
-        }
-
-        public void OnGameStart(IList<CardData> card)
-        {
-            Debug.Log("Game started");
-        }
 
         public void OnJoin(Player player)
         {
@@ -79,10 +72,13 @@ namespace Assets.Scripts.Services
 
         public void OnLeave(Player player)
         {
-            if (players.TryGetValue(player.Id, out var cube))
+            if (players.TryGetValue(player.Id, out GameObject cube))
             {
                 GameObject.Destroy(cube);
             }
         }
+        public void OnGameStart(IList<CardData> card) => OnGameStartEvent?.Invoke(card);
+
+        public void OnGameData(GameData gameData) => OnGameDataEvent?.Invoke(gameData);
     }
 }

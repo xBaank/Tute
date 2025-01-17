@@ -1,20 +1,32 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Services;
 using Cysharp.Net.Http;
+using Cysharp.Threading.Tasks;
 using Grpc.Net.Client;
 using MagicOnion;
 using MagicOnion.Unity;
 using Newtonsoft.Json;
+using Tute.Shared.Models;
 using UnityEngine;
 
 namespace Assets.Scripts
 {
-    using System;
-    using Assets.Scripts.Services;
-    using Cysharp.Threading.Tasks;
-    using Tute.Shared.Models;
-
     public class GameController : MonoBehaviour
     {
+        [SerializeField]
+        private Card cardPrefab;
+
+        [SerializeField]
+        private TextAsset cardsData;
+
+        [SerializeField]
+        private Sprite[] spriteSheet;
+
+        private readonly Guid guid = new();
+        private readonly GamingHubClient gamingHubClient = new();
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
         {
@@ -31,22 +43,20 @@ namespace Assets.Scripts
             );
         }
 
-        [SerializeField]
-        private Card cardPrefab;
-
-        [SerializeField]
-        private TextAsset cardsData;
-
-        [SerializeField]
-        private Sprite[] spriteSheet;
-
-        private readonly GamingHubClient gamingHubClient = new();
-
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
             Server().Forget();
+        }
+
+        private IList<CardData> GetCards()
+        {
             CardData[] data = JsonConvert.DeserializeObject<CardData[]>(cardsData.text);
+            return data;
+        }
+
+        private void InstanceCards(IList<CardData> data)
+        {
             foreach (CardData item in data)
             {
                 Card card = Instantiate(cardPrefab, transform);
@@ -59,14 +69,27 @@ namespace Assets.Scripts
 
         private async UniTaskVoid Server()
         {
-            // Connect to the server using gRPC channel.
             GrpcChannelx channel = GrpcChannelx.ForTarget(
                 new GrpcChannelTarget("localhost", 5000, true)
             );
 
-            await gamingHubClient.ConnectAsync(channel, "room", Guid.NewGuid());
-            await gamingHubClient.StartAsync();
-            await gamingHubClient.MakeMoveAsync(new CardData { Name = "Something" });
+            gamingHubClient.OnGameStartEvent += OnGameStart;
+            gamingHubClient.OnGameDataEvent += OnGameData;
+
+            await gamingHubClient.ConnectAsync(channel, "room", guid);
+            await gamingHubClient.StartAsync(GetCards());
+        }
+
+        private void OnGameStart(IList<CardData> cards)
+        {
+            InstanceCards(cards);
+            Debug.Log("Game started");
+        }
+
+        private void OnGameData(GameData gameData)
+        {
+            IList<CardData> me = gameData.Cards[guid];
+            InstanceCards(me);
         }
     }
 }

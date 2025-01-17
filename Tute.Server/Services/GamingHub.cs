@@ -1,5 +1,5 @@
 ﻿using MagicOnion.Server.Hubs;
-
+using Tute.Server.Extensions;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
@@ -10,19 +10,7 @@ namespace Tute.Server.Services
         private IGroup? room;
         private Player? self;
         private IInMemoryStorage<Player>? storage;
-
-        public async ValueTask<IList<CardData>> GetCardsAsync()
-        {
-            return [];
-        }
-
-        public async ValueTask StartAsync()
-        {
-            if (room is null)
-                return;
-
-            Broadcast(room).OnGameStart([]);
-        }
+        private GameState gameState;
 
         public async ValueTask<Player[]> JoinAsync(string roomname, Guid guid)
         {
@@ -32,6 +20,11 @@ namespace Tute.Server.Services
             if (storage?.AllValues.Count == 0)
             {
                 self.IsLeader = true;
+            }
+
+            if (storage?.AllValues.Count == 2)
+            {
+                throw new Exception("Can't add more than 2 players");
             }
 
             (room, storage) = await Group.AddAsync(roomname, self);
@@ -46,8 +39,29 @@ namespace Tute.Server.Services
             if (room is null)
                 return;
 
+            if (storage?.AllValues.Count == 0)
+            {
+                gameState = GameState.None;
+                return;
+            }
+
             await room.RemoveAsync(this.Context);
             Broadcast(room).OnLeave(self);
+        }
+
+        public ValueTask StartAsync(IList<CardData> cards)
+        {
+            if (room is null)
+                return ValueTask.CompletedTask;
+
+            if (gameState == GameState.Playing)
+                throw new Exception("Already playing");
+
+            List<CardData> shuffled = [.. cards.Shuffled()];
+            gameState = GameState.Playing;
+            Broadcast(room).OnGameStart(shuffled[0..7]);
+
+            return ValueTask.CompletedTask;
         }
 
         public async ValueTask MakeMoveAsync(CardData card)
