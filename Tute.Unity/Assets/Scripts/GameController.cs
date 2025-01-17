@@ -64,6 +64,7 @@ namespace Assets.Scripts
                 card.value = item.Value;
                 card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
+                card.transform.position = new Vector3(transform.position.x, -3);
             }
         }
 

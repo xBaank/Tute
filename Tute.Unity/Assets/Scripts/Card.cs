@@ -12,10 +12,10 @@ namespace Assets.Scripts
         internal int value;
 
         private SpriteRenderer spriteRenderer;
+        private Vector2 startDif;
 
         internal Sprite Sprite { get; set; }
 
-        private Vector2 startDif;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
