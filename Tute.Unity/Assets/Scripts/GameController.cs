@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
 using Cysharp.Net.Http;
 using Cysharp.Threading.Tasks;
@@ -24,8 +25,12 @@ namespace Assets.Scripts
         [SerializeField]
         private Sprite[] spriteSheet;
 
+        [SerializeField]
+        private Transform stackPosition;
+
         private readonly Guid guid = new();
         private readonly GamingHubClient gamingHubClient = new();
+        private CardRowManager cardRowManager;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
@@ -46,6 +51,12 @@ namespace Assets.Scripts
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
+            cardRowManager = new CardRowManager(
+                stackPosition.position.x,
+                stackPosition.position.y,
+                1.5f,
+                10f
+            );
             Server().Forget();
         }
 
@@ -55,16 +66,21 @@ namespace Assets.Scripts
             return data;
         }
 
-        private void InstanceCards(IList<CardData> data)
+        private IEnumerable<Card> InstanceCards(IList<CardData> data)
         {
-            foreach (CardData item in data)
+            foreach (var (index, item) in data.WithIndex())
             {
                 Card card = Instantiate(cardPrefab, transform);
+                card.CardRowManager = cardRowManager;
                 card.cardType = item.Type;
                 card.value = item.Value;
                 card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
-                card.transform.position = new Vector3(transform.position.x, -3);
+                card.transform.position = new Vector3(
+                    stackPosition.position.x + card.Sprite.bounds.size.x * index,
+                    stackPosition.position.y
+                );
+                yield return card;
             }
         }
 
@@ -83,14 +99,18 @@ namespace Assets.Scripts
 
         private void OnGameStart(IList<CardData> cards)
         {
-            InstanceCards(cards);
+            var cardsGo = InstanceCards(cards).ToList();
+            foreach (var item in cardsGo)
+            {
+                cardRowManager.AddCard(item.transform);
+            }
+
             Debug.Log("Game started");
         }
 
         private void OnGameData(GameData gameData)
         {
-            IList<CardData> me = gameData.Cards[guid];
-            InstanceCards(me);
+            Debug.Log("Game data received");
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Assets.Scripts
 
         internal Sprite Sprite { get; set; }
 
+        internal CardRowManager CardRowManager { get; set; }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
@@ -26,28 +27,31 @@ namespace Assets.Scripts
 
         private void OnMouseDown()
         {
+            if (CardRowManager.IsOrdering)
+                return;
+
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             startDif = transform.position - mousePos;
+            CardRowManager.CurrentPosition = transform.position;
         }
 
         private void OnMouseUp()
         {
+            if (CardRowManager.IsOrdering)
+                return;
+
             startDif = Vector2.zero;
+            CardRowManager.DragCard(transform, destroyCancellationToken).Forget();
         }
 
         private void OnMouseDrag()
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
+            if (CardRowManager.IsOrdering)
+                return;
+
+            Vector3 mousePos =
+                Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
             transform.position = new Vector3(mousePos.x, mousePos.y, 0);
-        }
-        private void OnCollisionExit2D(Collision2D collision)
-        {
-            if (!collision.collider.CompareTag("Card")) return;
-            if (Vector2.Distance(transform.position, collision.transform.position) <= spriteRenderer.size.x / 2)
-            {
-                Debug.Log("Swapped");
-                (transform.position, collision.transform.position) = (collision.transform.position, transform.position);
-            }
         }
     }
 }
