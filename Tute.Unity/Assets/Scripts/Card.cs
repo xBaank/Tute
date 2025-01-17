@@ -40,5 +40,14 @@ namespace Assets.Scripts
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
             transform.position = new Vector3(mousePos.x, mousePos.y, 0);
         }
+        private void OnCollisionExit2D(Collision2D collision)
+        {
+            if (!collision.collider.CompareTag("Card")) return;
+            if (Vector2.Distance(transform.position, collision.transform.position) <= spriteRenderer.size.x / 2)
+            {
+                Debug.Log("Swapped");
+                (transform.position, collision.transform.position) = (collision.transform.position, transform.position);
+            }
+        }
     }
 }
