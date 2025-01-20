@@ -16,7 +16,6 @@ namespace Assets.Scripts.Services
         private readonly Guid guid;
         private IGamingHub client;
 
-        public event Action<IList<CardData>> OnGameStartEvent;
         public event Action<GameData> OnGameDataEvent;
 
         public GamingHubClient(Guid guid)
@@ -84,16 +83,9 @@ namespace Assets.Scripts.Services
             }
         }
 
-
-        public void OnGameStart(GameRoom gameRoom)
+        public void OnGameData(GameData gameData)
         {
-            var cards = gameRoom.Data[guid].Cards;
-            OnGameStartEvent?.Invoke(cards);
-        }
-
-        public void OnGameData(GameRoom gameData)
-        {
-            Debug.Log("Received data");
+            OnGameDataEvent?.Invoke(gameData);
         }
     }
 }

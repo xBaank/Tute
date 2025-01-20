@@ -10,10 +10,10 @@ namespace Assets.Scripts
         private float xPosition = 0f; // Fixed X position for the row
         private float yPosition = 3f; // Fixed Y position for the row
         private float cardSpacing = 2f; // Distance between cards
-        private float snapSpeed = 30f; // Speed of snapping animation
 
         private readonly List<Transform> cards = new();
         public Vector2 CurrentPosition { get; set; }
+        public float SnapSpeed { get; set; } = 30f; // Speed of snapping animation
 
         public bool IsOrdering { get; private set; }
 
@@ -22,7 +22,7 @@ namespace Assets.Scripts
             this.xPosition = xPosition;
             this.yPosition = yPosition;
             this.cardSpacing = cardSpacing;
-            this.snapSpeed = snapSpeed;
+            SnapSpeed = snapSpeed;
         }
 
         public void AddCard(Transform card)
@@ -47,8 +47,8 @@ namespace Assets.Scripts
             cards.Remove(draggedCard);
 
             // Find the best position for the dragged card
-            int insertIndex = cardIndex; // Default to the end of the row
-            for (int i = 0; i < cards.Count + 1; i++)
+            var insertIndex = cardIndex; // Default to the end of the row
+            for (var i = 0; i < cards.Count + 1; i++)
             {
                 var startTargetPosition = GetCardTargetPosition(i);
                 var endTargetPosition = GetCardTargetPosition(cards.Count - i);
@@ -83,7 +83,7 @@ namespace Assets.Scripts
             IsOrdering = true;
             var tasks = new List<UniTask>();
 
-            for (int i = 0; i < cards.Count; i++)
+            for (var i = 0; i < cards.Count; i++)
             {
                 Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition, 0f);
                 tasks.Add(SnapCard(cards[i], targetPosition, cancellationToken));
@@ -109,7 +109,7 @@ namespace Assets.Scripts
                 card.position = Vector3.Lerp(
                     card.position,
                     targetPosition,
-                    Time.deltaTime * snapSpeed
+                    Time.deltaTime * SnapSpeed
                 );
 
                 await UniTask.Yield(cancellationToken);

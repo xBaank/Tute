@@ -18,7 +18,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         self = new Player() { Id = guid };
 
         // Group can bundle many connections and it has inmemory-storage so add any type per group.
-        if (storage?.AllValues.Count == 0)
+        if (storage is null || storage?.AllValues.Count == 0)
         {
             self.IsLeader = true;
         }
@@ -73,9 +73,9 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             gameCards.RemoveRange(0, 7);
             GameData gameData = new() { Cards = initialHand, GainedCards = [], PlayerGuid = Id };
             gameRoom.Data[Id] = gameData;
+            BroadcastTo(room, item.Id).OnGameData(gameRoom.Data[Id]);
         }
 
-        Broadcast(room).OnGameStart(gameRoom);
 
         return ValueTask.CompletedTask;
     }
@@ -85,7 +85,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         if (gameRoom is null) return;
 
         var cardToRemove = gameRoom.Data[Id].Cards.FirstOrDefault(i => i.Value == card.Value && i.Type == card.Type);
-        gameRoom.Data[Id].Cards.Remove(cardToRemove);
+        if (!gameRoom.Data[Id].Cards.Remove(cardToRemove)) return;
         gameRoom.UsedCards[Id] = card;
         gameRoom.LastPlayed = Id;
 
@@ -100,9 +100,8 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             {
                 var next = gameRoom.Cards.FirstOrDefault();
                 if (next is not null) cards.Cards.Add(next);
+                BroadcastTo(room, player).OnGameData(gameRoom.Data[Id]);
             }
         }
-
-        Broadcast(room).OnGameData(gameRoom);
     }
 }

@@ -1,4 +1,4 @@
-using Assets.Scripts.Services;
+using System;
 using Tute.Shared.Models;
 using UnityEngine;
 
@@ -19,8 +19,9 @@ namespace Assets.Scripts
         internal Sprite Sprite { get; set; }
 
         internal CardRowManager CardRowManager { get; set; }
-        internal GamingHubClient GamingHubClient { get; set; }
         internal CardData CardData { get; set; }
+
+        public event Action<CardData> Clicked;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
@@ -35,7 +36,7 @@ namespace Assets.Scripts
             if (CardRowManager.IsOrdering)
                 return;
 
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             startDif = transform.position - mousePos;
             CardRowManager.CurrentPosition = transform.position;
         }
@@ -44,8 +45,7 @@ namespace Assets.Scripts
         {
             if (Vector2.Distance(startPosition, transform.position) < 0.1f)
             {
-                Debug.Log("Clicked");
-                GamingHubClient.MakeMoveAsync(CardData);
+                Clicked?.Invoke(CardData);
                 return;
             }
 
@@ -61,7 +61,7 @@ namespace Assets.Scripts
             if (CardRowManager.IsOrdering)
                 return;
 
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
+            var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
             Vector3 newPos = new(mousePos.x, mousePos.y, 0);
             transform.position = newPos;
         }

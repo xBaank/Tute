@@ -28,7 +28,6 @@ namespace Assets.Scripts
         [SerializeField]
         private Transform stackPosition;
 
-        private readonly Guid guid = new();
         private readonly GamingHubClient gamingHubClient = new(Guid.NewGuid());
         private CardRowManager cardRowManager;
 
@@ -62,18 +61,18 @@ namespace Assets.Scripts
 
         private IList<CardData> GetCards()
         {
-            CardData[] data = JsonConvert.DeserializeObject<CardData[]>(cardsData.text);
+            var data = JsonConvert.DeserializeObject<CardData[]>(cardsData.text);
             return data;
         }
 
         private IEnumerable<Card> InstanceCards(IList<CardData> data)
         {
-            foreach ((int index, CardData item) in data.WithIndex())
+            foreach ((var index, var item) in data.WithIndex())
             {
-                Card card = Instantiate(cardPrefab, transform);
+                var card = Instantiate(cardPrefab, transform);
+                card.Clicked += MakeMove;
                 card.CardData = item;
                 card.CardRowManager = cardRowManager;
-                card.GamingHubClient = gamingHubClient;
                 card.cardType = item.Type;
                 card.value = item.Value;
                 card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
@@ -85,21 +84,23 @@ namespace Assets.Scripts
 
         private async UniTaskVoid Server()
         {
-            GrpcChannelx channel = GrpcChannelx.ForTarget(
+            var channel = GrpcChannelx.ForTarget(
                 new GrpcChannelTarget("localhost", 5000, true)
             );
 
-            gamingHubClient.OnGameStartEvent += OnGameStart;
             gamingHubClient.OnGameDataEvent += OnGameData;
 
             await gamingHubClient.ConnectAsync(channel, "room");
+            await UniTask.WaitUntil(() => Input.GetKey(KeyCode.Space), cancellationToken: destroyCancellationToken);
             await gamingHubClient.StartAsync(GetCards());
         }
 
-        private void OnGameStart(IList<CardData> cards)
+
+        private void OnGameData(GameData gameData)
         {
-            List<Card> cardsGo = InstanceCards(cards).ToList();
-            foreach (Card item in cardsGo)
+            //TODO instance only new ones
+            var cardsGo = InstanceCards(gameData.Cards).ToList();
+            foreach (var item in cardsGo)
             {
                 cardRowManager.AddCard(item.transform);
             }
@@ -107,9 +108,9 @@ namespace Assets.Scripts
             Debug.Log("Game started");
         }
 
-        private void OnGameData(GameData gameData)
+        private void MakeMove(CardData card)
         {
-            Debug.Log("Game data received");
+            gamingHubClient.MakeMoveAsync(card);
         }
     }
 }
