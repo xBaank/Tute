@@ -1,7 +1,6 @@
-﻿namespace Tute.Server.Extensions
+﻿namespace Tute.Server.Extensions;
+
+internal static class IListExtensions
 {
-    internal static class IListExtensions
-    {
-        public static IList<T> Shuffled<T>(this IList<T> values) => [.. values.OrderBy(i => Guid.NewGuid())];
-    }
+    public static IList<T> Shuffled<T>(this IList<T> values) => [.. values.OrderBy(i => Guid.NewGuid())];
 }

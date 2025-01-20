@@ -29,7 +29,7 @@ namespace Assets.Scripts
         private Transform stackPosition;
 
         private readonly Guid guid = new();
-        private readonly GamingHubClient gamingHubClient = new();
+        private readonly GamingHubClient gamingHubClient = new(Guid.NewGuid());
         private CardRowManager cardRowManager;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -68,18 +68,17 @@ namespace Assets.Scripts
 
         private IEnumerable<Card> InstanceCards(IList<CardData> data)
         {
-            foreach (var (index, item) in data.WithIndex())
+            foreach ((int index, CardData item) in data.WithIndex())
             {
                 Card card = Instantiate(cardPrefab, transform);
+                card.CardData = item;
                 card.CardRowManager = cardRowManager;
+                card.GamingHubClient = gamingHubClient;
                 card.cardType = item.Type;
                 card.value = item.Value;
                 card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
-                card.transform.position = new Vector3(
-                    stackPosition.position.x + card.Sprite.bounds.size.x * index,
-                    stackPosition.position.y
-                );
+                card.transform.position = new Vector3(stackPosition.position.x + card.Sprite.bounds.size.x * index, 4);
                 yield return card;
             }
         }
@@ -93,14 +92,14 @@ namespace Assets.Scripts
             gamingHubClient.OnGameStartEvent += OnGameStart;
             gamingHubClient.OnGameDataEvent += OnGameData;
 
-            await gamingHubClient.ConnectAsync(channel, "room", guid);
+            await gamingHubClient.ConnectAsync(channel, "room");
             await gamingHubClient.StartAsync(GetCards());
         }
 
         private void OnGameStart(IList<CardData> cards)
         {
-            var cardsGo = InstanceCards(cards).ToList();
-            foreach (var item in cardsGo)
+            List<Card> cardsGo = InstanceCards(cards).ToList();
+            foreach (Card item in cardsGo)
             {
                 cardRowManager.AddCard(item.transform);
             }

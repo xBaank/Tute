@@ -1,4 +1,4 @@
-﻿namespace Tute.Server.Services
+﻿namespace Tute.Shared.Models
 {
     public enum GameState
     {

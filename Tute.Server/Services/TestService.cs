@@ -3,13 +3,12 @@ using MagicOnion.Server;
 
 using Tute.Shared;
 
-namespace Tute.Server.Services
+namespace Tute.Server.Services;
+
+public class TestService : ServiceBase<ITestService>, ITestService
 {
-    public class TestService : ServiceBase<ITestService>, ITestService
+    public async UnaryResult<int> SumAsync(int x, int y)
     {
-        public async UnaryResult<int> SumAsync(int x, int y)
-        {
-            return x + y;
-        }
+        return x + y;
     }
 }

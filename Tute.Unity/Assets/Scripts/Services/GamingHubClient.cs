@@ -11,16 +11,22 @@ namespace Assets.Scripts.Services
 {
     public class GamingHubClient : IGamingHubReceiver
     {
+
         private readonly Dictionary<Guid, GameObject> players = new();
+        private readonly Guid guid;
         private IGamingHub client;
 
         public event Action<IList<CardData>> OnGameStartEvent;
         public event Action<GameData> OnGameDataEvent;
 
+        public GamingHubClient(Guid guid)
+        {
+            this.guid = guid;
+        }
+
         public async ValueTask<GameObject> ConnectAsync(
             ChannelBase grpcChannel,
-            string roomName,
-            Guid id
+            string roomName
         )
         {
             client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
@@ -28,13 +34,13 @@ namespace Assets.Scripts.Services
                 this
             );
 
-            Player[] roomPlayers = await client.JoinAsync(roomName, id);
-            foreach (Player player in roomPlayers)
+            var roomPlayers = await client.JoinAsync(roomName, guid);
+            foreach (var player in roomPlayers)
             {
                 (this as IGamingHubReceiver).OnJoin(player);
             }
 
-            return players[id];
+            return players[guid];
         }
 
         public ValueTask LeaveAsync()
@@ -72,13 +78,22 @@ namespace Assets.Scripts.Services
 
         public void OnLeave(Player player)
         {
-            if (players.TryGetValue(player.Id, out GameObject cube))
+            if (players.TryGetValue(player.Id, out var cube))
             {
                 GameObject.Destroy(cube);
             }
         }
-        public void OnGameStart(IList<CardData> card) => OnGameStartEvent?.Invoke(card);
 
-        public void OnGameData(GameData gameData) => OnGameDataEvent?.Invoke(gameData);
+
+        public void OnGameStart(GameRoom gameRoom)
+        {
+            var cards = gameRoom.Data[guid].Cards;
+            OnGameStartEvent?.Invoke(cards);
+        }
+
+        public void OnGameData(GameRoom gameData)
+        {
+            Debug.Log("Received data");
+        }
     }
 }

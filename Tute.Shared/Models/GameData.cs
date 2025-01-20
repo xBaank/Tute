@@ -8,6 +8,10 @@ namespace Tute.Shared.Models
     public class GameData
     {
         [Key(0)]
-        public Dictionary<Guid, IList<CardData>> Cards { get; set; }
+        public Guid PlayerGuid { get; set; }
+        [Key(1)]
+        public IList<CardData> Cards { get; set; }
+        [Key(2)]
+        public IList<CardData> GainedCards { get; set; }
     }
 }

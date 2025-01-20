@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Tute.Shared.Models;
+﻿using Tute.Shared.Models;
 
 namespace Tute.Shared.GamingHub
 {
@@ -7,7 +6,7 @@ namespace Tute.Shared.GamingHub
     {
         void OnJoin(Player player);
         void OnLeave(Player player);
-        void OnGameStart(IList<CardData> card);
-        void OnGameData(GameData gameData);
+        void OnGameStart(GameRoom gameRoom);
+        void OnGameData(GameRoom gameData);
     }
 }
