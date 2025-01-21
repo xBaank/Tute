@@ -7,9 +7,12 @@ namespace Tute.Shared.Models
     public class Player
     {
         [Key(0)]
-        public Guid Id { get; set; }
+        public Guid ConnectionId { get; set; }
 
         [Key(1)]
+        public string Name { get; set; }
+
+        [Key(2)]
         public bool IsLeader { get; set; }
     }
 }

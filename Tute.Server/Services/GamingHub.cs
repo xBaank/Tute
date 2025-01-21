@@ -11,11 +11,10 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
     private Player? self;
     private GameRoom? gameRoom;
     private IInMemoryStorage<Player>? storage;
-    private Guid Id => self!.Id;
 
-    public async ValueTask<Player[]> JoinAsync(string roomname, Guid guid)
+    public async ValueTask<(Guid, Player[])> JoinAsync(string roomname, string name)
     {
-        self = new Player() { Id = guid };
+        self = new Player() { Name = name, ConnectionId = ConnectionId };
 
         // Group can bundle many connections and it has inmemory-storage so add any type per group.
         if (storage is null || storage?.AllValues.Count == 0)
@@ -32,7 +31,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
         // Typed Server->Client broadcast.
         Broadcast(room).OnJoin(self);
-        return [.. storage.AllValues];
+        return (ConnectionId, [.. storage.AllValues]);
     }
 
     public async ValueTask LeaveAsync()
@@ -55,7 +54,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         if (room is null)
             return ValueTask.CompletedTask;
 
-        var gameCards = cards.Shuffled().ToList();
+        var gameCards = new Stack<CardData>(cards.Shuffled());
 
         gameRoom = new()
         {
@@ -69,39 +68,39 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
         foreach (var item in storage?.AllValues ?? [])
         {
-            var initialHand = gameCards[0..7];
-            gameCards.RemoveRange(0, 7);
-            GameData gameData = new() { Cards = initialHand, GainedCards = [], PlayerGuid = Id };
-            gameRoom.Data[Id] = gameData;
-            BroadcastTo(room, item.Id).OnGameData(gameRoom.Data[Id]);
+            var initialHand = gameCards.PopRange(7).ToList();
+            GameData gameData = new() { Cards = initialHand, GainedCards = [], PlayerGuid = ConnectionId };
+            gameRoom.Data[ConnectionId] = gameData;
+            BroadcastTo(room, item.ConnectionId).OnGameData(gameRoom.Data[ConnectionId]);
         }
 
 
         return ValueTask.CompletedTask;
     }
 
-    public async ValueTask MakeMoveAsync(CardData card)
+    public ValueTask MakeMoveAsync(CardData card)
     {
-        if (gameRoom is null) return;
+        if (gameRoom is null) return ValueTask.CompletedTask;
 
-        var cardToRemove = gameRoom.Data[Id].Cards.FirstOrDefault(i => i.Value == card.Value && i.Type == card.Type);
-        if (!gameRoom.Data[Id].Cards.Remove(cardToRemove)) return;
-        gameRoom.UsedCards[Id] = card;
-        gameRoom.LastPlayed = Id;
+        var cardToRemove = gameRoom.Data[ConnectionId].Cards.FirstOrDefault(i => i.Name == card.Name);
+        if (!gameRoom.Data[ConnectionId].Cards.Remove(cardToRemove)) return ValueTask.CompletedTask;
+        gameRoom.UsedCards[ConnectionId] = card;
+        gameRoom.LastPlayed = ConnectionId;
 
         if (gameRoom.Data.Count == gameRoom.UsedCards.Count)
         {
             //TODO Calculate winner
 
-            gameRoom.Data[Id].GainedCards = [.. gameRoom.UsedCards.Values];
+            gameRoom.Data[ConnectionId].GainedCards = [.. gameRoom.UsedCards.Values];
             gameRoom.UsedCards = [];
 
-            foreach (var (player, cards) in gameRoom.Data)
+            foreach (var (connectionId, cards) in gameRoom.Data)
             {
-                var next = gameRoom.Cards.FirstOrDefault();
-                if (next is not null) cards.Cards.Add(next);
-                BroadcastTo(room, player).OnGameData(gameRoom.Data[Id]);
+                if (gameRoom.Cards.TryPop(out var next)) cards.Cards.Add(next);
+                BroadcastTo(room, connectionId).OnGameData(gameRoom.Data[ConnectionId]);
             }
         }
+
+        return ValueTask.CompletedTask;
     }
 }

@@ -30,6 +30,8 @@ namespace Assets.Scripts
 
         private readonly GamingHubClient gamingHubClient = new(Guid.NewGuid());
         private CardRowManager cardRowManager;
+        private List<Card> currentCardsGo = new();
+        private List<CardData> currentCards => currentCardsGo.Select(i => i.CardData).ToList();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
@@ -99,18 +101,23 @@ namespace Assets.Scripts
         private void OnGameData(GameData gameData)
         {
             //TODO instance only new ones
-            var cardsGo = InstanceCards(gameData.Cards).ToList();
-            foreach (var item in cardsGo)
-            {
-                cardRowManager.AddCard(item.transform);
-            }
+            var newCards = gameData.Cards.Where(i => !currentCards.Any(x => x.Name == i.Name)).ToList();
+            var newCardsGo = InstanceCards(newCards).ToList();
+            currentCardsGo.AddRange(newCardsGo);
+            foreach (var item in newCardsGo) cardRowManager.AddCard(item);
 
-            Debug.Log("Game started");
+            Debug.Log("Game data received");
         }
 
         private void MakeMove(CardData card)
         {
+            var instancedCard = currentCardsGo.FirstOrDefault(x => x.name == card.Name);
             gamingHubClient.MakeMoveAsync(card);
+            cardRowManager.RemoveCard(instancedCard);
+            currentCardsGo.Remove(instancedCard);
+            Destroy(instancedCard.gameObject);
+
+            Debug.Log("Game data sent");
         }
     }
 }

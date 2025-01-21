@@ -53,7 +53,7 @@ namespace Assets.Scripts
                 return;
 
             startDif = Vector2.zero;
-            CardRowManager.DragCard(transform, destroyCancellationToken).Forget();
+            CardRowManager.DragCard(this, destroyCancellationToken).Forget();
         }
 
         private void OnMouseDrag()

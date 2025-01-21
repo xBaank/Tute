@@ -11,7 +11,7 @@ namespace Tute.Shared.GamingHub
     public interface IGamingHub : IStreamingHub<IGamingHub, IGamingHubReceiver>
     {
         // The method must return `ValueTask`, `ValueTask<T>`, `Task` or `Task<T>` and can have up to 15 parameters of any type.
-        ValueTask<Player[]> JoinAsync(string roomName, Guid guid);
+        ValueTask<(Guid connectionId, Player[] players)> JoinAsync(string roomName, string name);
         ValueTask StartAsync(IList<CardData> cards);
         ValueTask LeaveAsync();
         ValueTask MakeMoveAsync(CardData card);

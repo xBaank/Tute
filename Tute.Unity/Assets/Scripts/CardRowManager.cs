@@ -11,7 +11,7 @@ namespace Assets.Scripts
         private float yPosition = 3f; // Fixed Y position for the row
         private float cardSpacing = 2f; // Distance between cards
 
-        private readonly List<Transform> cards = new();
+        private readonly List<Card> cards = new();
         public Vector2 CurrentPosition { get; set; }
         public float SnapSpeed { get; set; } = 30f; // Speed of snapping animation
 
@@ -25,20 +25,20 @@ namespace Assets.Scripts
             SnapSpeed = snapSpeed;
         }
 
-        public void AddCard(Transform card)
+        public void AddCard(Card card)
         {
             cards.Add(card);
             UpdateCardPositions().Forget();
         }
 
-        public void RemoveCard(Transform card)
+        public void RemoveCard(Card card)
         {
             cards.Remove(card);
             UpdateCardPositions().Forget();
         }
 
         public async UniTaskVoid DragCard(
-            Transform draggedCard,
+            Card draggedCard,
             CancellationToken cancellationToken = default
         )
         {
@@ -54,7 +54,7 @@ namespace Assets.Scripts
                 var endTargetPosition = GetCardTargetPosition(cards.Count - i);
                 if (
                     CurrentPosition.x < startTargetPosition.x
-                    && draggedCard.position.x > startTargetPosition.x
+                    && draggedCard.transform.position.x > startTargetPosition.x
                 )
                 {
                     insertIndex = i;
@@ -62,7 +62,7 @@ namespace Assets.Scripts
 
                 if (
                     CurrentPosition.x > endTargetPosition.x
-                    && draggedCard.position.x < endTargetPosition.x
+                    && draggedCard.transform.position.x < endTargetPosition.x
                 )
                 {
                     insertIndex = cards.Count - i;
@@ -86,7 +86,7 @@ namespace Assets.Scripts
             for (var i = 0; i < cards.Count; i++)
             {
                 Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition, 0f);
-                tasks.Add(SnapCard(cards[i], targetPosition, cancellationToken));
+                tasks.Add(SnapCard(cards[i], targetPosition, cards[i].destroyCancellationToken));
             }
 
             await UniTask.WhenAll(tasks);
@@ -99,22 +99,22 @@ namespace Assets.Scripts
         }
 
         private async UniTask SnapCard(
-            Transform card,
+            Card card,
             Vector3 targetPosition,
             CancellationToken cancellationToken
         )
         {
-            while (Vector3.Distance(card.position, targetPosition) > 0.01f)
+            while (Vector3.Distance(card.transform.position, targetPosition) > 0.01f)
             {
-                card.position = Vector3.Lerp(
-                    card.position,
+                card.transform.position = Vector3.Lerp(
+                    card.transform.position,
                     targetPosition,
                     Time.deltaTime * SnapSpeed
                 );
 
                 await UniTask.Yield(cancellationToken);
             }
-            card.position = targetPosition;
+            card.transform.position = targetPosition;
         }
     }
 }

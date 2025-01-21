@@ -33,13 +33,13 @@ namespace Assets.Scripts.Services
                 this
             );
 
-            var roomPlayers = await client.JoinAsync(roomName, guid);
+            var (connectionid, roomPlayers) = await client.JoinAsync(roomName, guid.ToString());
             foreach (var player in roomPlayers)
             {
                 (this as IGamingHubReceiver).OnJoin(player);
             }
 
-            return players[guid];
+            return players[connectionid];
         }
 
         public ValueTask LeaveAsync()
@@ -72,12 +72,12 @@ namespace Assets.Scripts.Services
 
         public void OnJoin(Player player)
         {
-            players[player.Id] = new GameObject();
+            players[player.ConnectionId] = new GameObject();
         }
 
         public void OnLeave(Player player)
         {
-            if (players.TryGetValue(player.Id, out var cube))
+            if (players.TryGetValue(player.ConnectionId, out var cube))
             {
                 GameObject.Destroy(cube);
             }

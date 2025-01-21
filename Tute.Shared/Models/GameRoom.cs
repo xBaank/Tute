@@ -16,6 +16,6 @@ namespace Tute.Shared.Models
         [Key(3)]
         public Dictionary<Guid, CardData> UsedCards { get; set; }
         [Key(4)]
-        public IList<CardData> Cards { get; set; }
+        public Stack<CardData> Cards { get; set; }
     }
 }
