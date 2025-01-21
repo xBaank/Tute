@@ -25,17 +25,8 @@ namespace Assets.Scripts
             SnapSpeed = snapSpeed;
         }
 
-        public void AddCard(Card card)
-        {
-            cards.Add(card);
-            UpdateCardPositions().Forget();
-        }
-
-        public void RemoveCard(Card card)
-        {
-            cards.Remove(card);
-            UpdateCardPositions().Forget();
-        }
+        public void AddCard(Card card) => cards.Add(card);
+        public void RemoveCard(Card card) => cards.Remove(card);
 
         public async UniTaskVoid DragCard(
             Card draggedCard,

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Grpc.Core;
 using MagicOnion.Client;
 using Tute.Shared.GamingHub;
@@ -16,7 +17,7 @@ namespace Assets.Scripts.Services
         private readonly Guid guid;
         private IGamingHub client;
 
-        public event Action<GameData> OnGameDataEvent;
+        public event Func<GameData, UniTask> OnGameDataEvent;
 
         public GamingHubClient(Guid guid)
         {
@@ -85,7 +86,7 @@ namespace Assets.Scripts.Services
 
         public void OnGameData(GameData gameData)
         {
-            OnGameDataEvent?.Invoke(gameData);
+            OnGameDataEvent?.Invoke(gameData).Forget();
         }
     }
 }

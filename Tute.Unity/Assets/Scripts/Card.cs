@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using Tute.Shared.Models;
 using UnityEngine;
 
@@ -21,7 +22,7 @@ namespace Assets.Scripts
         internal CardRowManager CardRowManager { get; set; }
         internal CardData CardData { get; set; }
 
-        public event Action<CardData> Clicked;
+        public event Func<CardData, UniTask> Clicked;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
@@ -45,7 +46,7 @@ namespace Assets.Scripts
         {
             if (Vector2.Distance(startPosition, transform.position) < 0.1f)
             {
-                Clicked?.Invoke(CardData);
+                Clicked?.Invoke(CardData).Forget();
                 return;
             }
 

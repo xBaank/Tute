@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
 using Cysharp.Net.Http;
@@ -10,6 +11,7 @@ using MagicOnion;
 using MagicOnion.Unity;
 using Newtonsoft.Json;
 using Tute.Shared.Models;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -23,15 +25,20 @@ namespace Assets.Scripts
         private TextAsset cardsData;
 
         [SerializeField]
-        private Sprite[] spriteSheet;
-
-        [SerializeField]
         private Transform stackPosition;
 
+        [SerializeField]
+        private Transform spawPosition;
+
+        [SerializeField]
+        private Sprite[] spriteSheet;
+
+
         private readonly GamingHubClient gamingHubClient = new(Guid.NewGuid());
+        private readonly List<Card> currentCardsGo = new();
+        private readonly SemaphoreSlim semaphoreSlim = new(1);
         private CardRowManager cardRowManager;
-        private List<Card> currentCardsGo = new();
-        private List<CardData> currentCards => currentCardsGo.Select(i => i.CardData).ToList();
+        private List<CardData> CurrentCards => currentCardsGo.Select(i => i.CardData).ToList();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
@@ -56,7 +63,7 @@ namespace Assets.Scripts
                 stackPosition.position.x,
                 stackPosition.position.y,
                 1.5f,
-                10f
+                15f
             );
             Server().Forget();
         }
@@ -79,7 +86,7 @@ namespace Assets.Scripts
                 card.value = item.Value;
                 card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
-                card.transform.position = new Vector3(stackPosition.position.x + card.Sprite.bounds.size.x * index, 4);
+                card.transform.position = spawPosition.position;
                 yield return card;
             }
         }
@@ -98,26 +105,45 @@ namespace Assets.Scripts
         }
 
 
-        private void OnGameData(GameData gameData)
+        private async UniTask OnGameData(GameData gameData)
         {
-            //TODO instance only new ones
-            var newCards = gameData.Cards.Where(i => !currentCards.Any(x => x.Name == i.Name)).ToList();
-            var newCardsGo = InstanceCards(newCards).ToList();
-            currentCardsGo.AddRange(newCardsGo);
-            foreach (var item in newCardsGo) cardRowManager.AddCard(item);
+            await semaphoreSlim.WaitAsync(destroyCancellationToken);
+            try
+            {
+                var newCards = gameData.Cards.Where(i => !CurrentCards.Any(x => x.Name == i.Name)).ToList();
+                if (!newCards.Any() && !spawPosition.IsDestroyed()) Destroy(spawPosition.gameObject);
+                var newCardsGo = InstanceCards(newCards).ToList();
+                currentCardsGo.AddRange(newCardsGo);
+                foreach (var item in newCardsGo) cardRowManager.AddCard(item);
+                await cardRowManager.UpdateCardPositions();
 
-            Debug.Log("Game data received");
+                Debug.Log("Game data received");
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
         }
 
-        private void MakeMove(CardData card)
+        private async UniTask MakeMove(CardData card)
         {
-            var instancedCard = currentCardsGo.FirstOrDefault(x => x.name == card.Name);
-            gamingHubClient.MakeMoveAsync(card);
-            cardRowManager.RemoveCard(instancedCard);
-            currentCardsGo.Remove(instancedCard);
-            Destroy(instancedCard.gameObject);
+            await semaphoreSlim.WaitAsync(destroyCancellationToken);
+            try
+            {
+                var instancedCard = currentCardsGo.FirstOrDefault(x => x.name == card.Name);
+                if (instancedCard == null) return;
 
-            Debug.Log("Game data sent");
+                cardRowManager.RemoveCard(instancedCard);
+                currentCardsGo.Remove(instancedCard);
+                Destroy(instancedCard.gameObject);
+                await gamingHubClient.MakeMoveAsync(card);
+
+                Debug.Log("Game data sent");
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
         }
     }
 }
