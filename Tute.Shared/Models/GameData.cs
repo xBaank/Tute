@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using MessagePack;
 
 namespace Tute.Shared.Models
@@ -8,9 +7,11 @@ namespace Tute.Shared.Models
     public class GameData
     {
         [Key(0)]
-        public Guid PlayerGuid { get; set; }
+        public Player Player { get; set; }
+
         [Key(1)]
         public IList<CardData> Cards { get; set; }
+
         [Key(2)]
         public IList<CardData> GainedCards { get; set; }
     }

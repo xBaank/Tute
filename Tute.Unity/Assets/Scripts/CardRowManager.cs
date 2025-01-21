@@ -26,9 +26,10 @@ namespace Assets.Scripts
         }
 
         public void AddCard(Card card) => cards.Add(card);
+
         public void RemoveCard(Card card) => cards.Remove(card);
 
-        public async UniTaskVoid DragCard(
+        public async UniTask DragCard(
             Card draggedCard,
             CancellationToken cancellationToken = default
         )

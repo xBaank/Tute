@@ -12,22 +12,18 @@ namespace Assets.Scripts.Services
 {
     public class GamingHubClient : IGamingHubReceiver
     {
-
         private readonly Dictionary<Guid, GameObject> players = new();
         private readonly Guid guid;
         private IGamingHub client;
 
-        public event Func<GameData, UniTask> OnGameDataEvent;
+        public event Func<GameData, Player, UniTask> OnGameDataEvent;
 
         public GamingHubClient(Guid guid)
         {
             this.guid = guid;
         }
 
-        public async ValueTask<GameObject> ConnectAsync(
-            ChannelBase grpcChannel,
-            string roomName
-        )
+        public async ValueTask<GameObject> ConnectAsync(ChannelBase grpcChannel, string roomName)
         {
             client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
                 grpcChannel,
@@ -70,7 +66,6 @@ namespace Assets.Scripts.Services
             return client.StartAsync(cardDatas);
         }
 
-
         public void OnJoin(Player player)
         {
             players[player.ConnectionId] = new GameObject();
@@ -84,9 +79,9 @@ namespace Assets.Scripts.Services
             }
         }
 
-        public void OnGameData(GameData gameData)
+        public void OnGameData(GameData gameData, Player nextPlayer)
         {
-            OnGameDataEvent?.Invoke(gameData).Forget();
+            OnGameDataEvent?.Invoke(gameData, nextPlayer).Forget();
         }
     }
 }

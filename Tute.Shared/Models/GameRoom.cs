@@ -9,13 +9,20 @@ namespace Tute.Shared.Models
     {
         [Key(0)]
         public Dictionary<Guid, GameData> Data { get; set; }
+
         [Key(1)]
         public GameState State { get; set; }
+
         [Key(2)]
-        public Guid? LastPlayed { get; set; }
+        public Player NextPlayer { get; set; }
+
         [Key(3)]
-        public Dictionary<Guid, CardData> UsedCards { get; set; }
+        public IList<Player> Players { get; set; }
+
         [Key(4)]
+        public Dictionary<Guid, CardData> UsedCards { get; set; }
+
+        [Key(5)]
         public Stack<CardData> Cards { get; set; }
     }
 }

@@ -6,6 +6,6 @@ namespace Tute.Shared.GamingHub
     {
         void OnJoin(Player player);
         void OnLeave(Player player);
-        void OnGameData(GameData gameData);
+        void OnGameData(GameData gameData, Player NextPlayer);
     }
 }

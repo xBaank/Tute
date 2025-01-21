@@ -21,6 +21,7 @@ namespace Assets.Scripts
 
         internal CardRowManager CardRowManager { get; set; }
         internal CardData CardData { get; set; }
+        internal AudioController AudioController { get; set; }
 
         public event Func<CardData, UniTask> Clicked;
 
@@ -53,8 +54,7 @@ namespace Assets.Scripts
             if (CardRowManager.IsOrdering)
                 return;
 
-            startDif = Vector2.zero;
-            CardRowManager.DragCard(this, destroyCancellationToken).Forget();
+            DragCards().Forget();
         }
 
         private void OnMouseDrag()
@@ -65,6 +65,13 @@ namespace Assets.Scripts
             var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
             Vector3 newPos = new(mousePos.x, mousePos.y, 0);
             transform.position = newPos;
+        }
+
+        private async UniTaskVoid DragCards()
+        {
+            startDif = Vector2.zero;
+            AudioController.PlayFlick();
+            await CardRowManager.DragCard(this, destroyCancellationToken);
         }
     }
 }
