@@ -14,6 +14,6 @@ namespace Tute.Shared.GamingHub
         ValueTask<(Guid connectionId, Player[] players)> JoinAsync(string roomName, string name);
         ValueTask StartAsync(IList<CardData> cards);
         ValueTask LeaveAsync();
-        ValueTask MakeMoveAsync(CardData card);
+        ValueTask<(GameData gameData, Player nextPlayer)> MakeMoveAsync(CardData card);
     }
 }

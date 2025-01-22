@@ -56,7 +56,7 @@ namespace Assets.Scripts.Services
             return client.WaitForDisconnect();
         }
 
-        public ValueTask MakeMoveAsync(CardData card)
+        public ValueTask<(GameData gameData, Player nextPlayer)> MakeMoveAsync(CardData card)
         {
             return client.MakeMoveAsync(card);
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
 using Cysharp.Net.Http;
@@ -10,7 +11,6 @@ using MagicOnion;
 using MagicOnion.Unity;
 using Newtonsoft.Json;
 using Tute.Shared.Models;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -33,13 +33,13 @@ namespace Assets.Scripts
         private Sprite[] spriteSheet;
 
         [SerializeField]
-        AudioController audioController;
+        private AudioController audioController;
 
         private readonly GamingHubClient _gamingHubClient = new(Guid.NewGuid());
         private readonly List<Card> _currentCardsGo = new();
         private Player _nextPlayer;
         private Player _selfPlayer;
-        private bool isReceiving;
+        private Task? currentTask;
         private CardRowManager _cardRowManager;
         private List<CardData> CurrentCards => _currentCardsGo.Select(i => i.CardData).ToList();
 
@@ -111,15 +111,16 @@ namespace Assets.Scripts
 
         private async UniTask OnGameData(GameData gameData, Player nextPlayer)
         {
-            isReceiving = true;
             Debug.Log("Game data received");
+            Debug.Log($"Me: {gameData.Player.ConnectionId}, Next: {nextPlayer.ConnectionId}");
+            await SetData(gameData, nextPlayer);
+        }
 
+        private async Task SetData(GameData gameData, Player nextPlayer)
+        {
             var newCards = gameData
                 .Cards.Where(i => !CurrentCards.Any(x => x.Name == i.Name))
                 .ToList();
-
-            if (!newCards.Any() && !spawPosition.IsDestroyed())
-                Destroy(spawPosition.gameObject);
 
             if (!newCards.Any())
             {
@@ -137,15 +138,16 @@ namespace Assets.Scripts
 
             _nextPlayer = nextPlayer;
             _selfPlayer = gameData.Player;
-            isReceiving = false;
         }
 
         private async UniTask MakeMove(CardData card)
         {
-            if (isReceiving)
+            if (currentTask != null && !currentTask.IsCompleted)
+            {
                 return;
+            }
 
-            if (_nextPlayer == null && _selfPlayer == null)
+            if (_nextPlayer == null || _selfPlayer == null)
                 return;
 
             if (_nextPlayer.ConnectionId != _selfPlayer.ConnectionId)
@@ -159,7 +161,15 @@ namespace Assets.Scripts
             _currentCardsGo.Remove(instancedCard);
             Destroy(instancedCard.gameObject);
             Debug.Log("Game data sent");
-            await _gamingHubClient.MakeMoveAsync(card);
+            UniTask[] tasks = { GetResponse(card), _cardRowManager.UpdateCardPositions() };
+            currentTask = UniTask.WhenAll(tasks).AsTask();
+            await currentTask;
+        }
+
+        private async UniTask GetResponse(CardData card)
+        {
+            var (gameData, nextPlayer) = await _gamingHubClient.MakeMoveAsync(card);
+            await SetData(gameData, nextPlayer);
         }
     }
 }

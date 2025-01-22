@@ -535,3 +535,4 @@ obj/
 # End of https://www.toptal.com/developers/gitignore/api/aspnetcore,dotnetcore,csharp
 !Tute.Unity/[Pp]ackages/*
 !Tute.Unity/**/*.meta
+Tute.Unity_clone_0
