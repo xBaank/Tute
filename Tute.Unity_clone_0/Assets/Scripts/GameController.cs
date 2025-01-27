@@ -221,9 +221,10 @@ namespace Assets.Scripts
 
         private void OnGUI()
         {
-            GUI.Label(new Rect(15, 15, 100, 30), $"Leader {_selfPlayer?.IsLeader}");
-            GUI.Label(new Rect(15, 30, 100, 30), $"Points {currentData?.GainedCards.Sum(i => i.Value)}");
-            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte {currentData?.Pinte.Type.ToString()}");
+            GUI.Label(new Rect(15, 15, 100, 30), $"Leader: {_selfPlayer?.IsLeader}");
+            GUI.Label(new Rect(15, 30, 100, 30), $"Points: {currentData?.GainedCards.Sum(i => i.Value)}");
+            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {currentData?.Pinte.Type.ToString()}");
+            GUI.Label(new Rect(15, 60, 100, 30), $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}");
         }
     }
 }
