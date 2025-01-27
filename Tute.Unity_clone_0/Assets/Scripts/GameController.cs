@@ -6,6 +6,7 @@ using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
 using Cysharp.Net.Http;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using Grpc.Net.Client;
 using MagicOnion;
 using MagicOnion.Unity;
@@ -28,7 +29,6 @@ namespace Assets.Scripts
 
         [SerializeField]
         private Transform spawPosition;
-
 
         [SerializeField]
         private Transform usedCardsPosition;
@@ -99,9 +99,10 @@ namespace Assets.Scripts
                 yield return card;
             }
         }
+
         private IEnumerable<Card> InstanceUsedCards(IList<CardData> data)
         {
-            foreach ((var index, var item) in data.WithIndex())
+            foreach ((_, var item) in data.WithIndex())
             {
                 yield return InstanceUsedCard(item);
             }
@@ -110,13 +111,12 @@ namespace Assets.Scripts
         private Card InstanceUsedCard(CardData item)
         {
             var card = Instantiate(cardPrefab, transform);
-            card.Clicked += MakeMove;
             card.CardData = item;
             card.cardType = item.Type;
             card.value = item.Value;
             card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
             card.name = item.Name;
-            card.transform.position = usedCardsPosition.position;
+            card.transform.position = new Vector2(0, -10);
             return card;
         }
 
@@ -150,8 +150,33 @@ namespace Assets.Scripts
                 .ToList();
 
             var newUsedCards = gameData
-                .UsedCards.Values.Where(i => !_currentUsedCardsGo.Any(x => x.CardData.Name == i.Name))
+                .UsedCards.Values.Where(i =>
+                    !_currentUsedCardsGo.Any(x => x.CardData.Name == i.Name)
+                )
                 .ToList();
+
+            //TODO animate
+            foreach (var item in InstanceUsedCards(newUsedCards))
+            {
+                _currentUsedCardsGo.Add(item);
+                audioController.PlayFlick();
+                item.transform.DOMove(
+                    usedCardsPosition.transform.position
+                        + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right),
+                    0.1f
+                );
+            }
+
+            await UniTask.WaitForSeconds(1);
+
+            if (!newUsedCards.Any() && !gameData.UsedCards.Any())
+            {
+                foreach (var item in _currentUsedCardsGo)
+                {
+                    Destroy(item.gameObject);
+                }
+                _currentUsedCardsGo.Clear();
+            }
 
             if (!newCards.Any())
             {
@@ -176,13 +201,6 @@ namespace Assets.Scripts
                 await _cardRowManager.UpdateCardPositions();
             }
 
-            //TODO animate
-            foreach (var item in InstanceUsedCards(newUsedCards))
-            {
-                _currentUsedCardsGo.Add(item);
-                audioController.PlayFlick();
-            }
-
             _nextPlayer = nextPlayer;
             _selfPlayer = gameData.Player;
         }
@@ -202,11 +220,11 @@ namespace Assets.Scripts
             if (instancedCard == null)
                 return;
 
-            _currentUsedCardsGo.Add(InstanceUsedCard(card));
-
             _cardRowManager.RemoveCard(instancedCard);
+            audioController.PlayFlick();
+            instancedCard.transform.DOMove(usedCardsPosition.transform.position, 0.1f);
             _currentCardsGo.Remove(instancedCard);
-            Destroy(instancedCard.gameObject);
+            _currentUsedCardsGo.Add(instancedCard);
             Debug.Log("Game data sent");
             UniTask[] tasks = { GetResponse(card), _cardRowManager.UpdateCardPositions() };
             currentTask = UniTask.WhenAll(tasks).AsTask();
@@ -222,9 +240,15 @@ namespace Assets.Scripts
         private void OnGUI()
         {
             GUI.Label(new Rect(15, 15, 100, 30), $"Leader: {_selfPlayer?.IsLeader}");
-            GUI.Label(new Rect(15, 30, 100, 30), $"Points: {currentData?.GainedCards.Sum(i => i.Value)}");
+            GUI.Label(
+                new Rect(15, 30, 100, 30),
+                $"Points: {currentData?.GainedCards.Sum(i => i.Value)}"
+            );
             GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {currentData?.Pinte.Type.ToString()}");
-            GUI.Label(new Rect(15, 60, 100, 30), $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}");
+            GUI.Label(
+                new Rect(15, 60, 100, 30),
+                $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
+            );
         }
     }
 }

@@ -39,7 +39,6 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         return (self, [.. storage.AllValues]);
     }
 
-
     protected override async ValueTask OnDisconnected()
     {
         await LeaveAsync();
@@ -49,7 +48,6 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
     {
         if (room is null)
             return;
-
 
         await room.RemoveAsync(Context);
         Broadcast(room).OnLeave(self);
@@ -143,7 +141,11 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             var winner = GetWinner(gameRoom);
             gameRoom.NextPlayer = gameRoom.Data[winner.Key].Player;
 
-            gameRoom.Data[winner.Key].GainedCards = [.. gameRoom.Data[winner.Key].GainedCards, .. gameRoom.UsedCards.Values];
+            gameRoom.Data[winner.Key].GainedCards =
+            [
+                .. gameRoom.Data[winner.Key].GainedCards,
+                .. gameRoom.UsedCards.Values
+            ];
             gameRoom.UsedCards = [];
 
             foreach (var (playerConnectionId, playerCards) in gameRoom.Data)
@@ -154,7 +156,8 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
                 if (isNext)
                     playerCards.Cards.Add(nextCard);
                 if (playerConnectionId != ConnectionId)
-                    BroadcastTo(room, playerConnectionId).OnGameData(gameRoom.Data[playerConnectionId], gameRoom.NextPlayer);
+                    BroadcastTo(room, playerConnectionId)
+                        .OnGameData(gameRoom.Data[playerConnectionId], gameRoom.NextPlayer);
             }
         }
         else
@@ -164,7 +167,8 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
                 playerCards.UsedCards = gameRoom.UsedCards;
 
                 if (playerConnectionId != ConnectionId)
-                    BroadcastTo(room, playerConnectionId).OnGameData(gameRoom.Data[playerConnectionId], gameRoom.NextPlayer);
+                    BroadcastTo(room, playerConnectionId)
+                        .OnGameData(gameRoom.Data[playerConnectionId], gameRoom.NextPlayer);
             }
         }
 
@@ -177,12 +181,12 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
     {
         var firstCard = gameRoom.UsedCards.FirstOrDefault().Value;
 
-        var bestByValue = gameRoom.UsedCards
-            .Where(i => i.Value.Type == firstCard.Type)
+        var bestByValue = gameRoom
+            .UsedCards.Where(i => i.Value.Type == firstCard.Type)
             .MaxByOrDefault(i => i.Value.Value);
 
-        var bestByType = gameRoom.UsedCards
-            .Where(i => i.Value.Type == gameRoom.Pinte.Type)
+        var bestByType = gameRoom
+            .UsedCards.Where(i => i.Value.Type == gameRoom.Pinte.Type)
             .MaxByOrDefault(i => i.Value.Value);
 
         var winner = bestByType ?? bestByValue ?? throw new InvalidOperationException();
@@ -192,8 +196,8 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
     private void RemovePlayerCard(CardData card, GameRoom gameRoom)
     {
         var cardToRemove = gameRoom
-                    .Data[ConnectionId]
-                    .Cards.FirstOrDefault(i => i.Name == card.Name);
+            .Data[ConnectionId]
+            .Cards.FirstOrDefault(i => i.Name == card.Name);
 
         if (!gameRoom.Data[ConnectionId].Cards.Remove(cardToRemove))
             throw new InvalidOperationException();
