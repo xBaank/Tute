@@ -14,5 +14,8 @@ namespace Tute.Shared.Models
 
         [Key(2)]
         public IList<CardData> GainedCards { get; set; }
+
+        [Key(3)]
+        public CardData Pinte { get; set; }
     }
 }

@@ -23,20 +23,20 @@ namespace Assets.Scripts.Services
             this.guid = guid;
         }
 
-        public async ValueTask<GameObject> ConnectAsync(ChannelBase grpcChannel, string roomName)
+        public async ValueTask<Player> ConnectAsync(ChannelBase grpcChannel, string roomName)
         {
             client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
                 grpcChannel,
                 this
             );
 
-            var (connectionid, roomPlayers) = await client.JoinAsync(roomName, guid.ToString());
+            var (self, roomPlayers) = await client.JoinAsync(roomName, guid.ToString());
             foreach (var player in roomPlayers)
             {
                 (this as IGamingHubReceiver).OnJoin(player);
             }
 
-            return players[connectionid];
+            return self;
         }
 
         public ValueTask LeaveAsync()

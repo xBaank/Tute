@@ -18,7 +18,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         this.gameRooms = gameRooms;
     }
 
-    public async ValueTask<(Guid, Player[])> JoinAsync(string roomname, string name)
+    public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
     {
         self = new Player() { Name = name, ConnectionId = ConnectionId };
         (room, storage) = await Group.AddAsync(roomname, self);
@@ -36,7 +36,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
         // Typed Server->Client broadcast.
         Broadcast(room).OnJoin(self);
-        return (ConnectionId, [.. storage.AllValues]);
+        return (self, [.. storage.AllValues]);
     }
 
 
@@ -75,6 +75,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
         var gameCards = new Stack<CardData>(cards.Shuffled());
         var players = storage.AllValues.ToList();
+        var pinte = gameCards.Pop();
         if (gameRooms.TryGetValue(room.GroupName, out var value))
         {
             gameRoom = value;
@@ -88,7 +89,8 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
                 UsedCards = [],
                 Cards = gameCards,
                 Players = players,
-                NextPlayer = players.First()
+                NextPlayer = players.First(),
+                Pinte = pinte
             };
             gameRooms[room.GroupName] = gameRoom;
         }
@@ -101,7 +103,8 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
                 {
                     Cards = initialHand,
                     GainedCards = [],
-                    Player = item
+                    Player = item,
+                    Pinte = pinte
                 };
             gameRoom.Data[item.ConnectionId] = gameData;
             BroadcastTo(room, item.ConnectionId)
@@ -131,24 +134,14 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         if (ConnectionId != gameRoom.NextPlayer.ConnectionId)
             throw new InvalidOperationException();
 
-        var cardToRemove = gameRoom
-            .Data[ConnectionId]
-            .Cards.FirstOrDefault(i => i.Name == card.Name);
-
-        if (!gameRoom.Data[ConnectionId].Cards.Remove(cardToRemove))
-            throw new InvalidOperationException();
-
-        var currentIndex = gameRoom.Players.IndexOf(gameRoom.NextPlayer);
-        var nextPlayer = gameRoom.Players.ElementAtOrDefault(currentIndex + 1);
-        var nextIndex = nextPlayer == default ? 0 : gameRoom.Players.IndexOf(nextPlayer);
-        gameRoom.UsedCards[ConnectionId] = card;
-        gameRoom.NextPlayer = gameRoom.Players[nextIndex];
+        RemovePlayerCard(card);
+        gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex()];
 
         if (gameRoom.Data.Count == gameRoom.UsedCards.Count)
         {
-            //TODO Calculate winner
+            var winner = GetWinner();
 
-            gameRoom.Data[ConnectionId].GainedCards = [.. gameRoom.UsedCards.Values];
+            gameRoom.Data[winner.Key].GainedCards = [.. gameRoom.UsedCards.Values];
             gameRoom.UsedCards = [];
 
             foreach (var (playerConnectionId, playerCards) in gameRoom.Data)
@@ -170,5 +163,43 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         }
 
         return ValueTask.FromResult((gameRoom.Data[ConnectionId], gameRoom.NextPlayer));
+    }
+
+    private KeyValuePair<Guid, CardData> GetWinner()
+    {
+        var firstCard = gameRoom.UsedCards.FirstOrDefault().Value;
+
+        var bestByValue = gameRoom.UsedCards
+            .Where(i => i.Value.Type == firstCard.Type)
+            .MaxByOrDefault(i => i.Value);
+
+        var bestByType = gameRoom.UsedCards
+            .Where(i => i.Value.Type == gameRoom.Pinte.Type)
+            .MaxByOrDefault(i => i.Value);
+
+        var winner = bestByType ?? bestByValue ?? throw new InvalidOperationException();
+        return winner;
+    }
+
+    private void RemovePlayerCard(CardData card)
+    {
+        var cardToRemove = gameRoom
+                    .Data[ConnectionId]
+                    .Cards.FirstOrDefault(i => i.Name == card.Name);
+
+        if (!gameRoom.Data[ConnectionId].Cards.Remove(cardToRemove))
+            throw new InvalidOperationException();
+
+        gameRoom.UsedCards[ConnectionId] = card;
+    }
+
+    private int GetNextPlayerIndex()
+    {
+        if (gameRoom is null) throw new InvalidOperationException();
+
+        var currentIndex = gameRoom.Players.IndexOf(gameRoom.NextPlayer);
+        var nextPlayer = gameRoom.Players.ElementAtOrDefault(currentIndex + 1);
+        var nextIndex = nextPlayer == default ? 0 : gameRoom.Players.IndexOf(nextPlayer);
+        return nextIndex;
     }
 }

@@ -101,7 +101,7 @@ namespace Assets.Scripts
 
             _gamingHubClient.OnGameDataEvent += OnGameData;
 
-            await _gamingHubClient.ConnectAsync(channel, "room");
+            _selfPlayer = await _gamingHubClient.ConnectAsync(channel, "room");
             await UniTask.WaitUntil(
                 () => Input.GetKey(KeyCode.Space),
                 cancellationToken: destroyCancellationToken
@@ -170,6 +170,11 @@ namespace Assets.Scripts
         {
             var (gameData, nextPlayer) = await _gamingHubClient.MakeMoveAsync(card);
             await SetData(gameData, nextPlayer);
+        }
+
+        private void OnGUI()
+        {
+            GUI.Label(new Rect(15, 15, 100, 30), $"Leader {_selfPlayer?.IsLeader}");
         }
     }
 }

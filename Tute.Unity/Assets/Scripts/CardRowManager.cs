@@ -11,6 +11,7 @@ namespace Assets.Scripts
         private float yPosition = 3f; // Fixed Y position for the row
         private float cardSpacing = 2f; // Distance between cards
 
+        private readonly SemaphoreSlim se = new(1);
         private readonly List<Card> cards = new();
         public Vector2 CurrentPosition { get; set; }
         public float SnapSpeed { get; set; } = 30f; // Speed of snapping animation
@@ -72,17 +73,26 @@ namespace Assets.Scripts
 
         public async UniTask UpdateCardPositions(CancellationToken cancellationToken = default)
         {
+            await se.WaitAsync(cancellationToken);
             IsOrdering = true;
-            var tasks = new List<UniTask>();
 
-            for (var i = 0; i < cards.Count; i++)
+            try
             {
-                Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition, 0f);
-                tasks.Add(SnapCard(cards[i], targetPosition, cards[i].destroyCancellationToken));
-            }
+                var tasks = new List<UniTask>();
 
-            await UniTask.WhenAll(tasks);
-            IsOrdering = false;
+                for (var i = 0; i < cards.Count; i++)
+                {
+                    Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition, 0f);
+                    tasks.Add(SnapCard(cards[i], targetPosition, cards[i].destroyCancellationToken));
+                }
+
+                await UniTask.WhenAll(tasks);
+            }
+            finally
+            {
+                IsOrdering = false;
+                se.Release();
+            }
         }
 
         private Vector3 GetCardTargetPosition(int index)

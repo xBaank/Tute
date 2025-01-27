@@ -24,5 +24,8 @@ namespace Tute.Shared.Models
 
         [Key(5)]
         public Stack<CardData> Cards { get; set; }
+
+        [Key(6)]
+        public CardData Pinte { get; set; }
     }
 }
