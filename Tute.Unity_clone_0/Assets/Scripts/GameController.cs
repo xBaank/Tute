@@ -29,6 +29,10 @@ namespace Assets.Scripts
         [SerializeField]
         private Transform spawPosition;
 
+
+        [SerializeField]
+        private Transform usedCardsPosition;
+
         [SerializeField]
         private Sprite[] spriteSheet;
 
@@ -37,11 +41,12 @@ namespace Assets.Scripts
 
         private readonly GamingHubClient _gamingHubClient = new(Guid.NewGuid());
         private readonly List<Card> _currentCardsGo = new();
+        private readonly List<Card> _currentUsedCardsGo = new();
         private Player _nextPlayer;
         private Player _selfPlayer;
         private Task? currentTask;
         private CardRowManager _cardRowManager;
-        private List<CardData> CurrentCards => _currentCardsGo.Select(i => i.CardData).ToList();
+        private GameData currentData;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
@@ -94,6 +99,26 @@ namespace Assets.Scripts
                 yield return card;
             }
         }
+        private IEnumerable<Card> InstanceUsedCards(IList<CardData> data)
+        {
+            foreach ((var index, var item) in data.WithIndex())
+            {
+                yield return InstanceUsedCard(item);
+            }
+        }
+
+        private Card InstanceUsedCard(CardData item)
+        {
+            var card = Instantiate(cardPrefab, transform);
+            card.Clicked += MakeMove;
+            card.CardData = item;
+            card.cardType = item.Type;
+            card.value = item.Value;
+            card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
+            card.name = item.Name;
+            card.transform.position = usedCardsPosition.position;
+            return card;
+        }
 
         private async UniTaskVoid Server()
         {
@@ -118,14 +143,29 @@ namespace Assets.Scripts
 
         private async Task SetData(GameData gameData, Player nextPlayer)
         {
+            currentData = gameData;
+
             var newCards = gameData
-                .Cards.Where(i => !CurrentCards.Any(x => x.Name == i.Name))
+                .Cards.Where(i => !_currentCardsGo.Any(x => x.CardData.Name == i.Name))
+                .ToList();
+
+            var newUsedCards = gameData
+                .UsedCards.Values.Where(i => !_currentUsedCardsGo.Any(x => x.CardData.Name == i.Name))
                 .ToList();
 
             if (!newCards.Any())
             {
                 audioController.PlayFlick();
                 await _cardRowManager.UpdateCardPositions();
+            }
+
+            if (!gameData.UsedCards.Any())
+            {
+                foreach (var item in _currentUsedCardsGo)
+                {
+                    Destroy(item.gameObject);
+                }
+                _currentUsedCardsGo.Clear();
             }
 
             foreach (var item in InstanceCards(newCards))
@@ -136,6 +176,13 @@ namespace Assets.Scripts
                 await _cardRowManager.UpdateCardPositions();
             }
 
+            //TODO animate
+            foreach (var item in InstanceUsedCards(newUsedCards))
+            {
+                _currentUsedCardsGo.Add(item);
+                audioController.PlayFlick();
+            }
+
             _nextPlayer = nextPlayer;
             _selfPlayer = gameData.Player;
         }
@@ -143,9 +190,7 @@ namespace Assets.Scripts
         private async UniTask MakeMove(CardData card)
         {
             if (currentTask != null && !currentTask.IsCompleted)
-            {
                 return;
-            }
 
             if (_nextPlayer == null || _selfPlayer == null)
                 return;
@@ -156,6 +201,8 @@ namespace Assets.Scripts
             var instancedCard = _currentCardsGo.FirstOrDefault(x => x.name == card.Name);
             if (instancedCard == null)
                 return;
+
+            _currentUsedCardsGo.Add(InstanceUsedCard(card));
 
             _cardRowManager.RemoveCard(instancedCard);
             _currentCardsGo.Remove(instancedCard);
@@ -175,6 +222,8 @@ namespace Assets.Scripts
         private void OnGUI()
         {
             GUI.Label(new Rect(15, 15, 100, 30), $"Leader {_selfPlayer?.IsLeader}");
+            GUI.Label(new Rect(15, 30, 100, 30), $"Points {currentData?.GainedCards.Sum(i => i.Value)}");
+            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte {currentData?.Pinte.Type.ToString()}");
         }
     }
 }

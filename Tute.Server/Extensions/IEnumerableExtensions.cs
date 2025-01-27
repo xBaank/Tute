@@ -6,11 +6,13 @@
         {
             try
             {
-                return source.MaxBy(selector);
+                var sourceList = source.ToList();
+                if (sourceList.Count == 0) return null;
+                return sourceList.MaxBy(selector);
             }
             catch (Exception ex) when (ex is InvalidOperationException)
             {
-                return default(TSource);
+                return null;
             }
         }
     }
