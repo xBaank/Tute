@@ -503,7 +503,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 457c0eb1ef557954da7a3be3368e5cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardPrefab: {fileID: 2220819369506287779, guid: 933996f2ce5a87c46bac168000c00593, type: 3}
+  cardPrefab: {fileID: 6072684959896779729, guid: 311cb722205ec6641a0f1b59af64e1ab, type: 3}
   noBehaviorCardPrefab: {fileID: 5529869214331513549, guid: 811f30c409a714d49b6a3600b8c6c006, type: 3}
   cardsData: {fileID: 4900000, guid: bca7e4c213e2995478d100a319be8140, type: 3}
   stackPosition: {fileID: 276480112}

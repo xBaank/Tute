@@ -28,7 +28,7 @@ namespace Assets.Scripts
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
-            spriteRenderer = GetComponent<SpriteRenderer>();
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             spriteRenderer.sprite = Sprite;
         }
 
@@ -42,6 +42,7 @@ namespace Assets.Scripts
             startDif = transform.position - mousePos;
             CardRowManager.CurrentPosition = transform.position;
         }
+
 
         private void OnMouseUp()
         {
