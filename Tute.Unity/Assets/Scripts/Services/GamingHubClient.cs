@@ -16,7 +16,8 @@ namespace Assets.Scripts.Services
         private readonly Guid guid;
         private IGamingHub client;
 
-        public event Func<GameData, Player, UniTask> OnGameDataEvent;
+        public event Func<GameDataResponse, UniTask> OnGameDataEvent;
+        public event Func<CardData, Player, UniTask> OnUsedCardEvent;
 
         public GamingHubClient(Guid guid)
         {
@@ -56,7 +57,7 @@ namespace Assets.Scripts.Services
             return client.WaitForDisconnect();
         }
 
-        public ValueTask<(GameData gameData, Player nextPlayer)> MakeMoveAsync(CardData card)
+        public ValueTask<GameDataResponse> MakeMoveAsync(CardData card)
         {
             return client.MakeMoveAsync(card);
         }
@@ -79,9 +80,14 @@ namespace Assets.Scripts.Services
             }
         }
 
-        public void OnGameData(GameData gameData, Player nextPlayer)
+        public void OnGameData(GameDataResponse gameData)
         {
-            OnGameDataEvent?.Invoke(gameData, nextPlayer).Forget();
+            OnGameDataEvent?.Invoke(gameData).Forget();
+        }
+
+        public void OnUsedCard(CardData card, Player userCard)
+        {
+            OnUsedCardEvent?.Invoke(card, userCard).Forget();
         }
     }
 }

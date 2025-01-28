@@ -452,7 +452,7 @@ Transform:
   m_GameObject: {fileID: 1411857387}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -7, y: 0, z: 0}
+  m_LocalPosition: {x: -8, y: 0, z: 0}
   m_LocalScale: {x: 0.7, y: 0.7, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -504,6 +504,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 2220819369506287779, guid: 933996f2ce5a87c46bac168000c00593, type: 3}
+  noBehaviorCardPrefab: {fileID: 5529869214331513549, guid: 811f30c409a714d49b6a3600b8c6c006, type: 3}
   cardsData: {fileID: 4900000, guid: bca7e4c213e2995478d100a319be8140, type: 3}
   stackPosition: {fileID: 276480112}
   spawPosition: {fileID: 1411857389}
@@ -682,7 +683,7 @@ Transform:
   m_GameObject: {fileID: 1759997688}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -3, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

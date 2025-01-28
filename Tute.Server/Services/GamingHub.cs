@@ -83,7 +83,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             gameRoom = new()
             {
                 State = GameState.Playing,
-                Data = [],
+                PlayerData = [],
                 UsedCards = [],
                 Cards = gameCards,
                 Players = players,
@@ -96,24 +96,21 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         foreach (var item in gameRoom.Players)
         {
             var initialHand = gameCards.PopRange(7).ToList();
-            GameData gameData =
+            PlayerData gameData =
                 new()
                 {
                     Cards = initialHand,
                     GainedCards = [],
-                    Player = item,
-                    Pinte = pinte,
-                    UsedCards = []
+                    Player = item
                 };
-            gameRoom.Data[item.ConnectionId] = gameData;
-            BroadcastTo(room, item.ConnectionId)
-                .OnGameData(gameRoom.Data[item.ConnectionId], gameRoom.NextPlayer);
+            gameRoom.PlayerData[item.ConnectionId] = gameData;
+            BroadcastTo(room, item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
         }
 
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask<(GameData gameData, Player nextPlayer)> MakeMoveAsync(CardData card)
+    public ValueTask<GameDataResponse> MakeMoveAsync(CardData card)
     {
         if (room is null)
             throw new InvalidOperationException();
@@ -134,47 +131,40 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             throw new InvalidOperationException();
 
         RemovePlayerCard(card, gameRoom);
-        gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex(gameRoom)];
+        gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex()];
 
-        if (gameRoom.Data.Count == gameRoom.UsedCards.Count)
+        Broadcast(room).OnUsedCard(card, self);
+
+        if (gameRoom.PlayerData.Count == gameRoom.UsedCards.Count)
         {
             var winner = GetWinner(gameRoom);
-            gameRoom.NextPlayer = gameRoom.Data[winner.Key].Player;
+            gameRoom.NextPlayer = gameRoom.PlayerData[winner.Key].Player;
 
-            gameRoom.Data[winner.Key].GainedCards =
+            gameRoom.PlayerData[winner.Key].GainedCards =
             [
-                .. gameRoom.Data[winner.Key].GainedCards,
+                .. gameRoom.PlayerData[winner.Key].GainedCards,
                 .. gameRoom.UsedCards.Values
             ];
             gameRoom.UsedCards = [];
 
-            foreach (var (playerConnectionId, playerCards) in gameRoom.Data)
+            foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerData)
             {
-                playerCards.UsedCards = gameRoom.UsedCards;
-
                 var isNext = gameRoom.Cards.TryPop(out var nextCard);
-                if (isNext)
-                    playerCards.Cards.Add(nextCard);
-                if (playerConnectionId != ConnectionId)
-                    BroadcastTo(room, playerConnectionId)
-                        .OnGameData(gameRoom.Data[playerConnectionId], gameRoom.NextPlayer);
+                if (isNext) playerCards.Cards.Add(nextCard);
+                if (playerConnectionId == ConnectionId) continue;
+                BroadcastTo(room, playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
             }
         }
         else
         {
-            foreach (var (playerConnectionId, playerCards) in gameRoom.Data)
+            foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerData)
             {
-                playerCards.UsedCards = gameRoom.UsedCards;
-
-                if (playerConnectionId != ConnectionId)
-                    BroadcastTo(room, playerConnectionId)
-                        .OnGameData(gameRoom.Data[playerConnectionId], gameRoom.NextPlayer);
+                if (playerConnectionId == ConnectionId) continue;
+                BroadcastTo(room, playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
             }
         }
 
-        gameRoom.Data[ConnectionId].UsedCards = gameRoom.UsedCards;
-
-        return ValueTask.FromResult((gameRoom.Data[ConnectionId], gameRoom.NextPlayer));
+        return ValueTask.FromResult(CreateDataFor(gameRoom.PlayerData[ConnectionId]));
     }
 
     private KeyValuePair<Guid, CardData> GetWinner(GameRoom gameRoom)
@@ -196,20 +186,28 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
     private void RemovePlayerCard(CardData card, GameRoom gameRoom)
     {
         var cardToRemove = gameRoom
-            .Data[ConnectionId]
+            .PlayerData[ConnectionId]
             .Cards.FirstOrDefault(i => i.Name == card.Name);
 
-        if (!gameRoom.Data[ConnectionId].Cards.Remove(cardToRemove))
+        if (!gameRoom.PlayerData[ConnectionId].Cards.Remove(cardToRemove))
             throw new InvalidOperationException();
 
         gameRoom.UsedCards[ConnectionId] = card;
     }
 
-    private int GetNextPlayerIndex(GameRoom gameRoom)
+    private int GetNextPlayerIndex()
     {
         var currentIndex = gameRoom.Players.IndexOf(gameRoom.NextPlayer);
         var nextPlayer = gameRoom.Players.ElementAtOrDefault(currentIndex + 1);
         var nextIndex = nextPlayer == default ? 0 : gameRoom.Players.IndexOf(nextPlayer);
         return nextIndex;
     }
+
+    private GameDataResponse CreateDataFor(PlayerData playerData) => new()
+    {
+        PlayerData = playerData,
+        NextPlayer = gameRoom.NextPlayer,
+        Pinte = gameRoom.Pinte,
+        UsedCards = gameRoom.UsedCards,
+    };
 }

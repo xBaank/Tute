@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using MessagePack;
-
 namespace Tute.Shared.Models
 {
     [MessagePackObject]
     public class GameRoom
     {
         [Key(0)]
-        public Dictionary<Guid, GameData> Data { get; set; }
+        public Dictionary<Guid, PlayerData> PlayerData { get; set; }
 
         [Key(1)]
         public GameState State { get; set; }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
@@ -22,6 +23,9 @@ namespace Assets.Scripts
         private Card cardPrefab;
 
         [SerializeField]
+        private CardNoBehaviour noBehaviorCardPrefab;
+
+        [SerializeField]
         private TextAsset cardsData;
 
         [SerializeField]
@@ -41,12 +45,14 @@ namespace Assets.Scripts
 
         private readonly GamingHubClient _gamingHubClient = new(Guid.NewGuid());
         private readonly List<Card> _currentCardsGo = new();
-        private readonly List<Card> _currentUsedCardsGo = new();
+        private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
         private Player _nextPlayer;
         private Player _selfPlayer;
-        private Task? currentTask;
+        private Task _currentTask;
         private CardRowManager _cardRowManager;
-        private GameData currentData;
+        private GameDataResponse _currentData;
+        private Vector2 cardUsedPosition;
+        private SemaphoreSlim _currentSemaphore = new(1);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
@@ -100,17 +106,9 @@ namespace Assets.Scripts
             }
         }
 
-        private IEnumerable<Card> InstanceUsedCards(IList<CardData> data)
+        private CardNoBehaviour InstanceUsedCard(CardData item)
         {
-            foreach ((_, var item) in data.WithIndex())
-            {
-                yield return InstanceUsedCard(item);
-            }
-        }
-
-        private Card InstanceUsedCard(CardData item)
-        {
-            var card = Instantiate(cardPrefab, transform);
+            var card = Instantiate(noBehaviorCardPrefab, transform);
             card.CardData = item;
             card.cardType = item.Type;
             card.value = item.Value;
@@ -125,6 +123,7 @@ namespace Assets.Scripts
             var channel = GrpcChannelx.ForTarget(new GrpcChannelTarget("localhost", 5000, true));
 
             _gamingHubClient.OnGameDataEvent += OnGameData;
+            _gamingHubClient.OnUsedCardEvent += OnUsedCard;
 
             _selfPlayer = await _gamingHubClient.ConnectAsync(channel, "room");
             await UniTask.WaitUntil(
@@ -134,30 +133,29 @@ namespace Assets.Scripts
             await _gamingHubClient.StartAsync(GetCards());
         }
 
-        private async UniTask OnGameData(GameData gameData, Player nextPlayer)
+        private async UniTask OnGameData(GameDataResponse gameDataResponse)
         {
             Debug.Log("Game data received");
-            Debug.Log($"Me: {gameData.Player.ConnectionId}, Next: {nextPlayer.ConnectionId}");
-            await SetData(gameData, nextPlayer);
+            Debug.Log($"Me: {gameDataResponse.PlayerData.Player.ConnectionId}, Next: {gameDataResponse.NextPlayer?.ConnectionId}");
+            await SetData(gameDataResponse);
         }
 
-        private async Task SetData(GameData gameData, Player nextPlayer)
+        private async UniTask OnUsedCard(CardData cardData, Player player)
         {
-            currentData = gameData;
-
-            var newCards = gameData
-                .Cards.Where(i => !_currentCardsGo.Any(x => x.CardData.Name == i.Name))
-                .ToList();
-
-            var newUsedCards = gameData
-                .UsedCards.Values.Where(i =>
-                    !_currentUsedCardsGo.Any(x => x.CardData.Name == i.Name)
-                )
-                .ToList();
-
-            //TODO animate
-            foreach (var item in InstanceUsedCards(newUsedCards))
+            await _currentSemaphore.WaitAsync();
+            try
             {
+                var item = InstanceUsedCard(cardData);
+
+                if (player.ConnectionId != _selfPlayer.ConnectionId)
+                {
+                    item.transform.position = new Vector3(0, 20);
+                }
+                else
+                {
+                    item.transform.position = cardUsedPosition;
+                }
+
                 _currentUsedCardsGo.Add(item);
                 audioController.PlayFlick();
                 item.transform.DOMove(
@@ -166,48 +164,74 @@ namespace Assets.Scripts
                     0.1f
                 );
             }
-
-            await UniTask.WaitForSeconds(1);
-
-            if (!newUsedCards.Any() && !gameData.UsedCards.Any())
+            finally
             {
-                foreach (var item in _currentUsedCardsGo)
+                _currentSemaphore.Release();
+            }
+        }
+
+        private async UniTask SetData(GameDataResponse gameDataResponse)
+        {
+            await _currentSemaphore.WaitAsync();
+            try
+            {
+
+                _currentData = gameDataResponse;
+                var playerData = gameDataResponse.PlayerData;
+
+                var newCards = playerData
+                    .Cards.Where(i => !_currentCardsGo.Any(x => x.CardData.Name == i.Name))
+                    .ToList();
+
+                var newUsedCards = gameDataResponse.UsedCards.Values
+                    .Where(i => !_currentUsedCardsGo.Any(x => x.CardData.Name == i.Name))
+                    .ToList();
+
+                if (!newUsedCards.Any() && !gameDataResponse.UsedCards.Any())
                 {
-                    Destroy(item.gameObject);
+                    await UniTask.WaitForSeconds(1, cancellationToken: destroyCancellationToken);
+                    foreach (var item in _currentUsedCardsGo)
+                    {
+                        Destroy(item.gameObject);
+                    }
+                    _currentUsedCardsGo.Clear();
                 }
-                _currentUsedCardsGo.Clear();
-            }
 
-            if (!newCards.Any())
-            {
-                audioController.PlayFlick();
-                await _cardRowManager.UpdateCardPositions();
-            }
-
-            if (!gameData.UsedCards.Any())
-            {
-                foreach (var item in _currentUsedCardsGo)
+                if (!newCards.Any())
                 {
-                    Destroy(item.gameObject);
+                    audioController.PlayFlick();
+                    await _cardRowManager.UpdateCardPositions();
                 }
-                _currentUsedCardsGo.Clear();
-            }
 
-            foreach (var item in InstanceCards(newCards))
+                if (!gameDataResponse.UsedCards.Any())
+                {
+                    foreach (var item in _currentUsedCardsGo)
+                    {
+                        Destroy(item.gameObject);
+                    }
+                    _currentUsedCardsGo.Clear();
+                }
+
+                foreach (var item in InstanceCards(newCards))
+                {
+                    _cardRowManager.AddCard(item);
+                    _currentCardsGo.Add(item);
+                    audioController.PlayFlick();
+                    await _cardRowManager.UpdateCardPositions();
+                }
+
+                _nextPlayer = gameDataResponse.NextPlayer;
+                _selfPlayer = playerData.Player;
+            }
+            finally
             {
-                _cardRowManager.AddCard(item);
-                _currentCardsGo.Add(item);
-                audioController.PlayFlick();
-                await _cardRowManager.UpdateCardPositions();
+                _currentSemaphore.Release();
             }
-
-            _nextPlayer = nextPlayer;
-            _selfPlayer = gameData.Player;
         }
 
         private async UniTask MakeMove(CardData card)
         {
-            if (currentTask != null && !currentTask.IsCompleted)
+            if (_currentTask != null && !_currentTask.IsCompleted)
                 return;
 
             if (_nextPlayer == null || _selfPlayer == null)
@@ -220,21 +244,21 @@ namespace Assets.Scripts
             if (instancedCard == null)
                 return;
 
+            cardUsedPosition = instancedCard.transform.position;
             _cardRowManager.RemoveCard(instancedCard);
-            audioController.PlayFlick();
-            instancedCard.transform.DOMove(usedCardsPosition.transform.position, 0.1f);
             _currentCardsGo.Remove(instancedCard);
-            _currentUsedCardsGo.Add(instancedCard);
+            audioController.PlayFlick();
+            Destroy(instancedCard.gameObject);
             Debug.Log("Game data sent");
             UniTask[] tasks = { GetResponse(card), _cardRowManager.UpdateCardPositions() };
-            currentTask = UniTask.WhenAll(tasks).AsTask();
-            await currentTask;
+            _currentTask = UniTask.WhenAll(tasks).AsTask();
+            await _currentTask;
         }
 
         private async UniTask GetResponse(CardData card)
         {
-            var (gameData, nextPlayer) = await _gamingHubClient.MakeMoveAsync(card);
-            await SetData(gameData, nextPlayer);
+            var gameDataResponse = await _gamingHubClient.MakeMoveAsync(card);
+            await SetData(gameDataResponse);
         }
 
         private void OnGUI()
@@ -242,9 +266,9 @@ namespace Assets.Scripts
             GUI.Label(new Rect(15, 15, 100, 30), $"Leader: {_selfPlayer?.IsLeader}");
             GUI.Label(
                 new Rect(15, 30, 100, 30),
-                $"Points: {currentData?.GainedCards.Sum(i => i.Value)}"
+                $"Points: {_currentData?.PlayerData.GainedCards.Sum(i => i.Value)}"
             );
-            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {currentData?.Pinte.Type.ToString()}");
+            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {_currentData?.Pinte.Type.ToString()}");
             GUI.Label(
                 new Rect(15, 60, 100, 30),
                 $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
