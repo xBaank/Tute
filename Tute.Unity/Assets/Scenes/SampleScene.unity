@@ -371,6 +371,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &635770718
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 635770719}
+  m_Layer: 0
+  m_Name: PintePosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &635770719
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 635770718}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -8, y: -3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1411857387
 GameObject:
   m_ObjectHideFlags: 0
@@ -504,11 +535,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 6072684959896779729, guid: 311cb722205ec6641a0f1b59af64e1ab, type: 3}
+  pintePrefab: {fileID: 4023412321271452403, guid: 9e388f3586c3fd945921c3e6d7bb7c4e, type: 3}
   noBehaviorCardPrefab: {fileID: 5529869214331513549, guid: 811f30c409a714d49b6a3600b8c6c006, type: 3}
   cardsData: {fileID: 4900000, guid: bca7e4c213e2995478d100a319be8140, type: 3}
   stackPosition: {fileID: 276480112}
   spawPosition: {fileID: 1411857389}
   usedCardsPosition: {fileID: 1759997689}
+  pintePosition: {fileID: 635770719}
   spriteSheet:
   - {fileID: 977477526, guid: e5e1230e46bc9d54f8facd0d8dcd6e6a, type: 3}
   - {fileID: -1936558699, guid: e5e1230e46bc9d54f8facd0d8dcd6e6a, type: 3}
@@ -931,3 +964,4 @@ SceneRoots:
   - {fileID: 276480112}
   - {fileID: 1826904826}
   - {fileID: 1759997689}
+  - {fileID: 635770719}

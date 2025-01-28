@@ -5,12 +5,6 @@ namespace Assets.Scripts
 {
     public class CardNoBehaviour : MonoBehaviour
     {
-        [SerializeField]
-        internal CardType cardType;
-
-        [SerializeField]
-        internal int value;
-
         private SpriteRenderer spriteRenderer;
         internal Sprite Sprite { get; set; }
         internal CardData CardData { get; set; }

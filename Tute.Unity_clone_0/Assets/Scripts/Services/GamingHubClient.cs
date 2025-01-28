@@ -62,6 +62,11 @@ namespace Assets.Scripts.Services
             return client.MakeMoveAsync(card);
         }
 
+        public ValueTask ChangePinteAsync(CardData card)
+        {
+            return client.ChangePinte(card);
+        }
+
         public ValueTask StartAsync(IList<CardData> cardDatas)
         {
             return client.StartAsync(cardDatas);

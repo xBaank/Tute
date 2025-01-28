@@ -7,18 +7,11 @@ namespace Assets.Scripts
 {
     public class Card : MonoBehaviour
     {
-        [SerializeField]
-        internal CardType cardType;
-
-        [SerializeField]
-        internal int value;
-
         private SpriteRenderer spriteRenderer;
+        private Animator animator;
         private Vector2 startDif;
         private Vector2 startPosition;
-
         internal Sprite Sprite { get; set; }
-
         internal CardRowManager CardRowManager { get; set; }
         internal CardData CardData { get; set; }
         internal AudioController AudioController { get; set; }
@@ -28,8 +21,23 @@ namespace Assets.Scripts
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
+            animator = GetComponent<Animator>();
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             spriteRenderer.sprite = Sprite;
+        }
+
+        private void OnMouseOver()
+        {
+            return;
+            transform.position = new Vector3(transform.position.x, transform.position.y, -1);
+            animator.SetBool("IsOver", true);
+        }
+
+        private void OnMouseExit()
+        {
+            return;
+            transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+            animator.SetBool("IsOver", false);
         }
 
         private void OnMouseDown()

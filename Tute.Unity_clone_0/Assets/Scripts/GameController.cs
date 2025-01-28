@@ -23,6 +23,9 @@ namespace Assets.Scripts
         private Card cardPrefab;
 
         [SerializeField]
+        private Pinte pintePrefab;
+
+        [SerializeField]
         private CardNoBehaviour noBehaviorCardPrefab;
 
         [SerializeField]
@@ -38,6 +41,9 @@ namespace Assets.Scripts
         private Transform usedCardsPosition;
 
         [SerializeField]
+        private Transform pintePosition;
+
+        [SerializeField]
         private Sprite[] spriteSheet;
 
         [SerializeField]
@@ -46,13 +52,14 @@ namespace Assets.Scripts
         private readonly GamingHubClient _gamingHubClient = new(Guid.NewGuid());
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
+        private readonly SemaphoreSlim _currentSemaphore = new(1);
         private Player _nextPlayer;
         private Player _selfPlayer;
         private Task _currentTask;
         private CardRowManager _cardRowManager;
         private GameDataResponse _currentData;
         private Vector2 cardUsedPosition;
-        private SemaphoreSlim _currentSemaphore = new(1);
+        private Pinte pinte;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
@@ -97,8 +104,6 @@ namespace Assets.Scripts
                 card.CardData = item;
                 card.CardRowManager = _cardRowManager;
                 card.AudioController = audioController;
-                card.cardType = item.Type;
-                card.value = item.Value;
                 card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
                 card.transform.position = spawPosition.position;
@@ -110,8 +115,16 @@ namespace Assets.Scripts
         {
             var card = Instantiate(noBehaviorCardPrefab, transform);
             card.CardData = item;
-            card.cardType = item.Type;
-            card.value = item.Value;
+            card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
+            card.name = item.Name;
+            card.transform.position = new Vector2(0, -10);
+            return card;
+        }
+
+        private Pinte InstancePinte(CardData item)
+        {
+            var card = Instantiate(pintePrefab, transform);
+            card.CardData = item;
             card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
             card.name = item.Name;
             card.transform.position = new Vector2(0, -10);
@@ -145,29 +158,56 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
-                var item = InstanceUsedCard(cardData);
-
-                if (player.ConnectionId != _selfPlayer.ConnectionId)
-                {
-                    item.transform.position = new Vector3(0, 20);
-                }
-                else
-                {
-                    item.transform.position = cardUsedPosition;
-                }
-
-                _currentUsedCardsGo.Add(item);
-                audioController.PlayFlick();
-                item.transform.DOMove(
-                    usedCardsPosition.transform.position
-                        + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right),
-                    0.1f
-                );
+                SpawnUsedCard(cardData, player);
             }
             finally
             {
                 _currentSemaphore.Release();
             }
+        }
+
+        private async UniTask ChangePinte(CardData card)
+        {
+            await _currentSemaphore.WaitAsync();
+            try
+            {
+                //TODO check if its posible
+                await _gamingHubClient.ChangePinteAsync(card);
+            }
+            finally { _currentSemaphore.Release(); }
+        }
+
+        private void SpawnPinte(GameDataResponse gameDataResponse)
+        {
+            if (pinte == null)
+            {
+                pinte = InstancePinte(gameDataResponse.Pinte);
+                pinte.OnClick += (i) => ChangePinte(i).Forget();
+                pinte.transform.position = spawPosition.position;
+                pinte.transform.DOMove(pintePosition.position, 0.1f);
+            }
+        }
+
+        private void SpawnUsedCard(CardData cardData, Player player)
+        {
+            var item = InstanceUsedCard(cardData);
+
+            if (player.ConnectionId != _selfPlayer.ConnectionId)
+            {
+                item.transform.position = new Vector3(0, 20);
+            }
+            else
+            {
+                item.transform.position = cardUsedPosition;
+            }
+
+            _currentUsedCardsGo.Add(item);
+            audioController.PlayFlick();
+            item.transform.DOMove(
+                usedCardsPosition.transform.position
+                    + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right),
+                0.1f
+            );
         }
 
         private async UniTask SetData(GameDataResponse gameDataResponse)
@@ -178,6 +218,8 @@ namespace Assets.Scripts
 
                 _currentData = gameDataResponse;
                 var playerData = gameDataResponse.PlayerData;
+
+
 
                 var newCards = playerData
                     .Cards.Where(i => !_currentCardsGo.Any(x => x.CardData.Name == i.Name))
@@ -219,6 +261,8 @@ namespace Assets.Scripts
                     audioController.PlayFlick();
                     await _cardRowManager.UpdateCardPositions();
                 }
+
+                SpawnPinte(gameDataResponse);
 
                 _nextPlayer = gameDataResponse.NextPlayer;
                 _selfPlayer = playerData.Player;

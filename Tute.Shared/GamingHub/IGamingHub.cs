@@ -14,5 +14,6 @@ namespace Tute.Shared.GamingHub
         ValueTask StartAsync(IList<CardData> cards);
         ValueTask LeaveAsync();
         ValueTask<GameDataResponse> MakeMoveAsync(CardData card);
+        ValueTask ChangePinte(CardData card);
     }
 }

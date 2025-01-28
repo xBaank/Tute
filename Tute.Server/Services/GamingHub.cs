@@ -110,6 +110,21 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         return ValueTask.CompletedTask;
     }
 
+    public ValueTask ChangePinte(CardData card)
+    {
+        if (gameRoom.NextPlayer.ConnectionId != ConnectionId) return ValueTask.CompletedTask;
+
+        //TODO check if its posible
+        var cards = gameRoom.PlayerData[ConnectionId].Cards;
+        var toRemove = cards.FirstOrDefault(i => i.Name == card.Name);
+        if (toRemove == null) return ValueTask.CompletedTask;
+        cards.Remove(toRemove);
+        cards.Add(gameRoom.Pinte);
+        gameRoom.Pinte = toRemove;
+
+        return ValueTask.CompletedTask;
+    }
+
     public ValueTask<GameDataResponse> MakeMoveAsync(CardData card)
     {
         if (room is null)
@@ -129,6 +144,8 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
         if (ConnectionId != gameRoom.NextPlayer.ConnectionId)
             throw new InvalidOperationException();
+
+        //TODO check if possible
 
         RemovePlayerCard(card, gameRoom);
         gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex()];
