@@ -51,6 +51,9 @@ namespace Assets.Scripts
         [SerializeField]
         private AudioController audioController;
 
+        [SerializeField]
+        private RoomController roomController;
+
         private readonly GamingHubClient _gamingHubClient = new(Guid.NewGuid());
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
@@ -140,9 +143,15 @@ namespace Assets.Scripts
             _gamingHubClient.OnGameDataEvent += OnGameData;
             _gamingHubClient.OnUsedCardEvent += OnUsedCard;
 
-            _selfPlayer = await _gamingHubClient.ConnectAsync(channel, "room");
+            roomController.OnJoin += async (name) =>
+            {
+                if (name is null) return;
+                _selfPlayer = await _gamingHubClient.ConnectAsync(channel, name);
+                roomController.Hide();
+            };
+
             await UniTask.WaitUntil(
-                () => Input.GetKey(KeyCode.Space),
+                () => Input.GetKey(KeyCode.Space) && _selfPlayer != null,
                 cancellationToken: destroyCancellationToken
             );
             await _gamingHubClient.StartAsync(GetCards());
@@ -174,13 +183,18 @@ namespace Assets.Scripts
             try
             {
                 if (_nextPlayer?.ConnectionId != _selfPlayer.ConnectionId) return;
-                //TODO check if its posible
                 try
                 {
                     await _gamingHubClient.ChangePinteAsync(card);
+                    var toRemove = _currentCardsGo.FirstOrDefault(i => i.CardData.Name == card.Name);
+                    if (toRemove == null) return;
+                    _currentCardsGo.Remove(toRemove);
+                    _cardRowManager.RemoveCard(toRemove);
+                    Destroy(toRemove.gameObject);
                 }
                 catch (RpcException ex)
                 {
+                    //Cant perform operation
                     Debug.LogException(ex);
                 }
             }
@@ -189,9 +203,15 @@ namespace Assets.Scripts
 
         private void SpawnPinte(GameDataResponse gameDataResponse)
         {
-            if (pinte == null || pinte.CardData.Value != gameDataResponse.Pinte.Value)
+            if (gameDataResponse.Pinte == null)
             {
-                if (pinte != null) Destroy(pinte);
+                if (pinte != null) Destroy(pinte.gameObject);
+                return;
+            }
+
+            if (pinte == null || pinte.CardData.Name != gameDataResponse.Pinte.Name)
+            {
+                if (pinte != null) Destroy(pinte.gameObject);
                 pinte = InstancePinte(gameDataResponse.Pinte);
                 pinte.OnClick += (i) => ChangePinte(i).Forget();
                 pinte.transform.position = spawPosition.position;
@@ -299,21 +319,26 @@ namespace Assets.Scripts
             if (instancedCard == null)
                 return;
 
+            GameDataResponse gameDataResponse;
+            try
+            {
+                gameDataResponse = await _gamingHubClient.MakeMoveAsync(card);
+                Debug.Log("Game data sent");
+            }
+            catch (RpcException ex)
+            {
+                //Cant perform 
+                return;
+            }
+
             cardUsedPosition = instancedCard.transform.position;
             _cardRowManager.RemoveCard(instancedCard);
             _currentCardsGo.Remove(instancedCard);
             audioController.PlayFlick();
             Destroy(instancedCard.gameObject);
-            Debug.Log("Game data sent");
-            UniTask[] tasks = { GetResponse(card), _cardRowManager.UpdateCardPositions() };
+            var tasks = new List<UniTask>() { SetData(gameDataResponse), _cardRowManager.UpdateCardPositions() };
             _currentTask = UniTask.WhenAll(tasks).AsTask();
             await _currentTask;
-        }
-
-        private async UniTask GetResponse(CardData card)
-        {
-            var gameDataResponse = await _gamingHubClient.MakeMoveAsync(card);
-            await SetData(gameDataResponse);
         }
 
         private void OnGUI()
@@ -323,7 +348,7 @@ namespace Assets.Scripts
                 new Rect(15, 30, 100, 30),
                 $"Points: {_currentData?.PlayerData.GainedCards.Sum(i => i.Value)}"
             );
-            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {_currentData?.Pinte.Type.ToString()}");
+            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {_currentData?.Pinte?.Type.ToString()}");
             GUI.Label(
                 new Rect(15, 60, 100, 30),
                 $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"

@@ -21,7 +21,6 @@ namespace Assets.Scripts.Cards
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            Debug.Log("ASd");
             if (collision.CompareTag("Card"))
             {
                 if (collision.gameObject.TryGetComponent<Card>(out var card))

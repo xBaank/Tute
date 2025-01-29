@@ -13,5 +13,7 @@ namespace Tute.Shared.Models
         public string SpriteName { get; set; }
         [Key(3)]
         public CardType Type { get; set; }
+        [Key(4)]
+        public int Number { get; set; }
     }
 }

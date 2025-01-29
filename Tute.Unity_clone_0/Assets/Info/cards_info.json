@@ -3,240 +3,280 @@
         "name": "Ace of Cups",
         "value": 11,
         "spritename": "ace_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 1
     },
     {
         "name": "Two of Cups",
         "value": 0,
         "spritename": "two_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 2
     },
     {
         "name": "Three of Cups",
         "value": 10,
         "spritename": "three_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 3
     },
     {
         "name": "Four of Cups",
         "value": 0,
         "spritename": "four_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 4
     },
     {
         "name": "Five of Cups",
         "value": 0,
         "spritename": "five_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 5
     },
     {
         "name": "Six of Cups",
         "value": 0,
         "spritename": "six_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 6
     },
     {
         "name": "Seven of Cups",
         "value": 0,
         "spritename": "seven_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 7
     },
     {
         "name": "Jack of Cups",
         "value": 2,
         "spritename": "jack_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 10
     },
     {
         "name": "Knight of Cups",
         "value": 3,
         "spritename": "knight_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 11
     },
     {
         "name": "King of Cups",
         "value": 4,
         "spritename": "king_cups",
-        "type": "Cups"
+        "type": "Cups",
+        "number" : 12
     },
     {
         "name": "Ace of Swords",
         "value": 11,
         "spritename": "ace_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 1
     },
     {
         "name": "Two of Swords",
         "value": 0,
         "spritename": "two_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 2
     },
     {
         "name": "Three of Swords",
         "value": 10,
         "spritename": "three_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 3
     },
     {
         "name": "Four of Swords",
         "value": 0,
         "spritename": "four_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 4
     },
     {
         "name": "Five of Swords",
         "value": 0,
         "spritename": "five_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 5
     },
     {
         "name": "Six of Swords",
         "value": 0,
         "spritename": "six_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 6
     },
     {
         "name": "Seven of Swords",
         "value": 0,
         "spritename": "seven_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 7
     },
     {
         "name": "Jack of Swords",
         "value": 2,
         "spritename": "jack_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 10
     },
     {
         "name": "Knight of Swords",
         "value": 3,
         "spritename": "knight_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 11
     },
     {
         "name": "King of Swords",
         "value": 4,
         "spritename": "king_swords",
-        "type": "Swords"
+        "type": "Swords",
+        "number" : 12
     },
     {
         "name": "Ace of Coins",
         "value": 11,
         "spritename": "ace_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 1
     },
     {
         "name": "Two of Coins",
         "value": 0,
         "spritename": "two_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 2
     },
     {
         "name": "Three of Coins",
         "value": 10,
         "spritename": "three_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 3
     },
     {
         "name": "Four of Coins",
         "value": 0,
         "spritename": "four_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 4
     },
     {
         "name": "Five of Coins",
         "value": 0,
         "spritename": "five_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 5
     },
     {
         "name": "Six of Coins",
         "value": 0,
         "spritename": "six_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 6
     },
     {
         "name": "Seven of Coins",
         "value": 0,
         "spritename": "seven_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 7
     },
     {
         "name": "Jack of Coins",
         "value": 2,
         "spritename": "jack_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 10
     },
     {
         "name": "Knight of Coins",
         "value": 3,
         "spritename": "knight_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 11
     },
     {
         "name": "King of Coins",
         "value": 4,
         "spritename": "king_coins",
-        "type": "Coins"
+        "type": "Coins",
+        "number" : 12
     },
     {
         "name": "Ace of Clubs",
         "value": 11,
         "spritename": "ace_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 1
     },
     {
         "name": "Two of Clubs",
         "value": 0,
         "spritename": "two_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 2
     },
     {
         "name": "Three of Clubs",
         "value": 10,
         "spritename": "three_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 3
     },
     {
         "name": "Four of Clubs",
         "value": 0,
         "spritename": "four_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 4
     },
     {
         "name": "Five of Clubs",
         "value": 0,
         "spritename": "five_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 5
     },
     {
         "name": "Six of Clubs",
         "value": 0,
         "spritename": "six_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 6
     },
     {
         "name": "Seven of Clubs",
         "value": 0,
         "spritename": "seven_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 7
     },
     {
         "name": "Jack of Clubs",
         "value": 2,
         "spritename": "jack_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 10
     },
     {
         "name": "Knight of Clubs",
         "value": 3,
         "spritename": "knight_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 11
     },
     {
         "name": "King of Clubs",
         "value": 4,
         "spritename": "king_clubs",
-        "type": "Clubs"
+        "type": "Clubs",
+        "number" : 12
     }
 ]

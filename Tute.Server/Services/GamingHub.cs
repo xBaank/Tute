@@ -1,4 +1,6 @@
-﻿using MagicOnion.Server.Hubs;
+﻿using Grpc.Core;
+using MagicOnion;
+using MagicOnion.Server.Hubs;
 using Tute.Server.Extensions;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
@@ -31,7 +33,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
         if (storage!.AllValues.Count > 2)
         {
-            throw new InvalidOperationException("Can't add more than 2 players");
+            throw new ReturnStatusException((StatusCode)400, "Can't add more than 2 players");
         }
 
         // Typed Server->Client broadcast.
@@ -112,34 +114,34 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
     public ValueTask ChangePinte(CardData card)
     {
-        if (gameRoom.NextPlayer.ConnectionId != ConnectionId) throw new InvalidOperationException("It's not your turn");
+        CheckRoom();
 
+        if (gameRoom.NextPlayer.ConnectionId != ConnectionId) throw new ReturnStatusException((StatusCode)400, "It's not your turn");
 
-        if (gameRoom.Pinte.Name.StartsWith("Two"))
+        if (gameRoom.Pinte.Number == 2)
         {
-            throw new InvalidOperationException("You can't change pinte");
+            throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
-        if (gameRoom.Pinte.Name.StartsWith("Seven") && !card.Name.StartsWith("Two") && card.Type != gameRoom.Pinte.Type)
+        if (gameRoom.Pinte.Number > 7 && (card.Number != 7 || card.Type != gameRoom.Pinte.Type))
         {
-            throw new InvalidOperationException("You can't change pinte");
+            throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
-        if (!card.Name.StartsWith("Seven") && card.Type != gameRoom.Pinte.Type)
+        if (gameRoom.Pinte.Number <= 7 && (card.Number != 2 || card.Type != gameRoom.Pinte.Type))
         {
-            throw new InvalidOperationException("You can't change pinte");
+            throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
         //TODO check if its posible
         var cards = gameRoom.PlayerData[ConnectionId].Cards;
-        var toRemove = cards.FirstOrDefault(i => i.Name == card.Name) ?? throw new InvalidOperationException("You don't have that card");
+        var toRemove = cards.FirstOrDefault(i => i.Name == card.Name) ?? throw new ReturnStatusException((StatusCode)400, "You don't have that card");
         cards.Remove(toRemove);
         cards.Add(gameRoom.Pinte);
         gameRoom.Pinte = toRemove;
 
         foreach (var item in gameRoom.Players)
         {
-            if (item.ConnectionId == ConnectionId) continue;
             BroadcastTo(room, item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
         }
 
@@ -148,25 +150,32 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
     public ValueTask<GameDataResponse> MakeMoveAsync(CardData card)
     {
-        if (room is null)
-            throw new InvalidOperationException("Room is null");
+        CheckRoom();
 
-        if (gameRoom is null)
-        {
-            if (gameRooms.TryGetValue(room.GroupName, out var value))
-            {
-                gameRoom = value;
-            }
-            else
-            {
-                throw new InvalidOperationException("Gameroom is null");
-            }
-        }
+        if (room is null)
+            throw new ReturnStatusException((StatusCode)400, "Room is null");
+
 
         if (ConnectionId != gameRoom.NextPlayer.ConnectionId)
-            throw new InvalidOperationException("Not your turn");
+            throw new ReturnStatusException((StatusCode)400, "Not your turn");
 
-        //TODO check if possible
+        var typeToUse = gameRoom.UsedCards.FirstOrDefault().Value;
+        var isTypeDefined = typeToUse is not null;
+        var isSameType = card.Type == typeToUse?.Type;
+        var isPinte = card.Type == gameRoom.Pinte.Type;
+        var hasSameType = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == typeToUse?.Type);
+        var hasPinte = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == gameRoom.Pinte.Type);
+
+        if (isTypeDefined && !isSameType && hasSameType)
+        {
+            throw new ReturnStatusException((StatusCode)400, "You must use same type");
+        }
+
+        if (isTypeDefined && !hasSameType && !isPinte && hasPinte)
+        {
+            throw new ReturnStatusException((StatusCode)400, "You must use pinte");
+        }
+
 
         RemovePlayerCard(card, gameRoom);
         gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex()];
@@ -189,6 +198,11 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             {
                 var isNext = gameRoom.Cards.TryPop(out var nextCard);
                 if (isNext) playerCards.Cards.Add(nextCard);
+                if (!isNext && gameRoom.Pinte != null)
+                {
+                    playerCards.Cards.Add(gameRoom.Pinte);
+                    gameRoom.Pinte = null;
+                }
                 if (playerConnectionId == ConnectionId) continue;
                 BroadcastTo(room, playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
             }
@@ -203,6 +217,21 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         }
 
         return ValueTask.FromResult(CreateDataFor(gameRoom.PlayerData[ConnectionId]));
+    }
+
+    private void CheckRoom()
+    {
+        if (gameRoom is null)
+        {
+            if (gameRooms.TryGetValue(room.GroupName, out var value))
+            {
+                gameRoom = value;
+            }
+            else
+            {
+                throw new ReturnStatusException((StatusCode)400, "Gameroom is null");
+            }
+        }
     }
 
     private KeyValuePair<Guid, CardData> GetWinner(GameRoom gameRoom)
@@ -228,7 +257,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             .Cards.FirstOrDefault(i => i.Name == card.Name);
 
         if (!gameRoom.PlayerData[ConnectionId].Cards.Remove(cardToRemove))
-            throw new InvalidOperationException("No card to remove found");
+            throw new ReturnStatusException((StatusCode)400, "No card to remove found");
 
         gameRoom.UsedCards[ConnectionId] = card;
     }
