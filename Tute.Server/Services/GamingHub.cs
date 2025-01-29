@@ -31,7 +31,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
         if (storage!.AllValues.Count > 2)
         {
-            throw new Exception("Can't add more than 2 players");
+            throw new InvalidOperationException("Can't add more than 2 players");
         }
 
         // Typed Server->Client broadcast.
@@ -112,15 +112,36 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
     public ValueTask ChangePinte(CardData card)
     {
-        if (gameRoom.NextPlayer.ConnectionId != ConnectionId) return ValueTask.CompletedTask;
+        if (gameRoom.NextPlayer.ConnectionId != ConnectionId) throw new InvalidOperationException("It's not your turn");
+
+
+        if (gameRoom.Pinte.Name.StartsWith("Two"))
+        {
+            throw new InvalidOperationException("You can't change pinte");
+        }
+
+        if (gameRoom.Pinte.Name.StartsWith("Seven") && !card.Name.StartsWith("Two") && card.Type != gameRoom.Pinte.Type)
+        {
+            throw new InvalidOperationException("You can't change pinte");
+        }
+
+        if (!card.Name.StartsWith("Seven") && card.Type != gameRoom.Pinte.Type)
+        {
+            throw new InvalidOperationException("You can't change pinte");
+        }
 
         //TODO check if its posible
         var cards = gameRoom.PlayerData[ConnectionId].Cards;
-        var toRemove = cards.FirstOrDefault(i => i.Name == card.Name);
-        if (toRemove == null) return ValueTask.CompletedTask;
+        var toRemove = cards.FirstOrDefault(i => i.Name == card.Name) ?? throw new InvalidOperationException("You don't have that card");
         cards.Remove(toRemove);
         cards.Add(gameRoom.Pinte);
         gameRoom.Pinte = toRemove;
+
+        foreach (var item in gameRoom.Players)
+        {
+            if (item.ConnectionId == ConnectionId) continue;
+            BroadcastTo(room, item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
+        }
 
         return ValueTask.CompletedTask;
     }
@@ -128,7 +149,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
     public ValueTask<GameDataResponse> MakeMoveAsync(CardData card)
     {
         if (room is null)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Room is null");
 
         if (gameRoom is null)
         {
@@ -138,12 +159,12 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             }
             else
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Gameroom is null");
             }
         }
 
         if (ConnectionId != gameRoom.NextPlayer.ConnectionId)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Not your turn");
 
         //TODO check if possible
 
@@ -196,7 +217,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             .UsedCards.Where(i => i.Value.Type == gameRoom.Pinte.Type)
             .MaxByOrDefault(i => i.Value.Value);
 
-        var winner = bestByType ?? bestByValue ?? throw new InvalidOperationException();
+        var winner = bestByType ?? bestByValue ?? throw new InvalidOperationException("No winner found");
         return winner;
     }
 
@@ -207,7 +228,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             .Cards.FirstOrDefault(i => i.Name == card.Name);
 
         if (!gameRoom.PlayerData[ConnectionId].Cards.Remove(cardToRemove))
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("No card to remove found");
 
         gameRoom.UsedCards[ConnectionId] = card;
     }

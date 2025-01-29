@@ -3,7 +3,7 @@ using Cysharp.Threading.Tasks;
 using Tute.Shared.Models;
 using UnityEngine;
 
-namespace Assets.Scripts
+namespace Assets.Scripts.Cards
 {
     public class Card : MonoBehaviour
     {

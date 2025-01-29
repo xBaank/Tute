@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4582568558749208063}
   - component: {fileID: 12794487869453543}
-  - component: {fileID: 4023412321271452403}
   - component: {fileID: 1479596380024530189}
   - component: {fileID: 5006885255958290871}
+  - component: {fileID: 4988034463461751217}
   m_Layer: 0
   m_Name: Pinte
   m_TagString: Card
@@ -90,18 +90,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4023412321271452403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8655045535255853017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d033911a5a081124f987fb069708c79f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!61 &1479596380024530189
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -175,3 +163,15 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &4988034463461751217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8655045535255853017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e0e8938ff1d39e43b97b3f4907d6411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Assets.Scripts.Cards;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
 using Cysharp.Net.Http;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using Grpc.Core;
 using Grpc.Net.Client;
 using MagicOnion;
 using MagicOnion.Unity;
@@ -171,16 +173,25 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
+                if (_nextPlayer?.ConnectionId != _selfPlayer.ConnectionId) return;
                 //TODO check if its posible
-                await _gamingHubClient.ChangePinteAsync(card);
+                try
+                {
+                    await _gamingHubClient.ChangePinteAsync(card);
+                }
+                catch (RpcException ex)
+                {
+                    Debug.LogException(ex);
+                }
             }
             finally { _currentSemaphore.Release(); }
         }
 
         private void SpawnPinte(GameDataResponse gameDataResponse)
         {
-            if (pinte == null)
+            if (pinte == null || pinte.CardData.Value != gameDataResponse.Pinte.Value)
             {
+                if (pinte != null) Destroy(pinte);
                 pinte = InstancePinte(gameDataResponse.Pinte);
                 pinte.OnClick += (i) => ChangePinte(i).Forget();
                 pinte.transform.position = spawPosition.position;
