@@ -97,6 +97,8 @@ namespace Assets.Scripts
             _gamingHubClient.OnUsedCardEvent += OnUsedCard;
             _gamingHubClient.OnJoinEvent += OnPlayerJoined;
             _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
+            _gamingHubClient.OnStartEvent += () => OnStart().Forget();
+            _gamingHubClient.OnFinishEvent += () => OnFinish().Forget();
             MainManager.Instance.OnRoomJoin += JoinRoom;
             MainManager.Instance.OnStartGame += async () => await StartGame();
             MainManager.Instance.OnLeaveRoom += LeaveRoom;
@@ -106,6 +108,15 @@ namespace Assets.Scripts
         {
             if (_selfPlayer == null) return;
             await _gamingHubClient.StartAsync(GetCards());
+        }
+
+        private async UniTaskVoid OnStart()
+        {
+            await SceneManager.UnloadSceneAsync("Menu");
+        }
+        private async UniTaskVoid OnFinish()
+        {
+            await SceneManager.LoadSceneAsync("Ingame");
         }
 
         private async UniTask<List<Player>> JoinRoom(string roomName, string playerName)
@@ -189,10 +200,6 @@ namespace Assets.Scripts
             Debug.Log($"Me: {gameDataResponse.PlayerData.Player.ConnectionId}, Next: {gameDataResponse.NextPlayer?.ConnectionId}");
             await SetData(gameDataResponse);
 
-            if (_currentData.GameState == GameState.Playing)
-            {
-                await SceneManager.UnloadSceneAsync("Menu");
-            }
         }
 
         private async UniTask OnUsedCard(CardData cardData, Player player)

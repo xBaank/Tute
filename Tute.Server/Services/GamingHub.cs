@@ -31,6 +31,19 @@ public class GamingHub(Dictionary<string, GameRoom> gameRooms) : StreamingHubBas
             throw new ReturnStatusException((StatusCode)400, "Can't add more than 2 players");
         }
 
+        if (gameRooms.TryGetValue(room.GroupName, out var value))
+        {
+            gameRoom = value;
+        }
+        else
+        {
+            gameRoom = new()
+            {
+                State = GameState.Room,
+            };
+            gameRooms[room.GroupName] = gameRoom;
+        }
+
         // Typed Server->Client broadcast.
         BroadcastExceptSelf(room).OnJoin(self);
         return (self, [.. storage.AllValues]);
@@ -44,27 +57,56 @@ public class GamingHub(Dictionary<string, GameRoom> gameRooms) : StreamingHubBas
     public async ValueTask LeaveAsync()
     {
         //TODO Update current leader and check if game can persist only if its on playing
+        CheckRoom();
 
         if (room is null)
             return;
 
+        if (gameRoom.State == GameState.Playing)
+        {
+            Broadcast(room).OnFinished();
+            await ClearRoom();
+            return;
+        }
+
+        if (gameRoom.State == GameState.Room)
+        {
+            await ExitSelf();
+            if (storage.AllValues.Count == 1)
+            {
+                var player = storage.AllValues.First();
+                player.IsLeader = true;
+                Broadcast(room).OnLeave(player);
+                Broadcast(room).OnJoin(player);
+            }
+        }
+    }
+
+    private async ValueTask ClearRoom()
+    {
+        foreach (var item in gameRoom.Players)
+        {
+            storage.Remove(item.ConnectionId);
+        }
+        gameRoom.Players.Clear();
+        gameRoom.PlayerData.Clear();
+        await ExitSelf();
+        gameRooms.Remove(room.GroupName);
+    }
+
+    private async ValueTask ExitSelf()
+    {
+        gameRoom.Players?.Remove(self);
+        gameRoom.PlayerData?.Remove(ConnectionId);
+        gameRoom = null;
         await room.RemoveAsync(Context);
         BroadcastExceptSelf(room).OnLeave(self);
-
-
-
-        if (storage?.AllValues.Count == 0)
-
-            if (storage?.AllValues.Count == 0)
-            {
-                gameRoom = null;
-                gameRooms.Remove(room.GroupName);
-                return;
-            }
     }
 
     public ValueTask StartAsync(IList<CardData> cards)
     {
+        CheckRoom();
+
         if (room is null)
             return ValueTask.CompletedTask;
 
@@ -74,27 +116,22 @@ public class GamingHub(Dictionary<string, GameRoom> gameRooms) : StreamingHubBas
         if (self is null || !self.IsLeader)
             return ValueTask.CompletedTask;
 
+        if (gameRoom.State == GameState.Playing)
+            return ValueTask.CompletedTask;
+
+        Broadcast(room).OnStart();
+
         var gameCards = new Stack<CardData>(cards.Shuffled());
         var players = storage.AllValues.ToList();
         var pinte = gameCards.Pop();
-        if (gameRooms.TryGetValue(room.GroupName, out var value))
-        {
-            gameRoom = value;
-        }
-        else
-        {
-            gameRoom = new()
-            {
-                State = GameState.Playing,
-                PlayerData = [],
-                UsedCards = [],
-                Cards = gameCards,
-                Players = players,
-                NextPlayer = players.First(),
-                Pinte = pinte
-            };
-            gameRooms[room.GroupName] = gameRoom;
-        }
+
+        gameRoom.State = GameState.Playing;
+        gameRoom.PlayerData = [];
+        gameRoom.UsedCards = [];
+        gameRoom.Cards = gameCards;
+        gameRoom.Players = players;
+        gameRoom.NextPlayer = players.First();
+        gameRoom.Pinte = pinte;
 
         foreach (var item in gameRoom.Players)
         {

@@ -17,6 +17,8 @@ namespace Assets.Scripts.Services
         public event Func<CardData, Player, UniTask> OnUsedCardEvent;
         public event Action<Player> OnJoinEvent;
         public event Action<Player> OnLeaveEvent;
+        public event Action OnStartEvent;
+        public event Action OnFinishEvent;
 
         public GamingHubClient()
         {
@@ -54,5 +56,9 @@ namespace Assets.Scripts.Services
         public void OnGameData(GameDataResponse gameData) => OnGameDataEvent?.Invoke(gameData).Forget();
 
         public void OnUsedCard(CardData card, Player userCard) => OnUsedCardEvent?.Invoke(card, userCard).Forget();
+
+        public void OnStart() => OnStartEvent?.Invoke();
+
+        public void OnFinished() => OnFinishEvent?.Invoke();
     }
 }
