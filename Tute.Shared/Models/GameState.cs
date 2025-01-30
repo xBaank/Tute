@@ -2,7 +2,7 @@
 {
     public enum GameState
     {
-        None,
+        Room,
         Playing,
         Finished
     }

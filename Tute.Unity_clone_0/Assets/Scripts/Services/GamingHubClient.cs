@@ -6,93 +6,53 @@ using Grpc.Core;
 using MagicOnion.Client;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
-using UnityEngine;
 
 namespace Assets.Scripts.Services
 {
     public class GamingHubClient : IGamingHubReceiver
     {
-        private readonly Dictionary<Guid, GameObject> players = new();
-        private readonly Guid guid;
         private IGamingHub client;
 
         public event Func<GameDataResponse, UniTask> OnGameDataEvent;
         public event Func<CardData, Player, UniTask> OnUsedCardEvent;
+        public event Action<Player> OnJoinEvent;
+        public event Action<Player> OnLeaveEvent;
 
-        public GamingHubClient(Guid guid)
+        public GamingHubClient()
         {
-            this.guid = guid;
         }
 
-        public async ValueTask<Player> ConnectAsync(ChannelBase grpcChannel, string roomName)
+        public async ValueTask<(Player, Player[])> ConnectAsync(ChannelBase grpcChannel, string roomName, string playername)
         {
             client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
                 grpcChannel,
                 this
             );
 
-            var (self, roomPlayers) = await client.JoinAsync(roomName, guid.ToString());
-            foreach (var player in roomPlayers)
-            {
-                (this as IGamingHubReceiver).OnJoin(player);
-            }
-
-            return self;
+            var (self, roomPlayers) = await client.JoinAsync(roomName, playername);
+            return (self, roomPlayers);
         }
 
-        public ValueTask LeaveAsync()
-        {
-            return client.LeaveAsync();
-        }
+        public ValueTask LeaveAsync() => client.LeaveAsync();
 
         // dispose client-connection before channel.ShutDownAsync is important!
-        public Task DisposeAsync()
-        {
-            return client.DisposeAsync();
-        }
+        public Task DisposeAsync() => client.DisposeAsync();
 
         // You can watch connection state, use this for retry etc.
-        public Task WaitForDisconnect()
-        {
-            return client.WaitForDisconnect();
-        }
+        public Task WaitForDisconnect() => client.WaitForDisconnect();
 
-        public ValueTask<GameDataResponse> MakeMoveAsync(CardData card)
-        {
-            return client.MakeMoveAsync(card);
-        }
+        public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) => client.MakeMoveAsync(card);
 
-        public ValueTask ChangePinteAsync(CardData card)
-        {
-            return client.ChangePinte(card);
-        }
+        public ValueTask ChangePinteAsync(CardData card) => client.ChangePinte(card);
 
-        public ValueTask StartAsync(IList<CardData> cardDatas)
-        {
-            return client.StartAsync(cardDatas);
-        }
+        public ValueTask StartAsync(IList<CardData> cardDatas) => client.StartAsync(cardDatas);
 
-        public void OnJoin(Player player)
-        {
-            players[player.ConnectionId] = new GameObject();
-        }
+        public void OnJoin(Player player) => OnJoinEvent?.Invoke(player);
 
-        public void OnLeave(Player player)
-        {
-            if (players.TryGetValue(player.ConnectionId, out var cube))
-            {
-                GameObject.Destroy(cube);
-            }
-        }
+        public void OnLeave(Player player) => OnLeaveEvent?.Invoke(player);
 
-        public void OnGameData(GameDataResponse gameData)
-        {
-            OnGameDataEvent?.Invoke(gameData).Forget();
-        }
+        public void OnGameData(GameDataResponse gameData) => OnGameDataEvent?.Invoke(gameData).Forget();
 
-        public void OnUsedCard(CardData card, Player userCard)
-        {
-            OnUsedCardEvent?.Invoke(card, userCard).Forget();
-        }
+        public void OnUsedCard(CardData card, Player userCard) => OnUsedCardEvent?.Invoke(card, userCard).Forget();
     }
 }

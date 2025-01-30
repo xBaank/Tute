@@ -7,18 +7,13 @@ using Tute.Shared.Models;
 
 namespace Tute.Server.Services;
 
-public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGamingHub
+public class GamingHub(Dictionary<string, GameRoom> gameRooms) : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGamingHub
 {
     private IGroup? room;
     private Player? self;
     private GameRoom? gameRoom;
     private IInMemoryStorage<Player>? storage;
-    private Dictionary<string, GameRoom> gameRooms;
-
-    public GamingHub(Dictionary<string, GameRoom> gameRooms)
-    {
-        this.gameRooms = gameRooms;
-    }
+    private Dictionary<string, GameRoom> gameRooms = gameRooms;
 
     public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
     {
@@ -37,7 +32,7 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         }
 
         // Typed Server->Client broadcast.
-        Broadcast(room).OnJoin(self);
+        BroadcastExceptSelf(room).OnJoin(self);
         return (self, [.. storage.AllValues]);
     }
 
@@ -48,18 +43,24 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
 
     public async ValueTask LeaveAsync()
     {
+        //TODO Update current leader and check if game can persist only if its on playing
+
         if (room is null)
             return;
 
         await room.RemoveAsync(Context);
-        Broadcast(room).OnLeave(self);
+        BroadcastExceptSelf(room).OnLeave(self);
+
+
 
         if (storage?.AllValues.Count == 0)
-        {
-            gameRoom = null;
-            gameRooms.Remove(room.GroupName);
-            return;
-        }
+
+            if (storage?.AllValues.Count == 0)
+            {
+                gameRoom = null;
+                gameRooms.Remove(room.GroupName);
+                return;
+            }
     }
 
     public ValueTask StartAsync(IList<CardData> cards)
@@ -133,7 +134,6 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
             throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
-        //TODO check if its posible
         var cards = gameRoom.PlayerData[ConnectionId].Cards;
         var toRemove = cards.FirstOrDefault(i => i.Name == card.Name) ?? throw new ReturnStatusException((StatusCode)400, "You don't have that card");
         cards.Remove(toRemove);
@@ -276,5 +276,6 @@ public class GamingHub : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGami
         NextPlayer = gameRoom.NextPlayer,
         Pinte = gameRoom.Pinte,
         UsedCards = gameRoom.UsedCards,
+        GameState = gameRoom.State,
     };
 }

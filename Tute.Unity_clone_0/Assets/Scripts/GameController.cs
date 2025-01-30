@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,6 +15,7 @@ using MagicOnion.Unity;
 using Newtonsoft.Json;
 using Tute.Shared.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts
 {
@@ -51,25 +51,23 @@ namespace Assets.Scripts
         [SerializeField]
         private AudioController audioController;
 
-        [SerializeField]
-        private RoomController roomController;
-
-        private readonly GamingHubClient _gamingHubClient = new(Guid.NewGuid());
+        private readonly GamingHubClient _gamingHubClient = new();
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
         private readonly SemaphoreSlim _currentSemaphore = new(1);
+        private readonly List<Player> _players = new();
         private Player _nextPlayer;
         private Player _selfPlayer;
         private Task _currentTask;
         private CardRowManager _cardRowManager;
         private GameDataResponse _currentData;
-        private Vector2 cardUsedPosition;
-        private Pinte pinte;
+        private Vector2 _cardUsedPosition;
+        private Pinte _pinte;
+        private GrpcChannelx _channel;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()
         {
-            // Initialize gRPC channel provider when the application is loaded.
             GrpcChannelProviderHost.Initialize(
                 new DefaultGrpcChannelProvider(
                     () =>
@@ -82,7 +80,6 @@ namespace Assets.Scripts
             );
         }
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
             _cardRowManager = new CardRowManager(
@@ -91,7 +88,57 @@ namespace Assets.Scripts
                 1.5f,
                 15f
             );
-            Server().Forget();
+
+            SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
+
+            _channel = GrpcChannelx.ForTarget(new GrpcChannelTarget("localhost", 5000, true));
+
+            _gamingHubClient.OnGameDataEvent += OnGameData;
+            _gamingHubClient.OnUsedCardEvent += OnUsedCard;
+            _gamingHubClient.OnJoinEvent += OnPlayerJoined;
+            _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
+            MainManager.Instance.OnRoomJoin += JoinRoom;
+            MainManager.Instance.OnStartGame += async () => await StartGame();
+            MainManager.Instance.OnLeaveRoom += LeaveRoom;
+        }
+
+        private async UniTask StartGame()
+        {
+            if (_selfPlayer == null) return;
+            await _gamingHubClient.StartAsync(GetCards());
+        }
+
+        private async UniTask<List<Player>> JoinRoom(string roomName, string playerName)
+        {
+            var (selfPlayer, players) = await _gamingHubClient.ConnectAsync(_channel, roomName, playerName);
+            _selfPlayer = selfPlayer;
+            _players.AddRange(players);
+            return _players;
+        }
+
+        private void LeaveRoom()
+        {
+            if (_selfPlayer == null) return;
+            _gamingHubClient.LeaveAsync();
+            _selfPlayer = null;
+            _players.Clear();
+        }
+
+        private void OnPlayerJoined(Player player)
+        {
+            var isAlready = _players.Any(i => i.ConnectionId == player.ConnectionId);
+            if (isAlready) return;
+            _players.Add(player);
+            MainManager.Instance.RoomSizeChaged(_players);
+
+        }
+
+        private void OnPlayerLeaved(Player player)
+        {
+            var toRemove = _players.FirstOrDefault(i => i.ConnectionId == player.ConnectionId);
+            if (toRemove == null) return;
+            _players.Remove(toRemove);
+            MainManager.Instance.RoomSizeChaged(_players);
         }
 
         private IList<CardData> GetCards()
@@ -136,32 +183,16 @@ namespace Assets.Scripts
             return card;
         }
 
-        private async UniTaskVoid Server()
-        {
-            var channel = GrpcChannelx.ForTarget(new GrpcChannelTarget("localhost", 5000, true));
-
-            _gamingHubClient.OnGameDataEvent += OnGameData;
-            _gamingHubClient.OnUsedCardEvent += OnUsedCard;
-
-            roomController.OnJoin += async (name) =>
-            {
-                if (name is null) return;
-                _selfPlayer = await _gamingHubClient.ConnectAsync(channel, name);
-                roomController.Hide();
-            };
-
-            await UniTask.WaitUntil(
-                () => Input.GetKey(KeyCode.Space) && _selfPlayer != null,
-                cancellationToken: destroyCancellationToken
-            );
-            await _gamingHubClient.StartAsync(GetCards());
-        }
-
         private async UniTask OnGameData(GameDataResponse gameDataResponse)
         {
             Debug.Log("Game data received");
             Debug.Log($"Me: {gameDataResponse.PlayerData.Player.ConnectionId}, Next: {gameDataResponse.NextPlayer?.ConnectionId}");
             await SetData(gameDataResponse);
+
+            if (_currentData.GameState == GameState.Playing)
+            {
+                await SceneManager.UnloadSceneAsync("Menu");
+            }
         }
 
         private async UniTask OnUsedCard(CardData cardData, Player player)
@@ -205,17 +236,17 @@ namespace Assets.Scripts
         {
             if (gameDataResponse.Pinte == null)
             {
-                if (pinte != null) Destroy(pinte.gameObject);
+                if (_pinte != null) Destroy(_pinte.gameObject);
                 return;
             }
 
-            if (pinte == null || pinte.CardData.Name != gameDataResponse.Pinte.Name)
+            if (_pinte == null || _pinte.CardData.Name != gameDataResponse.Pinte.Name)
             {
-                if (pinte != null) Destroy(pinte.gameObject);
-                pinte = InstancePinte(gameDataResponse.Pinte);
-                pinte.OnClick += (i) => ChangePinte(i).Forget();
-                pinte.transform.position = spawPosition.position;
-                pinte.transform.DOMove(pintePosition.position, 0.1f);
+                if (_pinte != null) Destroy(_pinte.gameObject);
+                _pinte = InstancePinte(gameDataResponse.Pinte);
+                _pinte.OnClick += (i) => ChangePinte(i).Forget();
+                _pinte.transform.position = spawPosition.position;
+                _pinte.transform.DOMove(pintePosition.position, 0.1f);
             }
         }
 
@@ -229,7 +260,7 @@ namespace Assets.Scripts
             }
             else
             {
-                item.transform.position = cardUsedPosition;
+                item.transform.position = _cardUsedPosition;
             }
 
             _currentUsedCardsGo.Add(item);
@@ -328,10 +359,11 @@ namespace Assets.Scripts
             catch (RpcException ex)
             {
                 //Cant perform 
+                Debug.LogException(ex);
                 return;
             }
 
-            cardUsedPosition = instancedCard.transform.position;
+            _cardUsedPosition = instancedCard.transform.position;
             _cardRowManager.RemoveCard(instancedCard);
             _currentCardsGo.Remove(instancedCard);
             audioController.PlayFlick();

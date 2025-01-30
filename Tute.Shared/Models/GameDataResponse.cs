@@ -15,5 +15,7 @@ namespace Tute.Shared.Models
         public Dictionary<Guid, CardData> UsedCards { get; set; }
         [Key(3)]
         public PlayerData PlayerData { get; set; }
+        [Key(4)]
+        public GameState GameState { get; set; }
     }
 }
