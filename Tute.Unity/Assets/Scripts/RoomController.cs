@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using TMPro;
 using Tute.Shared.Models;
 using UnityEngine;
@@ -15,6 +16,7 @@ public class RoomController : MonoBehaviour
     [SerializeField] private Button exitButton;
 
     private List<Player> _players = new();
+    private SemaphoreSlim semaphoreSlim = new(1);
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -32,8 +34,16 @@ public class RoomController : MonoBehaviour
 
     private async void Join()
     {
-        _players = await MainManager.Instance.ChangeRoom(tmp_roomName.text, tmp_playerName.text);
-        RenderPlayerList();
+        await semaphoreSlim.WaitAsync();
+        try
+        {
+            _players = await MainManager.Instance.ChangeRoom(tmp_roomName.text, tmp_playerName.text);
+            RenderPlayerList();
+        }
+        finally
+        {
+            semaphoreSlim.Release();
+        }
     }
 
     private void RoomSizeChanged(List<Player> players)

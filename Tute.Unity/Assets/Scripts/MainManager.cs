@@ -26,10 +26,10 @@ public class MainManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public UniTask<List<Player>> ChangeRoom(string roomName, string playerName)
+    public async UniTask<List<Player>> ChangeRoom(string roomName, string playerName)
     {
         if (OnRoomJoin is null) return new();
-        return OnRoomJoin.Invoke(roomName, playerName);
+        return await OnRoomJoin.Invoke(roomName, playerName);
     }
 
     public void StartGame() => OnStartGame?.Invoke();

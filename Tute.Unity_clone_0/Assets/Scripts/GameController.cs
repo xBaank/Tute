@@ -91,7 +91,7 @@ namespace Assets.Scripts
 
             SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
 
-            _channel = GrpcChannelx.ForTarget(new GrpcChannelTarget("localhost", 5000, true));
+            ConnectToServer().Forget();
 
             _gamingHubClient.OnGameDataEvent += OnGameData;
             _gamingHubClient.OnUsedCardEvent += OnUsedCard;
@@ -102,6 +102,12 @@ namespace Assets.Scripts
             MainManager.Instance.OnRoomJoin += JoinRoom;
             MainManager.Instance.OnStartGame += async () => await StartGame();
             MainManager.Instance.OnLeaveRoom += LeaveRoom;
+        }
+
+        private async UniTaskVoid ConnectToServer()
+        {
+            _channel = GrpcChannelx.ForTarget(new GrpcChannelTarget("localhost", 5000, true));
+            await _gamingHubClient.ConnectAsync(_channel);
         }
 
         private async UniTask StartGame()
@@ -121,7 +127,7 @@ namespace Assets.Scripts
 
         private async UniTask<List<Player>> JoinRoom(string roomName, string playerName)
         {
-            var (selfPlayer, players) = await _gamingHubClient.ConnectAsync(_channel, roomName, playerName);
+            var (selfPlayer, players) = await _gamingHubClient.JoinAsync(roomName, playerName);
             _selfPlayer = selfPlayer;
             _players.AddRange(players);
             return _players;

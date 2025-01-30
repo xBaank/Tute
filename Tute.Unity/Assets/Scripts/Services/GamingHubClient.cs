@@ -20,17 +20,18 @@ namespace Assets.Scripts.Services
         public event Action OnStartEvent;
         public event Action OnFinishEvent;
 
-        public GamingHubClient()
-        {
-        }
 
-        public async ValueTask<(Player, Player[])> ConnectAsync(ChannelBase grpcChannel, string roomName, string playername)
+        public async ValueTask ConnectAsync(ChannelBase grpcChannel)
         {
             client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
                 grpcChannel,
                 this
             );
+        }
 
+
+        public async ValueTask<(Player, Player[])> JoinAsync(string roomName, string playername)
+        {
             var (self, roomPlayers) = await client.JoinAsync(roomName, playername);
             return (self, roomPlayers);
         }

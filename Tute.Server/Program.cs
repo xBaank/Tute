@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddGrpc(); // Add this line(Grpc.AspNetCore)
 builder.Services.AddMagicOnion(); // Add this line(MagicOnion.Server)
-builder.Services.AddSingleton<Dictionary<string, GameRoom>>();
+builder.Services.AddSingleton<ConcurrentDictionary<string, GameRoom>>();
 builder.WebHost.ConfigureKestrel(
     (options) =>
     {
