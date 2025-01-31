@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using MagicOnion;
-
 using Tute.Shared.Models;
 
 namespace Tute.Shared.GamingHub
@@ -15,5 +13,6 @@ namespace Tute.Shared.GamingHub
         ValueTask LeaveAsync();
         ValueTask<GameDataResponse> MakeMoveAsync(CardData card);
         ValueTask ChangePinte(CardData card);
+        ValueTask Cante(IList<CardData> cards);
     }
 }

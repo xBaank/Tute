@@ -1,4 +1,5 @@
-﻿using Tute.Shared.Models;
+﻿using System.Collections.Generic;
+using Tute.Shared.Models;
 
 namespace Tute.Shared.GamingHub
 {
@@ -9,6 +10,6 @@ namespace Tute.Shared.GamingHub
         void OnGameData(GameDataResponse gameData);
         void OnUsedCard(CardData card, Player userCard);
         void OnStart();
-        void OnFinished();
+        void OnFinished(IList<GameDataResponse> allPlayerData);
     }
 }

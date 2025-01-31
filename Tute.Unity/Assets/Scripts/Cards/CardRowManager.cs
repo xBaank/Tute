@@ -26,6 +26,8 @@ namespace Assets.Scripts.Cards
             SnapSpeed = snapSpeed;
         }
 
+        public void Clear() => cards.Clear();
+
         public void AddCard(Card card) => cards.Add(card);
 
         public void RemoveCard(Card card) => cards.Remove(card);

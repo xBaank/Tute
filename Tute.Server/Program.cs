@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
-using Tute.Shared.Models;
+using Tute.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

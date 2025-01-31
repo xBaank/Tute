@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Cysharp.Runtime.Multicast;
 using Grpc.Core;
 using MagicOnion;
 using MagicOnion.Server.Hubs;
@@ -11,33 +12,29 @@ namespace Tute.Server.Services;
 public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGamingHub
 {
     private readonly ConcurrentDictionary<string, GameRoom> gameRooms = gameRooms;
-    private IGroup? room;
+    private IGroup<IGamingHubReceiver>? room;
     private Player? self;
+    private string? roomName;
     private GameRoom? gameRoom;
 
     public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
     {
-        if (self != null)
+        gameRoom ??= GetOrCreateRoom(roomname);
+
+        if (gameRoom.State != GameState.Room && self is null)
+        {
+            gameRoom = null;
+            throw new ReturnStatusException((StatusCode)400, "Can't join an ingame room");
+        }
+
+        if (self is not null)
         {
             throw new ReturnStatusException((StatusCode)400, "Already joined");
         }
 
         self = new Player() { Name = name, ConnectionId = ConnectionId };
+        roomName = roomname;
         room = await Group.AddAsync(roomname);
-
-        if (gameRooms.TryGetValue(room.GroupName, out var value))
-        {
-            gameRoom = value;
-        }
-        else
-        {
-            gameRoom = new()
-            {
-                State = GameState.Room,
-                Players = [],
-            };
-            gameRooms[room.GroupName] = gameRoom;
-        }
 
         if (gameRoom.Players.Count == 0)
         {
@@ -52,8 +49,26 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         gameRoom.Players.Add(self);
 
         // Typed Server->Client broadcast.
-        BroadcastExceptSelf(room).OnJoin(self);
+        room.Except(ConnectionId).OnJoin(self);
         return (self, [.. gameRoom.Players]);
+    }
+
+    private GameRoom GetOrCreateRoom(string roomname)
+    {
+        if (gameRooms.TryGetValue(roomname, out var value))
+        {
+            return value;
+        }
+        else
+        {
+            var gameRoom = new GameRoom()
+            {
+                State = GameState.Room,
+                Players = [],
+            };
+            gameRooms[roomname] = gameRoom;
+            return gameRoom;
+        }
     }
 
     protected override async ValueTask OnDisconnected()
@@ -70,7 +85,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
 
             if (gameRoom.State == GameState.Playing)
             {
-                Broadcast(room).OnFinished();
+                room.All.OnFinished(GetAllPlayersData());
                 await ClearRoom();
                 return;
             }
@@ -82,8 +97,8 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
                 {
                     var player = gameRoom.Players.First();
                     player.IsLeader = true;
-                    Broadcast(room).OnLeave(player);
-                    Broadcast(room).OnJoin(player);
+                    room.All.OnLeave(player);
+                    room.All.OnJoin(player);
                 }
             }
         }
@@ -100,7 +115,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         gameRoom.Players.Clear();
         gameRoom.PlayerData.Clear();
         await ExitSelf();
-        gameRooms.Remove(room.GroupName, out _);
+        gameRooms.TryRemove(roomName, out _);
     }
 
     private async ValueTask ExitSelf()
@@ -108,7 +123,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         gameRoom.Players?.Remove(self);
         gameRoom.PlayerData?.Remove(ConnectionId);
         await room.RemoveAsync(Context);
-        BroadcastExceptSelf(room).OnLeave(self);
+        room.Except(ConnectionId).OnLeave(self);
     }
 
     public ValueTask StartAsync(IList<CardData> cards)
@@ -122,7 +137,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         if (gameRoom.State == GameState.Playing)
             return ValueTask.CompletedTask;
 
-        Broadcast(room).OnStart();
+        room.All.OnStart();
 
         var gameCards = new Stack<CardData>(cards.Shuffled());
         var pinte = gameCards.Pop();
@@ -131,8 +146,10 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         gameRoom.PlayerData = [];
         gameRoom.UsedCards = [];
         gameRoom.Cards = gameCards;
+        //TODO should persist next player between games
         gameRoom.NextPlayer = gameRoom.Players.First();
         gameRoom.Pinte = pinte;
+        gameRoom.PinteType = pinte;
 
         foreach (var item in gameRoom.Players)
         {
@@ -145,27 +162,47 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
                     Player = item
                 };
             gameRoom.PlayerData[item.ConnectionId] = gameData;
-            BroadcastTo(room, item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
+            room.Only(item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
         }
 
         return ValueTask.CompletedTask;
     }
 
+    public ValueTask Cante(IList<CardData> cards)
+    {
+        var king = cards.FirstOrDefault(i => i.Number == 12);
+        var prince = cards.FirstOrDefault(i => i.Number == 11);
+
+        if (king is null || prince is null)
+        {
+            throw new ReturnStatusException((StatusCode)400, "Cards must be prince and king");
+        }
+        if (king?.Type != prince?.Type)
+        {
+            throw new ReturnStatusException((StatusCode)400, "Cards must be same type");
+        }
+
+        var value = king!.Type == gameRoom.PinteType.Type ?
+
+        return ValueTask.CompletedTask;
+    }
+
+
     public ValueTask ChangePinte(CardData card)
     {
         if (gameRoom.NextPlayer.ConnectionId != ConnectionId) throw new ReturnStatusException((StatusCode)400, "It's not your turn");
 
-        if (gameRoom.Pinte.Number == 2)
+        if (gameRoom.Pinte?.Number == 2)
         {
             throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
-        if (gameRoom.Pinte.Number > 7 && (card.Number != 7 || card.Type != gameRoom.Pinte.Type))
+        if (gameRoom.Pinte?.Number > 7 && (card.Number != 7 || card.Type != gameRoom.Pinte.Type))
         {
             throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
-        if (gameRoom.Pinte.Number <= 7 && (card.Number != 2 || card.Type != gameRoom.Pinte.Type))
+        if (gameRoom.Pinte?.Number <= 7 && (card.Number != 2 || card.Type != gameRoom.Pinte.Type))
         {
             throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
@@ -178,7 +215,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
 
         foreach (var item in gameRoom.Players)
         {
-            BroadcastTo(room, item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
+            room.Only(item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
         }
 
         return ValueTask.CompletedTask;
@@ -196,9 +233,9 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         var typeToUse = gameRoom.UsedCards.FirstOrDefault().Value;
         var isTypeDefined = typeToUse is not null;
         var isSameType = card.Type == typeToUse?.Type;
-        var isPinte = card.Type == gameRoom.Pinte.Type;
+        var isPinte = card.Type == gameRoom.PinteType.Type;
         var hasSameType = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == typeToUse?.Type);
-        var hasPinte = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == gameRoom.Pinte.Type);
+        var hasPinte = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == gameRoom.PinteType.Type);
 
         if (isTypeDefined && !isSameType && hasSameType)
         {
@@ -210,19 +247,21 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
             throw new ReturnStatusException((StatusCode)400, "You must use pinte");
         }
 
+        KeyValuePair<Guid, CardData>? winner = null;
         RemovePlayerCard(card, gameRoom);
         gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex()];
 
-        Broadcast(room).OnUsedCard(card, self);
+        room.All.OnUsedCard(card, self);
 
         if (gameRoom.PlayerData.Count == gameRoom.UsedCards.Count)
         {
-            var winner = GetWinner(gameRoom);
-            gameRoom.NextPlayer = gameRoom.PlayerData[winner.Key].Player;
+            winner = GetWinner(gameRoom);
+            var winnerKey = winner.Value.Key;
+            gameRoom.NextPlayer = gameRoom.PlayerData[winnerKey].Player;
 
-            gameRoom.PlayerData[winner.Key].GainedCards =
+            gameRoom.PlayerData[winnerKey].GainedCards =
             [
-                .. gameRoom.PlayerData[winner.Key].GainedCards,
+                .. gameRoom.PlayerData[winnerKey].GainedCards,
                 .. gameRoom.UsedCards.Values
             ];
             gameRoom.UsedCards = [];
@@ -237,7 +276,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
                     gameRoom.Pinte = null;
                 }
                 if (playerConnectionId == ConnectionId) continue;
-                BroadcastTo(room, playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
+                room.Only(playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
             }
         }
         else
@@ -245,28 +284,47 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
             foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerData)
             {
                 if (playerConnectionId == ConnectionId) continue;
-                BroadcastTo(room, playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
+                room.Only(playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
             }
         }
 
         if (gameRoom.PlayerData.All(i => i.Value.Cards.Count == 0))
         {
-            Broadcast(room).OnFinished();
+            if (winner is not null)
+            {
+                gameRoom.PlayerData[winner.Value.Key].GainedCards.Add(new CardData { Name = "Las 10 del monte", Value = 10 });
+            }
+            room.All.OnFinished(GetAllPlayersData());
         }
 
         return ValueTask.FromResult(CreateDataFor(gameRoom.PlayerData[ConnectionId]));
     }
 
+    private List<GameDataResponse> GetAllPlayersData() => gameRoom.PlayerData.Values.Select(CreateDataFor).ToList();
+
     private KeyValuePair<Guid, CardData> GetWinner(GameRoom gameRoom)
     {
         var firstCard = gameRoom.UsedCards.FirstOrDefault().Value;
+
+        //TODO calculate winner by number if no value difference
 
         var bestByValue = gameRoom
             .UsedCards.Where(i => i.Value.Type == firstCard.Type)
             .MaxByOrDefault(i => i.Value.Value);
 
+        var allSameValue = gameRoom.UsedCards
+            .Where(i => i.Value.Type == firstCard.Type)
+            .Sum(i => i.Value.Value) == 0;
+
+        if (bestByValue is not null && allSameValue)
+        {
+            bestByValue = gameRoom.UsedCards
+                .Where(i => i.Value.Type == firstCard.Type)
+                .MaxByOrDefault(i => i.Value.Number);
+        }
+
         var bestByType = gameRoom
-            .UsedCards.Where(i => i.Value.Type == gameRoom.Pinte.Type)
+            .UsedCards.Where(i => i.Value.Type == gameRoom.PinteType.Type)
             .MaxByOrDefault(i => i.Value.Value);
 
         var winner = bestByType ?? bestByValue ?? throw new InvalidOperationException("No winner found");

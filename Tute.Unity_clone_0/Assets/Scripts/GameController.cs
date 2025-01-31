@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -98,7 +99,7 @@ namespace Assets.Scripts
             _gamingHubClient.OnJoinEvent += OnPlayerJoined;
             _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
             _gamingHubClient.OnStartEvent += () => OnStart().Forget();
-            _gamingHubClient.OnFinishEvent += () => OnFinish().Forget();
+            _gamingHubClient.OnFinishEvent += (i) => OnFinish(i).Forget();
             MainManager.Instance.OnRoomJoin += JoinRoom;
             MainManager.Instance.OnStartGame += async () => await StartGame();
             MainManager.Instance.OnLeaveRoom += LeaveRoom;
@@ -120,13 +121,37 @@ namespace Assets.Scripts
         {
             await SceneManager.UnloadSceneAsync("Menu");
         }
-        private async UniTaskVoid OnFinish()
+
+        private async UniTaskVoid OnFinish(IList<GameDataResponse> playerDatas)
         {
-            await SceneManager.LoadSceneAsync("Ingame");
+            await UniTask.WaitForSeconds(1, cancellationToken: destroyCancellationToken);
+
+            DOTween.Clear();
+            _cardRowManager.Clear();
+            _currentCardsGo.ForEach(i => Destroy(i.gameObject));
+            _currentUsedCardsGo.ForEach(i => Destroy(i.gameObject));
+            _currentCardsGo.Clear();
+            _currentUsedCardsGo.Clear();
+            Destroy(_pinte.gameObject);
+            _selfPlayer = null;
+            _nextPlayer = null;
+            _currentData = null;
+            _currentTask = null;
+            _pinte = null;
+
+            //TODO calculate winner
+
+
+            await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
         }
 
         private async UniTask<List<Player>> JoinRoom(string roomName, string playerName)
         {
+            if (string.IsNullOrWhiteSpace(roomName) || string.IsNullOrWhiteSpace(playerName))
+            {
+                throw new ArgumentNullException("roomName, playerName", "Room name and player name must not be empty");
+            }
+
             var (selfPlayer, players) = await _gamingHubClient.JoinAsync(roomName, playerName);
             _selfPlayer = selfPlayer;
             _players.AddRange(players);

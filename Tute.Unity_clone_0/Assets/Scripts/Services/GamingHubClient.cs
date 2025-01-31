@@ -18,8 +18,7 @@ namespace Assets.Scripts.Services
         public event Action<Player> OnJoinEvent;
         public event Action<Player> OnLeaveEvent;
         public event Action OnStartEvent;
-        public event Action OnFinishEvent;
-
+        public event Action<IList<GameDataResponse>> OnFinishEvent;
 
         public async ValueTask ConnectAsync(ChannelBase grpcChannel)
         {
@@ -28,7 +27,6 @@ namespace Assets.Scripts.Services
                 this
             );
         }
-
 
         public async ValueTask<(Player, Player[])> JoinAsync(string roomName, string playername)
         {
@@ -60,6 +58,6 @@ namespace Assets.Scripts.Services
 
         public void OnStart() => OnStartEvent?.Invoke();
 
-        public void OnFinished() => OnFinishEvent?.Invoke();
+        public void OnFinished(IList<GameDataResponse> playerDatas) => OnFinishEvent?.Invoke(playerDatas);
     }
 }

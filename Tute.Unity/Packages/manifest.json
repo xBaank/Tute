@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.cysharp.magiconion": "https://github.com/Cysharp/MagicOnion.git?path=src/MagicOnion.Client.Unity/Assets/Scripts/MagicOnion#6.1.6",
+    "com.cysharp.magiconion.client.unity": "https://github.com/Cysharp/MagicOnion.git?path=/src/MagicOnion.Client.Unity/Assets/Scripts/MagicOnion.Client.Unity#7.0.0",
     "com.cysharp.slnmerge": "https://github.com/Cysharp/SlnMerge.git?path=src",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.cysharp.yetanotherhttphandler": "https://github.com/Cysharp/YetAnotherHttpHandler.git?path=src/YetAnotherHttpHandler",
