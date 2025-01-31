@@ -308,7 +308,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         {
             if (winner is not null)
             {
-                gameRoom.PlayerData[winner.Value.Key].GainedCards.Add(new CardData { Name = "Las 10 del monte", Value = 10 });
+                gameRoom.PlayerData[winner.Value.Key].GainedCards.Add(CardsConstants.DiezDelMonte);
             }
             room.All.OnFinished(GetAllPlayersData());
         }

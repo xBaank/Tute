@@ -102,7 +102,7 @@ namespace Assets.Scripts
             _gamingHubClient.OnStartEvent += () => OnStart().Forget();
             _gamingHubClient.OnFinishEvent += (i) => OnFinish(i).Forget();
             MainManager.Instance.OnRoomJoin += JoinRoom;
-            MainManager.Instance.OnStartGame += async () => await StartGame();
+            MainManager.Instance.OnStartGame += () => StartGame().Forget();
             MainManager.Instance.OnLeaveRoom += LeaveRoom;
         }
 
@@ -142,7 +142,6 @@ namespace Assets.Scripts
             _pinte = null;
 
             //TODO calculate winner
-
 
             await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
         }

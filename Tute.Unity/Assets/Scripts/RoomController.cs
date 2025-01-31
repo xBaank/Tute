@@ -8,6 +8,8 @@ using UnityEngine.UI;
 
 public class RoomController : MonoBehaviour
 {
+    [SerializeField] private TMP_Text tmp_room;
+    [SerializeField] private TMP_Text tmp_name;
     [SerializeField] private TMP_Text tmp_playernames;
     [SerializeField] private TMP_InputField tmp_roomName;
     [SerializeField] private TMP_InputField tmp_playerName;
@@ -38,6 +40,8 @@ public class RoomController : MonoBehaviour
         try
         {
             _players = await MainManager.Instance.ChangeRoom(tmp_roomName.text, tmp_playerName.text);
+            tmp_room.text = $"Room: {tmp_roomName.text}";
+            tmp_name.text = $"Name: {tmp_playerName.text}";
             RenderPlayerList();
         }
         finally
@@ -55,6 +59,8 @@ public class RoomController : MonoBehaviour
     private void ExitRoom()
     {
         MainManager.Instance.LeaveRoom();
+        tmp_room.text = string.Empty;
+        tmp_name.text = string.Empty;
         _players.Clear();
         RenderPlayerList();
     }

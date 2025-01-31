@@ -27,6 +27,5 @@ namespace Assets.Scripts.Cards
                     OnClick?.Invoke(card.CardData);
             }
         }
-
     }
 }
