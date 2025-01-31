@@ -96,6 +96,7 @@ namespace Assets.Scripts
 
             _gamingHubClient.OnGameDataEvent += OnGameData;
             _gamingHubClient.OnUsedCardEvent += OnUsedCard;
+            _gamingHubClient.OnChangedPinteEvent += OnChangedPinte;
             _gamingHubClient.OnJoinEvent += OnPlayerJoined;
             _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
             _gamingHubClient.OnStartEvent += () => OnStart().Forget();
@@ -127,6 +128,7 @@ namespace Assets.Scripts
             await UniTask.WaitForSeconds(1, cancellationToken: destroyCancellationToken);
 
             DOTween.Clear();
+            _players.Clear();
             _cardRowManager.Clear();
             _currentCardsGo.ForEach(i => Destroy(i.gameObject));
             _currentUsedCardsGo.ForEach(i => Destroy(i.gameObject));
@@ -270,22 +272,24 @@ namespace Assets.Scripts
             finally { _currentSemaphore.Release(); }
         }
 
-        private void SpawnPinte(GameDataResponse gameDataResponse)
+        private UniTask OnChangedPinte(CardData cardData)
         {
-            if (gameDataResponse.Pinte == null)
+            if (cardData == null)
             {
                 if (_pinte != null) Destroy(_pinte.gameObject);
-                return;
+                return UniTask.CompletedTask;
             }
 
-            if (_pinte == null || _pinte.CardData.Name != gameDataResponse.Pinte.Name)
+            if (_pinte == null || _pinte.CardData.Name != cardData.Name)
             {
                 if (_pinte != null) Destroy(_pinte.gameObject);
-                _pinte = InstancePinte(gameDataResponse.Pinte);
+                _pinte = InstancePinte(cardData);
                 _pinte.OnClick += (i) => ChangePinte(i).Forget();
                 _pinte.transform.position = spawPosition.position;
                 _pinte.transform.DOMove(pintePosition.position, 0.1f);
             }
+
+            return UniTask.CompletedTask;
         }
 
         private void SpawnUsedCard(CardData cardData, Player player)
@@ -362,8 +366,6 @@ namespace Assets.Scripts
                     await _cardRowManager.UpdateCardPositions();
                 }
 
-                SpawnPinte(gameDataResponse);
-
                 _nextPlayer = gameDataResponse.NextPlayer;
                 _selfPlayer = playerData.Player;
             }
@@ -388,6 +390,8 @@ namespace Assets.Scripts
             if (instancedCard == null)
                 return;
 
+            _cardUsedPosition = instancedCard.transform.position;
+
             GameDataResponse gameDataResponse;
             try
             {
@@ -401,7 +405,6 @@ namespace Assets.Scripts
                 return;
             }
 
-            _cardUsedPosition = instancedCard.transform.position;
             _cardRowManager.RemoveCard(instancedCard);
             _currentCardsGo.Remove(instancedCard);
             audioController.PlayFlick();

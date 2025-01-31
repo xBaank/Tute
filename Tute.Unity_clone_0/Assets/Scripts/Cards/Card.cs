@@ -28,6 +28,7 @@ namespace Assets.Scripts.Cards
 
         private void OnMouseOver()
         {
+            //TODO Stop animation if its dragging
             return;
             transform.position = new Vector3(transform.position.x, transform.position.y, -1);
             animator.SetBool("IsOver", true);
@@ -74,6 +75,14 @@ namespace Assets.Scripts.Cards
             var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
             Vector3 newPos = new(mousePos.x, mousePos.y, 0);
             transform.position = newPos;
+        }
+
+        private void OnTriggerEnter2D(Collider2D collision)
+        {
+            if (collision.CompareTag("Card"))
+            {
+                Debug.Log("Card triggered");
+            }
         }
 
         private async UniTaskVoid DragCards()

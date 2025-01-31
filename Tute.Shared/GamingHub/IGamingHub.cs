@@ -13,6 +13,6 @@ namespace Tute.Shared.GamingHub
         ValueTask LeaveAsync();
         ValueTask<GameDataResponse> MakeMoveAsync(CardData card);
         ValueTask ChangePinte(CardData card);
-        ValueTask Cante(IList<CardData> cards);
+        ValueTask Cante(CardData king, CardData prince);
     }
 }

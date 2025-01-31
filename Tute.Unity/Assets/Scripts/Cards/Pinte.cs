@@ -26,7 +26,6 @@ namespace Assets.Scripts.Cards
                 if (collision.gameObject.TryGetComponent<Card>(out var card))
                     OnClick?.Invoke(card.CardData);
             }
-
         }
 
     }

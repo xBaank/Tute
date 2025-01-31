@@ -19,38 +19,39 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
 
     public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
     {
-        gameRoom ??= GetOrCreateRoom(roomname);
+        var newGameRoom = GetOrCreateRoom(roomname);
+        var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId };
 
-        if (gameRoom.State != GameState.Room && self is null)
+        if (newGameRoom.State != GameState.Room && self is null)
         {
-            gameRoom = null;
             throw new ReturnStatusException((StatusCode)400, "Can't join an ingame room");
         }
 
-        if (self is not null)
+        if (newGameRoom.Players.Any(i => i.ConnectionId == ConnectionId))
         {
             throw new ReturnStatusException((StatusCode)400, "Already joined");
         }
 
-        self = new Player() { Name = name, ConnectionId = ConnectionId };
-        roomName = roomname;
-        room = await Group.AddAsync(roomname);
-
-        if (gameRoom.Players.Count == 0)
+        if (newGameRoom.Players.Count == 0)
         {
-            self.IsLeader = true;
+            newPlayer.IsLeader = true;
         }
 
-        if (gameRoom.Players.Count > 2)
+        if (newGameRoom.Players.Count > 2)
         {
             throw new ReturnStatusException((StatusCode)400, "Can't add more than 2 players");
         }
 
-        gameRoom.Players.Add(self);
+        self = newPlayer;
+        gameRoom = newGameRoom;
+        roomName = roomname;
+        room = await Group.AddAsync(roomname);
+        newGameRoom.RoomContexts[ConnectionId] = Context;
+        newGameRoom.Players.Add(self);
 
         // Typed Server->Client broadcast.
         room.Except(ConnectionId).OnJoin(self);
-        return (self, [.. gameRoom.Players]);
+        return (self, [.. newGameRoom.Players]);
     }
 
     private GameRoom GetOrCreateRoom(string roomname)
@@ -65,6 +66,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
             {
                 State = GameState.Room,
                 Players = [],
+                RoomContexts = []
             };
             gameRooms[roomname] = gameRoom;
             return gameRoom;
@@ -78,35 +80,26 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
 
     public async ValueTask LeaveAsync()
     {
-        try
+        if (room is null)
+            return;
+
+        if (gameRoom.State == GameState.Playing)
         {
-            if (room is null)
-                return;
-
-            if (gameRoom.State == GameState.Playing)
-            {
-                room.All.OnFinished(GetAllPlayersData());
-                await ClearRoom();
-                return;
-            }
-
-            if (gameRoom.State == GameState.Room)
-            {
-                await ExitSelf();
-                if (gameRoom.Players.Count == 1)
-                {
-                    var player = gameRoom.Players.First();
-                    player.IsLeader = true;
-                    room.All.OnLeave(player);
-                    room.All.OnJoin(player);
-                }
-            }
+            room.All.OnFinished(GetAllPlayersData());
+            await ClearRoom();
+            return;
         }
-        finally
+
+        if (gameRoom.State == GameState.Room)
         {
-            gameRoom = null;
-            self = null;
-            room = null;
+            await ExitSelf();
+            if (gameRoom.Players.Count == 1)
+            {
+                var player = gameRoom.Players.First();
+                player.IsLeader = true;
+                room.All.OnLeave(player);
+                room.All.OnJoin(player);
+            }
         }
     }
 
@@ -114,6 +107,10 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
     {
         gameRoom.Players.Clear();
         gameRoom.PlayerData.Clear();
+        foreach (var item in gameRoom.RoomContexts)
+        {
+            await room.RemoveAsync(item.Value);
+        }
         await ExitSelf();
         gameRooms.TryRemove(roomName, out _);
     }
@@ -165,27 +162,48 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
             room.Only(item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
         }
 
+        room.All.OnChangedPinte(pinte);
+
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask Cante(IList<CardData> cards)
+    public ValueTask Cante(CardData king, CardData prince)
     {
-        var king = cards.FirstOrDefault(i => i.Number == 12);
-        var prince = cards.FirstOrDefault(i => i.Number == 11);
-
         if (king is null || prince is null)
         {
             throw new ReturnStatusException((StatusCode)400, "Cards must be prince and king");
         }
+
+        var hasKing = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Name == king.Name);
+        var hasPrince = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Name == prince.Name);
+        if (!hasKing || !hasPrince)
+        {
+            throw new ReturnStatusException((StatusCode)400, "You don't have the cards");
+        }
+
         if (king?.Type != prince?.Type)
         {
             throw new ReturnStatusException((StatusCode)400, "Cards must be same type");
         }
 
-        var value = king!.Type == gameRoom.PinteType.Type ?
+        var value = GetCante(king!.Type);
+        gameRoom.PlayerData[ConnectionId].GainedCards.Add(value);
 
         return ValueTask.CompletedTask;
     }
+
+    private CardData GetCante(CardType cardType) => cardType switch
+    {
+        CardType.Coins when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnOros,
+        CardType.Swords when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnEspadas,
+        CardType.Clubs when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnBastos,
+        CardType.Cups when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnCopas,
+        CardType.Coins => CardsConstants.VeinteEnOros,
+        CardType.Swords => CardsConstants.VeinteEnEspadas,
+        CardType.Clubs => CardsConstants.VeinteEnBastos,
+        CardType.Cups => CardsConstants.VeinteEnCopas,
+        _ => throw new NotImplementedException()
+    };
 
 
     public ValueTask ChangePinte(CardData card)
@@ -213,10 +231,8 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         cards.Add(gameRoom.Pinte);
         gameRoom.Pinte = toRemove;
 
-        foreach (var item in gameRoom.Players)
-        {
-            room.Only(item.ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
-        }
+        room.All.OnChangedPinte(card);
+        room.Only(ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[ConnectionId]));
 
         return ValueTask.CompletedTask;
     }

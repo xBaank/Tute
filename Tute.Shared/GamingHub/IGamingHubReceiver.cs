@@ -9,6 +9,8 @@ namespace Tute.Shared.GamingHub
         void OnLeave(Player player);
         void OnGameData(GameDataResponse gameData);
         void OnUsedCard(CardData card, Player userCard);
+        void OnCante(Player player, CardData cardData);
+        void OnChangedPinte(CardData cardData);
         void OnStart();
         void OnFinished(IList<GameDataResponse> allPlayerData);
     }

@@ -113,7 +113,7 @@ namespace Assets.Scripts.Cards
                 card.transform.position = Vector3.Lerp(
                     card.transform.position,
                     targetPosition,
-                    Time.deltaTime * SnapSpeed
+                     Time.deltaTime * SnapSpeed
                 );
 
                 await UniTask.Yield(cancellationToken);

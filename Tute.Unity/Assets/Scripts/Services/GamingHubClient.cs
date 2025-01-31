@@ -15,6 +15,8 @@ namespace Assets.Scripts.Services
 
         public event Func<GameDataResponse, UniTask> OnGameDataEvent;
         public event Func<CardData, Player, UniTask> OnUsedCardEvent;
+        public event Func<CardData, UniTask> OnChangedPinteEvent;
+        public event Func<Player, CardData, UniTask> OnCanteEvent;
         public event Action<Player> OnJoinEvent;
         public event Action<Player> OnLeaveEvent;
         public event Action OnStartEvent;
@@ -40,24 +42,24 @@ namespace Assets.Scripts.Services
         public Task DisposeAsync() => client.DisposeAsync();
 
         // You can watch connection state, use this for retry etc.
-        public Task WaitForDisconnect() => client.WaitForDisconnect();
+        public Task WaitForDisconnectAsync() => client.WaitForDisconnect();
 
         public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) => client.MakeMoveAsync(card);
 
         public ValueTask ChangePinteAsync(CardData card) => client.ChangePinte(card);
+        public ValueTask Cante(CardData king, CardData prince) => client.Cante(king, prince);
 
         public ValueTask StartAsync(IList<CardData> cardDatas) => client.StartAsync(cardDatas);
 
+
         public void OnJoin(Player player) => OnJoinEvent?.Invoke(player);
-
         public void OnLeave(Player player) => OnLeaveEvent?.Invoke(player);
-
         public void OnGameData(GameDataResponse gameData) => OnGameDataEvent?.Invoke(gameData).Forget();
-
         public void OnUsedCard(CardData card, Player userCard) => OnUsedCardEvent?.Invoke(card, userCard).Forget();
-
         public void OnStart() => OnStartEvent?.Invoke();
-
         public void OnFinished(IList<GameDataResponse> playerDatas) => OnFinishEvent?.Invoke(playerDatas);
+        public void OnChangedPinte(CardData cardData) => OnChangedPinteEvent?.Invoke(cardData).Forget();
+        public void OnCante(Player player, CardData cardData) => OnCanteEvent?.Invoke(player, cardData).Forget();
+
     }
 }

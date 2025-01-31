@@ -1,4 +1,5 @@
-﻿using Tute.Shared.Models;
+﻿using MagicOnion.Server;
+using Tute.Shared.Models;
 
 namespace Tute.Server.Services;
 
@@ -11,6 +12,7 @@ public class GameRoom
     public Player NextPlayer { get; set; }
 
     public IList<Player> Players { get; set; }
+    public Dictionary<Guid, ServiceContext> RoomContexts { get; set; }
 
     public Dictionary<Guid, CardData> UsedCards { get; set; }
 
