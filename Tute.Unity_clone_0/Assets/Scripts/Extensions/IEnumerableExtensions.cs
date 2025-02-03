@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Assets.Scripts.Extensions
@@ -7,5 +8,13 @@ namespace Assets.Scripts.Extensions
     {
         public static IEnumerable<(int Index, T Value)> WithIndex<T>(this IEnumerable<T> source) =>
             source.Select((item, index) => (index, item));
+
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            foreach (var item in source)
+            {
+                action(item);
+            }
+        }
     }
 }

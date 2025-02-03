@@ -26,21 +26,6 @@ namespace Assets.Scripts.Cards
             spriteRenderer.sprite = Sprite;
         }
 
-        private void OnMouseOver()
-        {
-            //TODO Stop animation if its dragging
-            return;
-            transform.position = new Vector3(transform.position.x, transform.position.y, -1);
-            animator.SetBool("IsOver", true);
-        }
-
-        private void OnMouseExit()
-        {
-            return;
-            transform.position = new Vector3(transform.position.x, transform.position.y, 0);
-            animator.SetBool("IsOver", false);
-        }
-
         private void OnMouseDown()
         {
             startPosition = transform.position;
@@ -75,14 +60,6 @@ namespace Assets.Scripts.Cards
             var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
             Vector3 newPos = new(mousePos.x, mousePos.y, 0);
             transform.position = newPos;
-        }
-
-        private void OnTriggerEnter2D(Collider2D collision)
-        {
-            if (collision.CompareTag("Card"))
-            {
-                Debug.Log("Card triggered");
-            }
         }
 
         private async UniTaskVoid DragCards()

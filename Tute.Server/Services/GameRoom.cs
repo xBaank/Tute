@@ -5,6 +5,7 @@ namespace Tute.Server.Services;
 
 public class GameRoom
 {
+    public required List<CardData> InitialDeck { get; init; }
     public Dictionary<Guid, PlayerData> PlayerData { get; set; }
 
     public GameState State { get; set; }

@@ -15,7 +15,8 @@ namespace Tute.Shared.Models
         public readonly static CardData CuarentaEnBastos = new CardData() { Value = 40, Name = "Las cuarenta en bastos", Number = 107, Type = CardType.Clubs };
         public readonly static CardData CuarentaEnEspadas = new CardData() { Value = 40, Name = "Las cuarenta en espadas", Number = 108, Type = CardType.Swords };
         public readonly static CardData CuarentaEnCopas = new CardData() { Value = 40, Name = "Las cuarenta en copas", Number = 109, Type = CardType.Cups };
-        public readonly static CardData Tute = new CardData() { Value = 200, Name = "Tute", Number = 110 };
+        public readonly static CardData TuteReyes = new CardData() { Value = 200, Name = "Tute en reyes", Number = 110 };
+        public readonly static CardData TutePrincipes = new CardData() { Value = 200, Name = "Tute en principes", Number = 111 };
 
         public static IEnumerable<CardData> GetCantes(IEnumerable<CardData> cards) => cards.Where(i =>
             i.Number == VeinteEnEspadas.Number ||
@@ -38,6 +39,13 @@ namespace Tute.Shared.Models
             CardType.Swords => VeinteEnEspadas,
             CardType.Clubs => VeinteEnBastos,
             CardType.Cups => VeinteEnCopas,
+            _ => throw new NotImplementedException()
+        };
+
+        public static CardData GetTute(int number) => number switch
+        {
+            11 => TutePrincipes,
+            12 => TuteReyes,
             _ => throw new NotImplementedException()
         };
     }

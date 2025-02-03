@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Cysharp.Runtime.Multicast;
 using Grpc.Core;
 using MagicOnion;
@@ -17,9 +19,18 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
     private string? roomName;
     private GameRoom? gameRoom;
 
+    private static readonly JsonSerializerOptions options = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+        },
+    };
+
     public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
     {
-        var newGameRoom = GetOrCreateRoom(roomname);
+        var newGameRoom = await GetOrCreateRoomAsync(roomname);
         var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId };
 
         if (newGameRoom.State != GameState.Room && self is null)
@@ -54,7 +65,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         return (self, [.. newGameRoom.Players]);
     }
 
-    private GameRoom GetOrCreateRoom(string roomname)
+    private async Task<GameRoom> GetOrCreateRoomAsync(string roomname)
     {
         if (gameRooms.TryGetValue(roomname, out var value))
         {
@@ -62,8 +73,15 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         }
         else
         {
+            var file = File.OpenRead("Data/cards_info.json");
+            var cards = await JsonSerializer.DeserializeAsync<List<CardData>>(file, options: options);
+
+            if (cards is null || cards.Count == 0)
+                throw new ReturnStatusException((StatusCode)400, "No deck found");
+
             var gameRoom = new GameRoom()
             {
+                InitialDeck = cards,
                 State = GameState.Room,
                 Players = [],
                 RoomContexts = []
@@ -123,20 +141,20 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         room.Except(ConnectionId).OnLeave(self);
     }
 
-    public ValueTask StartAsync(IList<CardData> cards)
+    public async ValueTask StartAsync()
     {
         if (room is null)
-            return ValueTask.CompletedTask;
+            return;
 
         if (self is null || !self.IsLeader)
-            return ValueTask.CompletedTask;
+            return;
 
         if (gameRoom.State == GameState.Playing)
-            return ValueTask.CompletedTask;
+            return;
 
         room.All.OnStart();
 
-        var gameCards = new Stack<CardData>(cards.Shuffled());
+        var gameCards = new Stack<CardData>(gameRoom.InitialDeck.Shuffled());
         var pinte = gameCards.Pop();
 
         gameRoom.State = GameState.Playing;
@@ -163,7 +181,35 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         }
 
         room.All.OnChangedPinte(pinte);
+    }
 
+    public ValueTask Tute(IList<CardData> cards)
+    {
+        if (cards.Count != 4)
+        {
+            throw new ReturnStatusException((StatusCode)400, "Cards must be 4");
+        }
+
+        var number = cards[0].Number;
+        var cardsGrouped = cards.GroupBy(i => i.Type);
+
+        if (cardsGrouped.Count() != 4 || !cardsGrouped.All(i => i.Count() == 1 && i.First().Number == number))
+        {
+            throw new ReturnStatusException((StatusCode)400, "Cards must be same number");
+        }
+
+        var tute = CardsConstants.GetTute(number);
+
+        gameRoom.PlayerData[ConnectionId].GainedCards.Add(tute);
+        room.Single(ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[ConnectionId]));
+        room.All.OnTute(self, tute);
+
+        foreach (var item in gameRoom.PlayerData)
+        {
+            item.Value.Cards.Clear();
+        }
+
+        room.All.OnFinished(GetAllPlayersData());
         return ValueTask.CompletedTask;
     }
 

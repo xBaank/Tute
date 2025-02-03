@@ -17,6 +17,7 @@ namespace Assets.Scripts.Services
         public event Func<CardData, Player, UniTask> OnUsedCardEvent;
         public event Func<CardData, UniTask> OnChangedPinteEvent;
         public event Func<Player, CardData, UniTask> OnCanteEvent;
+        public event Func<Player, CardData, UniTask> OnTuteEvent;
         public event Action<Player> OnJoinEvent;
         public event Action<Player> OnLeaveEvent;
         public event Action OnStartEvent;
@@ -48,8 +49,8 @@ namespace Assets.Scripts.Services
 
         public ValueTask ChangePinteAsync(CardData card) => client.ChangePinte(card);
         public ValueTask Cante(CardData king, CardData prince) => client.Cante(king, prince);
-
-        public ValueTask StartAsync(IList<CardData> cardDatas) => client.StartAsync(cardDatas);
+        public ValueTask Tute(IList<CardData> cards) => client.Tute(cards);
+        public ValueTask StartAsync() => client.StartAsync();
 
 
         public void OnJoin(Player player) => OnJoinEvent?.Invoke(player);
@@ -60,6 +61,7 @@ namespace Assets.Scripts.Services
         public void OnFinished(IList<GameDataResponse> playerDatas) => OnFinishEvent?.Invoke(playerDatas);
         public void OnChangedPinte(CardData cardData) => OnChangedPinteEvent?.Invoke(cardData).Forget();
         public void OnCante(Player player, CardData cardData) => OnCanteEvent?.Invoke(player, cardData).Forget();
+        public void OnTute(Player player, CardData cardData) => OnTuteEvent?.Invoke(player, cardData).Forget();
 
     }
 }

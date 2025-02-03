@@ -13,7 +13,6 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using MagicOnion;
 using MagicOnion.Unity;
-using Newtonsoft.Json;
 using Tute.Shared.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -105,6 +104,7 @@ namespace Assets.Scripts
             _gamingHubClient.OnUsedCardEvent += OnUsedCard;
             _gamingHubClient.OnChangedPinteEvent += OnChangedPinte;
             _gamingHubClient.OnCanteEvent += OnCante;
+            _gamingHubClient.OnTuteEvent += OnTute;
             _gamingHubClient.OnJoinEvent += OnPlayerJoined;
             _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
             _gamingHubClient.OnStartEvent += () => OnStart().Forget();
@@ -123,7 +123,7 @@ namespace Assets.Scripts
         private async UniTask StartGame()
         {
             if (_selfPlayer == null) return;
-            await _gamingHubClient.StartAsync(GetCards());
+            await _gamingHubClient.StartAsync();
         }
 
         private async UniTaskVoid OnStart()
@@ -137,13 +137,13 @@ namespace Assets.Scripts
 
             try
             {
-                LeaveRoom();
+                await LeaveRoom();
 
                 DOTween.Clear();
                 _players.Clear();
                 _cardRowManager.Clear();
-                _currentCardsGo.ForEach(i => Destroy(i.gameObject));
-                _currentUsedCardsGo.ForEach(i => Destroy(i.gameObject));
+                _currentCardsGo.Where(i => i != null).ForEach(i => Destroy(i.gameObject));
+                _currentUsedCardsGo.Where(i => i != null).ForEach(i => Destroy(i.gameObject));
                 _currentCardsGo.Clear();
                 _currentUsedCardsGo.Clear();
                 if (_pinte != null) Destroy(_pinte.gameObject);
@@ -198,13 +198,6 @@ namespace Assets.Scripts
             if (toRemove == null) return;
             _players.Remove(toRemove);
             MainManager.Instance.RoomSizeChaged(_players);
-        }
-
-        private IList<CardData> GetCards()
-        {
-            //TODO move to server
-            var data = JsonConvert.DeserializeObject<CardData[]>(cardsData.text);
-            return data;
         }
 
         private IEnumerable<Card> InstanceCards(IList<CardData> data)
@@ -264,7 +257,29 @@ namespace Assets.Scripts
             }
         }
 
-        private async UniTask Cantar()
+        private async UniTask CheckTute()
+        {
+            var cards = _currentCardsGo.Select(i => i.CardData).ToList();
+            var tuteKingCards = cards.Where(i => i.Number == 12).ToList();
+            var tutePrinceCards = cards.Where(i => i.Number == 11).ToList();
+
+            if (tuteKingCards.Count != 4 && tutePrinceCards.Count != 4)
+            {
+                return;
+            }
+
+            var toUse = tuteKingCards.Count == 4 ? tuteKingCards : tutePrinceCards;
+            await _gamingHubClient.Tute(toUse);
+        }
+
+        private UniTask OnTute(Player player, CardData tute)
+        {
+            //TODO show tute info
+            Debug.Log($"Player {player.Name} tute {tute.Name}");
+            return UniTask.CompletedTask;
+        }
+
+        private async UniTask CheckCantar()
         {
             var alreadycantes = _currentData.Cantes
                 .OrderByDescending(i => i.Number)
@@ -419,9 +434,10 @@ namespace Assets.Scripts
                 }
 
                 //If we win
-                if (isResponse && gameDataResponse.NextPlayer.ConnectionId == _selfPlayer.ConnectionId)
+                if (isResponse && gameDataResponse.NextPlayer?.ConnectionId == _selfPlayer?.ConnectionId)
                 {
-                    await Cantar();
+                    await CheckTute();
+                    await CheckCantar();
                 }
 
                 _nextPlayer = gameDataResponse.NextPlayer;
