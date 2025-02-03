@@ -99,7 +99,7 @@ namespace Assets.Scripts
             ConnectToServer().Forget();
 
             exitButton.onClick.RemoveAllListeners();
-            exitButton.onClick.AddListener(() => LeaveRoom());
+            exitButton.onClick.AddListener(() => LeaveRoom().Forget());
 
             _gamingHubClient.OnGameDataEvent += OnGameData;
             _gamingHubClient.OnUsedCardEvent += OnUsedCard;
@@ -111,7 +111,7 @@ namespace Assets.Scripts
             _gamingHubClient.OnFinishEvent += (i) => OnFinish(i).Forget();
             MainManager.Instance.OnRoomJoin += JoinRoom;
             MainManager.Instance.OnStartGame += () => StartGame().Forget();
-            MainManager.Instance.OnLeaveRoom += LeaveRoom;
+            MainManager.Instance.OnLeaveRoom += () => LeaveRoom().Forget();
         }
 
         private async UniTaskVoid ConnectToServer()
@@ -137,6 +137,7 @@ namespace Assets.Scripts
 
             try
             {
+                LeaveRoom();
 
                 DOTween.Clear();
                 _players.Clear();
@@ -174,10 +175,10 @@ namespace Assets.Scripts
             return _players;
         }
 
-        private void LeaveRoom()
+        private async UniTask LeaveRoom()
         {
             if (_selfPlayer == null) return;
-            _gamingHubClient.LeaveAsync();
+            await _gamingHubClient.LeaveAsync();
             _selfPlayer = null;
             _players.Clear();
         }
