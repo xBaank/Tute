@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using Tute.Shared.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -48,6 +49,9 @@ namespace Assets.Scripts
 
         [SerializeField]
         private Sprite[] spriteSheet;
+
+        [SerializeField]
+        private Button exitButton;
 
         [SerializeField]
         private AudioController audioController;
@@ -94,9 +98,13 @@ namespace Assets.Scripts
 
             ConnectToServer().Forget();
 
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(() => LeaveRoom());
+
             _gamingHubClient.OnGameDataEvent += OnGameData;
             _gamingHubClient.OnUsedCardEvent += OnUsedCard;
             _gamingHubClient.OnChangedPinteEvent += OnChangedPinte;
+            _gamingHubClient.OnCanteEvent += OnCante;
             _gamingHubClient.OnJoinEvent += OnPlayerJoined;
             _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
             _gamingHubClient.OnStartEvent += () => OnStart().Forget();
@@ -125,25 +133,32 @@ namespace Assets.Scripts
 
         private async UniTaskVoid OnFinish(IList<GameDataResponse> playerDatas)
         {
-            await UniTask.WaitForSeconds(1, cancellationToken: destroyCancellationToken);
+            await _currentSemaphore.WaitAsync();
 
-            DOTween.Clear();
-            _players.Clear();
-            _cardRowManager.Clear();
-            _currentCardsGo.ForEach(i => Destroy(i.gameObject));
-            _currentUsedCardsGo.ForEach(i => Destroy(i.gameObject));
-            _currentCardsGo.Clear();
-            _currentUsedCardsGo.Clear();
-            Destroy(_pinte.gameObject);
-            _selfPlayer = null;
-            _nextPlayer = null;
-            _currentData = null;
-            _currentTask = null;
-            _pinte = null;
+            try
+            {
 
-            //TODO calculate winner
+                DOTween.Clear();
+                _players.Clear();
+                _cardRowManager.Clear();
+                _currentCardsGo.ForEach(i => Destroy(i.gameObject));
+                _currentUsedCardsGo.ForEach(i => Destroy(i.gameObject));
+                _currentCardsGo.Clear();
+                _currentUsedCardsGo.Clear();
+                if (_pinte != null) Destroy(_pinte.gameObject);
+                _selfPlayer = null;
+                _nextPlayer = null;
+                _currentData = null;
+                _currentTask = null;
+                _pinte = null;
 
-            await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
+                //TODO calculate winner
+                await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
+            }
+            finally
+            {
+                _currentSemaphore.Release();
+            }
         }
 
         private async UniTask<List<Player>> JoinRoom(string roomName, string playerName)
@@ -186,6 +201,7 @@ namespace Assets.Scripts
 
         private IList<CardData> GetCards()
         {
+            //TODO move to server
             var data = JsonConvert.DeserializeObject<CardData[]>(cardsData.text);
             return data;
         }
@@ -247,12 +263,48 @@ namespace Assets.Scripts
             }
         }
 
+        private async UniTask Cantar()
+        {
+            var alreadycantes = _currentData.Cantes
+                .OrderByDescending(i => i.Number)
+                .Select(i => i.Type)
+                .ToList();
+
+            var cantes = _currentCardsGo.Select(i => i.CardData)
+                .Where(i => i.Number == 11 || i.Number == 12)
+                .GroupBy(i => i.Type)
+                .Where(i => !alreadycantes.Contains(i.Key))
+                .FirstOrDefault(i => i.Count() == 2);
+
+            if (cantes == null || !cantes.Any())
+            {
+                return;
+            }
+
+            var king = cantes.FirstOrDefault(i => i.Number == 12);
+            var prince = cantes.FirstOrDefault(i => i.Number == 11);
+
+            if (king == null || prince == null)
+            {
+                return;
+            }
+
+            await _gamingHubClient.Cante(king, prince);
+        }
+
+        private UniTask OnCante(Player player, CardData cante)
+        {
+            //TODO show cante info
+            Debug.Log($"Player {player.Name} ha canta {cante.Name}");
+            return UniTask.CompletedTask;
+        }
+
         private async UniTask ChangePinte(CardData card)
         {
             await _currentSemaphore.WaitAsync();
             try
             {
-                if (_nextPlayer?.ConnectionId != _selfPlayer.ConnectionId) return;
+                if (_nextPlayer?.ConnectionId != _selfPlayer?.ConnectionId) return;
                 try
                 {
                     await _gamingHubClient.ChangePinteAsync(card);
@@ -313,7 +365,7 @@ namespace Assets.Scripts
             );
         }
 
-        private async UniTask SetData(GameDataResponse gameDataResponse)
+        private async UniTask SetData(GameDataResponse gameDataResponse, bool isResponse = false)
         {
             await _currentSemaphore.WaitAsync();
             try
@@ -365,6 +417,12 @@ namespace Assets.Scripts
                     await _cardRowManager.UpdateCardPositions();
                 }
 
+                //If we win
+                if (isResponse && gameDataResponse.NextPlayer.ConnectionId == _selfPlayer.ConnectionId)
+                {
+                    await Cantar();
+                }
+
                 _nextPlayer = gameDataResponse.NextPlayer;
                 _selfPlayer = playerData.Player;
             }
@@ -408,7 +466,7 @@ namespace Assets.Scripts
             _currentCardsGo.Remove(instancedCard);
             audioController.PlayFlick();
             Destroy(instancedCard.gameObject);
-            var tasks = new List<UniTask>() { SetData(gameDataResponse), _cardRowManager.UpdateCardPositions() };
+            var tasks = new List<UniTask>() { SetData(gameDataResponse, true), _cardRowManager.UpdateCardPositions() };
             _currentTask = UniTask.WhenAll(tasks).AsTask();
             await _currentTask;
         }

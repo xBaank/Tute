@@ -5,7 +5,7 @@ using MessagePack;
 namespace Tute.Shared.Models
 {
     [MessagePackObject]
-    public class GameDataResponse
+    public partial class GameDataResponse
     {
         [Key(0)]
         public CardData Pinte { get; set; }
@@ -17,5 +17,13 @@ namespace Tute.Shared.Models
         public PlayerData PlayerData { get; set; }
         [Key(4)]
         public GameState GameState { get; set; }
+        [Key(5)]
+        public IList<CardData> GainedCards { get; set; }
+    }
+
+    public partial class GameDataResponse
+    {
+        [IgnoreMember]
+        public IEnumerable<CardData> Cantes => CardsConstants.GetCantes(GainedCards);
     }
 }

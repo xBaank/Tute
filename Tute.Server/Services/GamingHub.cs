@@ -181,46 +181,48 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
             throw new ReturnStatusException((StatusCode)400, "You don't have the cards");
         }
 
-        if (king?.Type != prince?.Type)
+        if (king!.Type != prince!.Type)
         {
             throw new ReturnStatusException((StatusCode)400, "Cards must be same type");
         }
 
-        var value = GetCante(king!.Type);
+        var cantes = CardsConstants.GetCantes(gameRoom.PlayerData[ConnectionId].GainedCards).Select(i => i.Type);
+
+        if (cantes.Contains(king!.Type))
+        {
+            throw new ReturnStatusException((StatusCode)400, "Already did");
+        }
+
+        var value = CardsConstants.GetCante(king!.Type, gameRoom.PinteType.Type);
         gameRoom.PlayerData[ConnectionId].GainedCards.Add(value);
+
+        room.Single(ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[ConnectionId]));
+        room.All.OnCante(self, value);
 
         return ValueTask.CompletedTask;
     }
 
-    private CardData GetCante(CardType cardType) => cardType switch
-    {
-        CardType.Coins when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnOros,
-        CardType.Swords when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnEspadas,
-        CardType.Clubs when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnBastos,
-        CardType.Cups when cardType == gameRoom?.PinteType.Type => CardsConstants.CuarentaEnCopas,
-        CardType.Coins => CardsConstants.VeinteEnOros,
-        CardType.Swords => CardsConstants.VeinteEnEspadas,
-        CardType.Clubs => CardsConstants.VeinteEnBastos,
-        CardType.Cups => CardsConstants.VeinteEnCopas,
-        _ => throw new NotImplementedException()
-    };
+
 
 
     public ValueTask ChangePinte(CardData card)
     {
         if (gameRoom.NextPlayer.ConnectionId != ConnectionId) throw new ReturnStatusException((StatusCode)400, "It's not your turn");
+        if (gameRoom.Pinte is null) throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
 
-        if (gameRoom.Pinte?.Number == 2)
+        var number = gameRoom.Pinte.Number;
+
+        if (number is 2)
         {
             throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
-        if (gameRoom.Pinte?.Number > 7 && (card.Number != 7 || card.Type != gameRoom.Pinte.Type))
+        if (card.Number is not 2 && number is 2 or 4 or 5 or 6 or 7)
         {
             throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
 
-        if (gameRoom.Pinte?.Number <= 7 && (card.Number != 2 || card.Type != gameRoom.Pinte.Type))
+        if (card.Number is not 7 && number is 1 or 3 or 10 or 11 or 12)
         {
             throw new ReturnStatusException((StatusCode)400, "You can't change pinte");
         }
@@ -250,12 +252,19 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         var isTypeDefined = typeToUse is not null;
         var isSameType = card.Type == typeToUse?.Type;
         var isPinte = card.Type == gameRoom.PinteType.Type;
+        var isGreaterCard = isTypeDefined && (card.Value > typeToUse!.Value || card.Value == typeToUse!.Value && card.Number > typeToUse.Number);
+        var hasGreaterCard = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == typeToUse?.Type && i.Value > typeToUse?.Value);
         var hasSameType = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == typeToUse?.Type);
         var hasPinte = gameRoom.PlayerData[ConnectionId].Cards.Any(i => i.Type == gameRoom.PinteType.Type);
 
         if (isTypeDefined && !isSameType && hasSameType)
         {
             throw new ReturnStatusException((StatusCode)400, "You must use same type");
+        }
+
+        if (isTypeDefined && isSameType && !isGreaterCard && hasGreaterCard)
+        {
+            throw new ReturnStatusException((StatusCode)400, "You must use same type with greater value");
         }
 
         if (isTypeDefined && !hasSameType && !isPinte && hasPinte)
@@ -290,6 +299,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
                 {
                     playerCards.Cards.Add(gameRoom.Pinte);
                     gameRoom.Pinte = null;
+                    room.All.OnChangedPinte(gameRoom.Pinte);
                 }
                 if (playerConnectionId == ConnectionId) continue;
                 room.Only(playerConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
@@ -374,5 +384,6 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         Pinte = gameRoom.Pinte,
         UsedCards = gameRoom.UsedCards,
         GameState = gameRoom.State,
+        GainedCards = playerData.GainedCards
     };
 }
