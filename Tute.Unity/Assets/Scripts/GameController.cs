@@ -518,7 +518,7 @@ namespace Assets.Scripts
                 new Rect(15, 30, 100, 30),
                 $"Points: {_currentData?.PlayerData.GainedCards.Sum(i => i.Value)}"
             );
-            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {_currentData?.Pinte?.Type.ToString()}");
+            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {_currentData?.PinteType.ToString()}");
             GUI.Label(
                 new Rect(15, 60, 100, 30),
                 $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"

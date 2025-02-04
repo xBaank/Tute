@@ -384,6 +384,7 @@ public class GameController(
             PlayerData = playerData,
             NextPlayer = gameRoom.NextPlayer,
             Pinte = gameRoom.Pinte,
+            PinteType = gameRoom.PinteType!.Type,
             UsedCards = gameRoom.UsedCards,
             GameState = gameRoom.State,
             GainedCards = playerData.GainedCards,

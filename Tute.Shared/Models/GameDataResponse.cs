@@ -24,6 +24,9 @@ namespace Tute.Shared.Models
 
         [Key(5)]
         public IList<CardData> GainedCards { get; set; }
+
+        [Key(6)]
+        public CardType PinteType { get; set; }
     }
 
     public partial class GameDataResponse
