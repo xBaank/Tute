@@ -21,6 +21,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     private string? roomName;
     private GameRoom? gameRoom;
     private GameController? gameController;
+    private ChatController? chatController;
 
     private static readonly JsonSerializerOptions options = new()
     {
@@ -28,6 +29,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
+    //TODO fix leave join
     public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
     {
         var newGameRoom = await GetOrCreateRoomAsync(roomname);
@@ -65,6 +67,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         newGameRoom.RoomContexts[ConnectionId] = Context;
         newGameRoom.Players.Add(self);
         gameController = new(gameRoom, self, room, Context);
+        chatController = new(room, self);
 
         // Typed Server->Client broadcast.
         room.Except(ConnectionId).OnJoin(self);
@@ -79,7 +82,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         }
         else
         {
-            var file = File.OpenRead("Data/short_deck.json");
+            var file = File.OpenRead("Data/deck.json");
             var cards = await JsonSerializer.DeserializeAsync<List<CardData>>(
                 file,
                 options: options
@@ -110,6 +113,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         if (isEmpty && roomName is not null)
             gameRooms.TryRemove(roomName, out _);
         gameController = null;
+        chatController = null;
         gameRoom = null;
         self = null;
         roomName = null;
@@ -142,4 +146,6 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
 
     private static T ThrowNoGameRoomException<T>() =>
         throw new ReturnStatusException((StatusCode)400, "No gameroom found");
+
+    public ValueTask SendMessage(string message) => chatController?.SendMessage(message) ?? ThrowNoGameRoomException<ValueTask>();
 }

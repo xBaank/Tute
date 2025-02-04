@@ -22,6 +22,7 @@ namespace Assets.Scripts.Services
         public event Action<Player> OnLeaveEvent;
         public event Action OnStartEvent;
         public event Action<IList<GameDataResponse>> OnFinishEvent;
+        public event Action<string, Player> OnMessageEvent;
 
         public async ValueTask ConnectAsync(ChannelBase grpcChannel)
         {
@@ -53,6 +54,7 @@ namespace Assets.Scripts.Services
         public ValueTask Cante(CardData king, CardData prince) => client.Cante(king, prince);
 
         public ValueTask Tute(IList<CardData> cards) => client.Tute(cards);
+        public ValueTask SendMessage(string message) => client.SendMessage(message);
 
         public ValueTask StartAsync() => client.StartAsync();
 
@@ -79,5 +81,8 @@ namespace Assets.Scripts.Services
 
         public void OnTute(Player player, CardData cardData) =>
             OnTuteEvent?.Invoke(player, cardData).Forget();
+
+        public void OnMessage(string message, Player player) =>
+            OnMessageEvent?.Invoke(message, player);
     }
 }

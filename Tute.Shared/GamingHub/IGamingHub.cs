@@ -15,5 +15,6 @@ namespace Tute.Shared.GamingHub
         ValueTask ChangePinte(CardData card);
         ValueTask Cante(CardData king, CardData prince);
         ValueTask Tute(IList<CardData> cards);
+        ValueTask SendMessage(string message);
     }
 }

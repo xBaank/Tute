@@ -53,6 +53,9 @@ namespace Assets.Scripts
         private Button exitButton;
 
         [SerializeField]
+        private ChatController chatController;
+
+        [SerializeField]
         private AudioController audioController;
 
         private readonly GamingHubClient _gamingHubClient = new();
@@ -96,6 +99,8 @@ namespace Assets.Scripts
             SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
 
             ConnectToServer().Forget();
+
+            chatController.SetGamingHubClient(_gamingHubClient);
 
             exitButton.onClick.RemoveAllListeners();
             exitButton.onClick.AddListener(() => LeaveRoom().Forget());
@@ -152,7 +157,10 @@ namespace Assets.Scripts
                 _currentTask = null;
                 _pinte = null;
 
-                //TODO calculate winner
+                var winner = playerDatas.OrderBy(i => i.GainedCards.Sum(i => i.Value)).FirstOrDefault();
+                chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
+                //TODO wait for input
+                await UniTask.WaitForSeconds(5);
                 await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
                 MainManager.Instance.RoomSizeChaged(_players);
             }
@@ -183,6 +191,7 @@ namespace Assets.Scripts
         {
             if (_selfPlayer == null)
                 return;
+            chatController.ClearMessages();
             await _gamingHubClient.LeaveAsync();
             _selfPlayer = null;
             _players.Clear();
@@ -202,7 +211,14 @@ namespace Assets.Scripts
             var toRemove = _players.FirstOrDefault(i => i.ConnectionId == player.ConnectionId);
             if (toRemove == null)
                 return;
-            _players.Remove(toRemove);
+            if (toRemove.ConnectionId == _selfPlayer?.ConnectionId)
+            {
+                LeaveRoom().Forget();
+            }
+            else
+            {
+                _players.Remove(toRemove);
+            }
             MainManager.Instance.RoomSizeChaged(_players);
         }
 
@@ -281,8 +297,7 @@ namespace Assets.Scripts
 
         private UniTask OnTute(Player player, CardData tute)
         {
-            //TODO show tute info
-            Debug.Log($"Player {player.Name} tute {tute.Name}");
+            chatController.OnSystemMessage($"Player {player.Name} tute {tute.Name}");
             return UniTask.CompletedTask;
         }
 
@@ -318,8 +333,7 @@ namespace Assets.Scripts
 
         private UniTask OnCante(Player player, CardData cante)
         {
-            //TODO show cante info
-            Debug.Log($"Player {player.Name} ha canta {cante.Name}");
+            chatController.OnSystemMessage($"Player {player.Name} ha cantado {cante.Name}");
             return UniTask.CompletedTask;
         }
 
