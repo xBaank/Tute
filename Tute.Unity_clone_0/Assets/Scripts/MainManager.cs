@@ -14,6 +14,8 @@ public class MainManager : MonoBehaviour
     public event Action<List<Player>> OnRoomSizeChanged;
     public event Action OnLeaveRoom;
 
+    public List<Player> Players { get; private set; } = new();
+
     private void Awake()
     {
         if (instance != null)
@@ -26,13 +28,22 @@ public class MainManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public async UniTask<List<Player>> ChangeRoom(string roomName, string playerName)
+    public async UniTask ChangeRoom(string roomName, string playerName)
     {
-        if (OnRoomJoin is null) return new();
-        return await OnRoomJoin.Invoke(roomName, playerName);
+        if (OnRoomJoin is null) return;
+        Players = await OnRoomJoin.Invoke(roomName, playerName);
     }
 
     public void StartGame() => OnStartGame?.Invoke();
-    public void RoomSizeChaged(List<Player> player) => OnRoomSizeChanged?.Invoke(player);
-    public void LeaveRoom() => OnLeaveRoom?.Invoke();
+    public void RoomSizeChaged(List<Player> player)
+    {
+        Players = player;
+        OnRoomSizeChanged?.Invoke(player);
+    }
+
+    public void LeaveRoom()
+    {
+        Players.Clear();
+        OnLeaveRoom?.Invoke();
+    }
 }

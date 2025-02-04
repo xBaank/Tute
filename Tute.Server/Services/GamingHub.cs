@@ -80,7 +80,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         }
         else
         {
-            var file = File.OpenRead("Data/cards_info.json");
+            var file = File.OpenRead("Data/short_deck.json");
             var cards = await JsonSerializer.DeserializeAsync<List<CardData>>(file, options: options);
 
             if (cards is null || cards.Count == 0)

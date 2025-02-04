@@ -11,7 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Data\cards_info.json">
+    <None Update="Data\short_deck.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\deck.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

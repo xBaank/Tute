@@ -78,6 +78,8 @@ public class GameController(GameRoom gameRoom, Player self, IGroup<IGamingHubRec
         gameRoom.Pinte = pinte;
         gameRoom.PinteType = pinte;
 
+        //TODO maybe change the way cards are distributed
+
         foreach (var item in gameRoom.Players)
         {
             var initialHand = gameCards.PopRange(7).ToList();

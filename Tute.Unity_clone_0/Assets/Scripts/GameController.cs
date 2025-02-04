@@ -138,7 +138,6 @@ namespace Assets.Scripts
             try
             {
                 DOTween.Clear();
-                _players.Clear();
                 _cardRowManager.Clear();
                 _currentCardsGo.Where(i => i != null).ForEach(i => Destroy(i.gameObject));
                 _currentUsedCardsGo.Where(i => i != null).ForEach(i => Destroy(i.gameObject));
@@ -153,6 +152,7 @@ namespace Assets.Scripts
 
                 //TODO calculate winner
                 await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
+                MainManager.Instance.RoomSizeChaged(_players);
             }
             finally
             {
@@ -169,6 +169,7 @@ namespace Assets.Scripts
 
             var (selfPlayer, players) = await _gamingHubClient.JoinAsync(roomName, playerName);
             _selfPlayer = selfPlayer;
+            _players.Clear();
             _players.AddRange(players);
             return _players;
         }

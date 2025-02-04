@@ -1,0 +1,114 @@
+[
+    {
+        "name": "Ace of Cups",
+        "value": 11,
+        "spritename": "ace_cups",
+        "type": "Cups",
+        "number": 1
+    },
+    {
+        "name": "Two of Cups",
+        "value": 0,
+        "spritename": "two_cups",
+        "type": "Cups",
+        "number": 2
+    },
+    {
+        "name": "Three of Cups",
+        "value": 10,
+        "spritename": "three_cups",
+        "type": "Cups",
+        "number": 3
+    },
+    {
+        "name": "Four of Cups",
+        "value": 0,
+        "spritename": "four_cups",
+        "type": "Cups",
+        "number": 4
+    },
+    {
+        "name": "Five of Cups",
+        "value": 0,
+        "spritename": "five_cups",
+        "type": "Cups",
+        "number": 5
+    },
+    {
+        "name": "Six of Cups",
+        "value": 0,
+        "spritename": "six_cups",
+        "type": "Cups",
+        "number": 6
+    },
+    {
+        "name": "Seven of Cups",
+        "value": 0,
+        "spritename": "seven_cups",
+        "type": "Cups",
+        "number": 7
+    },
+    {
+        "name": "Ace of Coins",
+        "value": 11,
+        "spritename": "ace_coins",
+        "type": "Coins",
+        "number": 1
+    },
+    {
+        "name": "Two of Coins",
+        "value": 0,
+        "spritename": "two_coins",
+        "type": "Coins",
+        "number": 2
+    },
+    {
+        "name": "Three of Coins",
+        "value": 10,
+        "spritename": "three_coins",
+        "type": "Coins",
+        "number": 3
+    },
+    {
+        "name": "Four of Coins",
+        "value": 0,
+        "spritename": "four_coins",
+        "type": "Coins",
+        "number": 4
+    },
+    {
+        "name": "Five of Coins",
+        "value": 0,
+        "spritename": "five_coins",
+        "type": "Coins",
+        "number": 5
+    },
+    {
+        "name": "Six of Coins",
+        "value": 0,
+        "spritename": "six_coins",
+        "type": "Coins",
+        "number": 6
+    },
+    {
+        "name": "Seven of Coins",
+        "value": 0,
+        "spritename": "seven_coins",
+        "type": "Coins",
+        "number": 7
+    },
+    {
+        "name": "Five of Swords",
+        "value": 0,
+        "spritename": "five_swords",
+        "type": "Swords",
+        "number": 5
+    },
+    {
+        "name": "Six of Swords",
+        "value": 0,
+        "spritename": "six_swords",
+        "type": "Swords",
+        "number": 6
+    }
+]

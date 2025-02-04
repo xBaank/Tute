@@ -18,7 +18,6 @@ public class RoomController : MonoBehaviour
     [SerializeField] private Button exitButton;
 
     private readonly SemaphoreSlim semaphoreSlim = new(1);
-    private List<Player> _players = new();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -39,7 +38,7 @@ public class RoomController : MonoBehaviour
         await semaphoreSlim.WaitAsync();
         try
         {
-            _players = await MainManager.Instance.ChangeRoom(tmp_roomName.text, tmp_playerName.text);
+            await MainManager.Instance.ChangeRoom(tmp_roomName.text, tmp_playerName.text);
             tmp_room.text = $"Room: {tmp_roomName.text}";
             tmp_name.text = $"Name: {tmp_playerName.text}";
             RenderPlayerList();
@@ -52,7 +51,6 @@ public class RoomController : MonoBehaviour
 
     private void RoomSizeChanged(List<Player> players)
     {
-        _players = players;
         RenderPlayerList();
     }
 
@@ -61,7 +59,6 @@ public class RoomController : MonoBehaviour
         MainManager.Instance.LeaveRoom();
         tmp_room.text = string.Empty;
         tmp_name.text = string.Empty;
-        _players.Clear();
         RenderPlayerList();
     }
 
@@ -69,7 +66,7 @@ public class RoomController : MonoBehaviour
     private void RenderPlayerList()
     {
         var stringBuilder = new StringBuilder();
-        foreach (var item in _players)
+        foreach (var item in MainManager.Instance.Players)
         {
             var leaderTag = item.IsLeader ? "(Leader)" : "";
             stringBuilder.AppendLine($"- {leaderTag} {item.Name}");
