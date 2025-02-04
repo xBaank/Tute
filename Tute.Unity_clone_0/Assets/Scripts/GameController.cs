@@ -137,8 +137,6 @@ namespace Assets.Scripts
 
             try
             {
-                await LeaveRoom();
-
                 DOTween.Clear();
                 _players.Clear();
                 _cardRowManager.Clear();

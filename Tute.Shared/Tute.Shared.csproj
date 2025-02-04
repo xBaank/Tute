@@ -12,7 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="MagicOnion.Abstractions" Version="7.0.0" />
+	  <PackageReference Include="MagicOnion.Abstractions" Version="7.0.1" />
 	  <PackageReference Include="OneOf" Version="3.0.271" />
 	</ItemGroup>
 </Project>

@@ -131,6 +131,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: TextAnim
       objectReference: {fileID: 0}
+    - target: {fileID: 3606213703283242193, guid: cb6d62cfa8ffaa24886eda45ec029f54, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9216225734259057818, guid: cb6d62cfa8ffaa24886eda45ec029f54, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

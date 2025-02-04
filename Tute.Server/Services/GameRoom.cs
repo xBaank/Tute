@@ -6,20 +6,20 @@ namespace Tute.Server.Services;
 public class GameRoom
 {
     public required List<CardData> InitialDeck { get; init; }
-    public Dictionary<Guid, PlayerData> PlayerData { get; set; }
+    public required Dictionary<Guid, PlayerData> PlayerData { get; set; }
 
     public GameState State { get; set; }
 
-    public Player NextPlayer { get; set; }
+    public Player? NextPlayer { get; set; }
 
-    public IList<Player> Players { get; set; }
-    public Dictionary<Guid, ServiceContext> RoomContexts { get; set; }
+    public required IList<Player> Players { get; set; }
+    public required Dictionary<Guid, ServiceContext> RoomContexts { get; set; }
 
-    public Dictionary<Guid, CardData> UsedCards { get; set; }
+    public required Dictionary<Guid, CardData> UsedCards { get; set; }
 
-    public Stack<CardData> Cards { get; set; }
+    public required Stack<CardData> Cards { get; set; }
 
     public CardData? Pinte { get; set; }
 
-    public CardData PinteType { get; set; }
+    public CardData? PinteType { get; set; }
 }

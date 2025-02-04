@@ -17,8 +17,8 @@ public class RoomController : MonoBehaviour
     [SerializeField] private Button startButton;
     [SerializeField] private Button exitButton;
 
+    private readonly SemaphoreSlim semaphoreSlim = new(1);
     private List<Player> _players = new();
-    private SemaphoreSlim semaphoreSlim = new(1);
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
