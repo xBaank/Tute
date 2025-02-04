@@ -11,7 +11,9 @@ using Tute.Shared.Models;
 
 namespace Tute.Server.Services;
 
-public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : StreamingHubBase<IGamingHub, IGamingHubReceiver>, IGamingHub
+public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
+    : StreamingHubBase<IGamingHub, IGamingHubReceiver>,
+        IGamingHub
 {
     private readonly ConcurrentDictionary<string, GameRoom> gameRooms = gameRooms;
     private IGroup<IGamingHubReceiver>? room;
@@ -23,10 +25,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
     private static readonly JsonSerializerOptions options = new()
     {
         PropertyNameCaseInsensitive = true,
-        Converters =
-        {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-        },
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
     public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
@@ -81,7 +80,10 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         else
         {
             var file = File.OpenRead("Data/short_deck.json");
-            var cards = await JsonSerializer.DeserializeAsync<List<CardData>>(file, options: options);
+            var cards = await JsonSerializer.DeserializeAsync<List<CardData>>(
+                file,
+                options: options
+            );
 
             if (cards is null || cards.Count == 0)
                 throw new ReturnStatusException((StatusCode)400, "No deck found");
@@ -105,7 +107,8 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
     {
         var controller = gameController ?? ThrowNoGameRoomException<GameController>();
         var isEmpty = await controller.LeaveAsync();
-        if (isEmpty && roomName is not null) gameRooms.TryRemove(roomName, out _);
+        if (isEmpty && roomName is not null)
+            gameRooms.TryRemove(roomName, out _);
         gameController = null;
         gameRoom = null;
         self = null;
@@ -113,16 +116,30 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms) : Strea
         room = null;
     }
 
-    public ValueTask StartAsync() => gameController?.Start() ?? ThrowNoGameRoomException<ValueTask>();
-    public ValueTask Tute(IList<CardData> cards) => gameController?.Tute(cards) ?? ThrowNoGameRoomException<ValueTask>();
-    public ValueTask Cante(CardData king, CardData prince) => gameController?.Cante(king, prince) ?? ThrowNoGameRoomException<ValueTask>();
-    public ValueTask ChangePinte(CardData card) => gameController?.ChangePinte(card) ?? ThrowNoGameRoomException<ValueTask>();
-    public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) => gameController?.MakeMoveAsync(card) ?? ThrowNoGameRoomException<ValueTask<GameDataResponse>>();
+    public ValueTask StartAsync() =>
+        gameController?.Start() ?? ThrowNoGameRoomException<ValueTask>();
+
+    public ValueTask Tute(IList<CardData> cards) =>
+        gameController?.Tute(cards) ?? ThrowNoGameRoomException<ValueTask>();
+
+    public ValueTask Cante(CardData king, CardData prince) =>
+        gameController?.Cante(king, prince) ?? ThrowNoGameRoomException<ValueTask>();
+
+    public ValueTask ChangePinte(CardData card) =>
+        gameController?.ChangePinte(card) ?? ThrowNoGameRoomException<ValueTask>();
+
+    public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) =>
+        gameController?.MakeMoveAsync(card)
+        ?? ThrowNoGameRoomException<ValueTask<GameDataResponse>>();
 
     protected override ValueTask OnDisconnected() => LeaveAsync();
 
     public Task DisposeAsync() => Task.CompletedTask;
+
     public Task WaitForDisconnect() => Task.CompletedTask;
+
     public IGamingHub FireAndForget() => this;
-    private static T ThrowNoGameRoomException<T>() => throw new ReturnStatusException((StatusCode)400, "No gameroom found");
+
+    private static T ThrowNoGameRoomException<T>() =>
+        throw new ReturnStatusException((StatusCode)400, "No gameroom found");
 }

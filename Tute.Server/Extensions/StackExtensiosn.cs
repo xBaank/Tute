@@ -6,8 +6,10 @@ internal static class StackExtensiosn
     {
         for (var i = 0; i < count; i++)
         {
-            if (values.TryPop(out var next)) yield return next;
-            else yield break;
+            if (values.TryPop(out var next))
+                yield return next;
+            else
+                yield break;
         }
     }
 }

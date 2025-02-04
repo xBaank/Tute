@@ -4,6 +4,6 @@
     {
         Room,
         Playing,
-        Finished
+        Finished,
     }
 }

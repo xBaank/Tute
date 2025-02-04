@@ -5,6 +5,6 @@
         Coins,
         Swords,
         Clubs,
-        Cups
+        Cups,
     }
 }

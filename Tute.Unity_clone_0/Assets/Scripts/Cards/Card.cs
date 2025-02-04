@@ -37,7 +37,6 @@ namespace Assets.Scripts.Cards
             CardRowManager.CurrentPosition = transform.position;
         }
 
-
         private void OnMouseUp()
         {
             if (Vector2.Distance(startPosition, transform.position) < 0.1f)

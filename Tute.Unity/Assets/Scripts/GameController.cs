@@ -77,7 +77,7 @@ namespace Assets.Scripts
                     () =>
                         new GrpcChannelOptions()
                         {
-                            HttpHandler = new YetAnotherHttpHandler() { Http2Only = true, },
+                            HttpHandler = new YetAnotherHttpHandler() { Http2Only = true },
                             DisposeHttpClient = true,
                         }
                 )
@@ -122,7 +122,8 @@ namespace Assets.Scripts
 
         private async UniTask StartGame()
         {
-            if (_selfPlayer == null) return;
+            if (_selfPlayer == null)
+                return;
             await _gamingHubClient.StartAsync();
         }
 
@@ -143,7 +144,8 @@ namespace Assets.Scripts
                 _currentUsedCardsGo.Where(i => i != null).ForEach(i => Destroy(i.gameObject));
                 _currentCardsGo.Clear();
                 _currentUsedCardsGo.Clear();
-                if (_pinte != null) Destroy(_pinte.gameObject);
+                if (_pinte != null)
+                    Destroy(_pinte.gameObject);
                 _selfPlayer = null;
                 _nextPlayer = null;
                 _currentData = null;
@@ -164,7 +166,10 @@ namespace Assets.Scripts
         {
             if (string.IsNullOrWhiteSpace(roomName) || string.IsNullOrWhiteSpace(playerName))
             {
-                throw new ArgumentNullException("roomName, playerName", "Room name and player name must not be empty");
+                throw new ArgumentNullException(
+                    "roomName, playerName",
+                    "Room name and player name must not be empty"
+                );
             }
 
             var (selfPlayer, players) = await _gamingHubClient.JoinAsync(roomName, playerName);
@@ -176,7 +181,8 @@ namespace Assets.Scripts
 
         private async UniTask LeaveRoom()
         {
-            if (_selfPlayer == null) return;
+            if (_selfPlayer == null)
+                return;
             await _gamingHubClient.LeaveAsync();
             _selfPlayer = null;
             _players.Clear();
@@ -185,16 +191,17 @@ namespace Assets.Scripts
         private void OnPlayerJoined(Player player)
         {
             var isAlready = _players.Any(i => i.ConnectionId == player.ConnectionId);
-            if (isAlready) return;
+            if (isAlready)
+                return;
             _players.Add(player);
             MainManager.Instance.RoomSizeChaged(_players);
-
         }
 
         private void OnPlayerLeaved(Player player)
         {
             var toRemove = _players.FirstOrDefault(i => i.ConnectionId == player.ConnectionId);
-            if (toRemove == null) return;
+            if (toRemove == null)
+                return;
             _players.Remove(toRemove);
             MainManager.Instance.RoomSizeChaged(_players);
         }
@@ -238,9 +245,10 @@ namespace Assets.Scripts
         private async UniTask OnGameData(GameDataResponse gameDataResponse)
         {
             Debug.Log("Game data received");
-            Debug.Log($"Me: {gameDataResponse.PlayerData.Player.ConnectionId}, Next: {gameDataResponse.NextPlayer?.ConnectionId}");
+            Debug.Log(
+                $"Me: {gameDataResponse.PlayerData.Player.ConnectionId}, Next: {gameDataResponse.NextPlayer?.ConnectionId}"
+            );
             await SetData(gameDataResponse);
-
         }
 
         private async UniTask OnUsedCard(CardData cardData, Player player)
@@ -280,12 +288,13 @@ namespace Assets.Scripts
 
         private async UniTask CheckCantar()
         {
-            var alreadycantes = _currentData.Cantes
-                .OrderByDescending(i => i.Number)
+            var alreadycantes = _currentData
+                .Cantes.OrderByDescending(i => i.Number)
                 .Select(i => i.Type)
                 .ToList();
 
-            var cantes = _currentCardsGo.Select(i => i.CardData)
+            var cantes = _currentCardsGo
+                .Select(i => i.CardData)
                 .Where(i => i.Number == 11 || i.Number == 12)
                 .GroupBy(i => i.Type)
                 .Where(i => !alreadycantes.Contains(i.Key))
@@ -319,12 +328,16 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
-                if (_nextPlayer?.ConnectionId != _selfPlayer?.ConnectionId) return;
+                if (_nextPlayer?.ConnectionId != _selfPlayer?.ConnectionId)
+                    return;
                 try
                 {
                     await _gamingHubClient.ChangePinteAsync(card);
-                    var toRemove = _currentCardsGo.FirstOrDefault(i => i.CardData.Name == card.Name);
-                    if (toRemove == null) return;
+                    var toRemove = _currentCardsGo.FirstOrDefault(i =>
+                        i.CardData.Name == card.Name
+                    );
+                    if (toRemove == null)
+                        return;
                     _currentCardsGo.Remove(toRemove);
                     _cardRowManager.RemoveCard(toRemove);
                     Destroy(toRemove.gameObject);
@@ -335,20 +348,25 @@ namespace Assets.Scripts
                     Debug.LogException(ex);
                 }
             }
-            finally { _currentSemaphore.Release(); }
+            finally
+            {
+                _currentSemaphore.Release();
+            }
         }
 
         private UniTask OnChangedPinte(CardData cardData)
         {
             if (cardData == null)
             {
-                if (_pinte != null) Destroy(_pinte.gameObject);
+                if (_pinte != null)
+                    Destroy(_pinte.gameObject);
                 return UniTask.CompletedTask;
             }
 
             if (_pinte == null || _pinte.CardData.Name != cardData.Name)
             {
-                if (_pinte != null) Destroy(_pinte.gameObject);
+                if (_pinte != null)
+                    Destroy(_pinte.gameObject);
                 _pinte = InstancePinte(cardData);
                 _pinte.OnClick += (i) => ChangePinte(i).Forget();
                 _pinte.transform.position = spawPosition.position;
@@ -385,18 +403,17 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
-
                 _currentData = gameDataResponse;
                 var playerData = gameDataResponse.PlayerData;
-
-
 
                 var newCards = playerData
                     .Cards.Where(i => !_currentCardsGo.Any(x => x.CardData.Name == i.Name))
                     .ToList();
 
-                var newUsedCards = gameDataResponse.UsedCards.Values
-                    .Where(i => !_currentUsedCardsGo.Any(x => x.CardData.Name == i.Name))
+                var newUsedCards = gameDataResponse
+                    .UsedCards.Values.Where(i =>
+                        !_currentUsedCardsGo.Any(x => x.CardData.Name == i.Name)
+                    )
                     .ToList();
 
                 if (!newUsedCards.Any() && !gameDataResponse.UsedCards.Any())
@@ -433,7 +450,10 @@ namespace Assets.Scripts
                 }
 
                 //If we win
-                if (isResponse && gameDataResponse.NextPlayer?.ConnectionId == _selfPlayer?.ConnectionId)
+                if (
+                    isResponse
+                    && gameDataResponse.NextPlayer?.ConnectionId == _selfPlayer?.ConnectionId
+                )
                 {
                     await CheckTute();
                     await CheckCantar();
@@ -473,7 +493,7 @@ namespace Assets.Scripts
             }
             catch (RpcException ex)
             {
-                //Cant perform 
+                //Cant perform
                 Debug.LogException(ex);
                 return;
             }
@@ -482,7 +502,11 @@ namespace Assets.Scripts
             _currentCardsGo.Remove(instancedCard);
             audioController.PlayFlick();
             Destroy(instancedCard.gameObject);
-            var tasks = new List<UniTask>() { SetData(gameDataResponse, true), _cardRowManager.UpdateCardPositions() };
+            var tasks = new List<UniTask>()
+            {
+                SetData(gameDataResponse, true),
+                _cardRowManager.UpdateCardPositions(),
+            };
             _currentTask = UniTask.WhenAll(tasks).AsTask();
             await _currentTask;
         }

@@ -8,14 +8,29 @@ using UnityEngine.UI;
 
 public class RoomController : MonoBehaviour
 {
-    [SerializeField] private TMP_Text tmp_room;
-    [SerializeField] private TMP_Text tmp_name;
-    [SerializeField] private TMP_Text tmp_playernames;
-    [SerializeField] private TMP_InputField tmp_roomName;
-    [SerializeField] private TMP_InputField tmp_playerName;
-    [SerializeField] private Button joinButton;
-    [SerializeField] private Button startButton;
-    [SerializeField] private Button exitButton;
+    [SerializeField]
+    private TMP_Text tmp_room;
+
+    [SerializeField]
+    private TMP_Text tmp_name;
+
+    [SerializeField]
+    private TMP_Text tmp_playernames;
+
+    [SerializeField]
+    private TMP_InputField tmp_roomName;
+
+    [SerializeField]
+    private TMP_InputField tmp_playerName;
+
+    [SerializeField]
+    private Button joinButton;
+
+    [SerializeField]
+    private Button startButton;
+
+    [SerializeField]
+    private Button exitButton;
 
     private readonly SemaphoreSlim semaphoreSlim = new(1);
 
@@ -31,7 +46,6 @@ public class RoomController : MonoBehaviour
         startButton.onClick.AddListener(StartGame);
         exitButton.onClick.AddListener(ExitRoom);
     }
-
 
     private async void Join()
     {
@@ -63,6 +77,7 @@ public class RoomController : MonoBehaviour
     }
 
     private void StartGame() => MainManager.Instance.StartGame();
+
     private void RenderPlayerList()
     {
         var stringBuilder = new StringBuilder();

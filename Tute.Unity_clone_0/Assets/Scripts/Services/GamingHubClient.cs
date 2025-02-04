@@ -45,23 +45,39 @@ namespace Assets.Scripts.Services
         // You can watch connection state, use this for retry etc.
         public Task WaitForDisconnectAsync() => client.WaitForDisconnect();
 
-        public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) => client.MakeMoveAsync(card);
+        public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) =>
+            client.MakeMoveAsync(card);
 
         public ValueTask ChangePinteAsync(CardData card) => client.ChangePinte(card);
+
         public ValueTask Cante(CardData king, CardData prince) => client.Cante(king, prince);
+
         public ValueTask Tute(IList<CardData> cards) => client.Tute(cards);
+
         public ValueTask StartAsync() => client.StartAsync();
 
-
         public void OnJoin(Player player) => OnJoinEvent?.Invoke(player);
-        public void OnLeave(Player player) => OnLeaveEvent?.Invoke(player);
-        public void OnGameData(GameDataResponse gameData) => OnGameDataEvent?.Invoke(gameData).Forget();
-        public void OnUsedCard(CardData card, Player userCard) => OnUsedCardEvent?.Invoke(card, userCard).Forget();
-        public void OnStart() => OnStartEvent?.Invoke();
-        public void OnFinished(IList<GameDataResponse> playerDatas) => OnFinishEvent?.Invoke(playerDatas);
-        public void OnChangedPinte(CardData cardData) => OnChangedPinteEvent?.Invoke(cardData).Forget();
-        public void OnCante(Player player, CardData cardData) => OnCanteEvent?.Invoke(player, cardData).Forget();
-        public void OnTute(Player player, CardData cardData) => OnTuteEvent?.Invoke(player, cardData).Forget();
 
+        public void OnLeave(Player player) => OnLeaveEvent?.Invoke(player);
+
+        public void OnGameData(GameDataResponse gameData) =>
+            OnGameDataEvent?.Invoke(gameData).Forget();
+
+        public void OnUsedCard(CardData card, Player userCard) =>
+            OnUsedCardEvent?.Invoke(card, userCard).Forget();
+
+        public void OnStart() => OnStartEvent?.Invoke();
+
+        public void OnFinished(IList<GameDataResponse> playerDatas) =>
+            OnFinishEvent?.Invoke(playerDatas);
+
+        public void OnChangedPinte(CardData cardData) =>
+            OnChangedPinteEvent?.Invoke(cardData).Forget();
+
+        public void OnCante(Player player, CardData cardData) =>
+            OnCanteEvent?.Invoke(player, cardData).Forget();
+
+        public void OnTute(Player player, CardData cardData) =>
+            OnTuteEvent?.Invoke(player, cardData).Forget();
     }
 }

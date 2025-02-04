@@ -30,11 +30,13 @@ public class MainManager : MonoBehaviour
 
     public async UniTask ChangeRoom(string roomName, string playerName)
     {
-        if (OnRoomJoin is null) return;
+        if (OnRoomJoin is null)
+            return;
         Players = await OnRoomJoin.Invoke(roomName, playerName);
     }
 
     public void StartGame() => OnStartGame?.Invoke();
+
     public void RoomSizeChaged(List<Player> player)
     {
         Players = player;

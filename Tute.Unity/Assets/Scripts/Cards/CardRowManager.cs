@@ -85,7 +85,9 @@ namespace Assets.Scripts.Cards
                 for (var i = 0; i < cards.Count; i++)
                 {
                     Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition, 0f);
-                    tasks.Add(SnapCard(cards[i], targetPosition, cards[i].destroyCancellationToken));
+                    tasks.Add(
+                        SnapCard(cards[i], targetPosition, cards[i].destroyCancellationToken)
+                    );
                 }
 
                 await UniTask.WhenAll(tasks);
@@ -113,7 +115,7 @@ namespace Assets.Scripts.Cards
                 card.transform.position = Vector3.Lerp(
                     card.transform.position,
                     targetPosition,
-                     Time.deltaTime * SnapSpeed
+                    Time.deltaTime * SnapSpeed
                 );
 
                 await UniTask.Yield(cancellationToken);
