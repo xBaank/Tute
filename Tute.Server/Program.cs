@@ -6,19 +6,25 @@ using Microsoft.Extensions.DependencyInjection;
 using Tute.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+ConfigureServer(builder).Run();
 
-builder.Services.AddGrpc(); // Add this line(Grpc.AspNetCore)
-builder.Services.AddMagicOnion(); // Add this line(MagicOnion.Server)
-builder.Services.AddSingleton<ConcurrentDictionary<string, GameRoom>>();
-builder.WebHost.ConfigureKestrel(
-    (options) =>
+public partial class Program
+{
+    public static WebApplication ConfigureServer(WebApplicationBuilder builder)
     {
-        options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http2);
+        builder.Services.AddGrpc();
+        builder.Services.AddMagicOnion();
+        builder.Services.AddSingleton<ConcurrentDictionary<string, GameRoom>>();
+        builder.WebHost.ConfigureKestrel(
+            (options) =>
+            {
+                options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http2);
+            }
+        );
+
+        var app = builder.Build();
+
+        app.MapMagicOnionService();
+        return app;
     }
-);
-
-var app = builder.Build();
-
-app.MapMagicOnionService(); // Add this line
-
-app.Run();
+}

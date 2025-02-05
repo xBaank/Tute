@@ -10,6 +10,10 @@
     <ProjectReference Include="..\Tute.Shared\Tute.Shared.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Tute.Server.Tests" />
+	</ItemGroup>
+  
   <ItemGroup>
     <None Update="Data\short_deck.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
