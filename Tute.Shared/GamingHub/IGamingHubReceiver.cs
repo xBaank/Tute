@@ -13,7 +13,7 @@ namespace Tute.Shared.GamingHub
         void OnTute(Player player, CardData tute);
         void OnChangedPinte(CardData cardData);
         void OnStart();
-        void OnFinished(IList<GameDataResponse> allPlayerData);
+        void OnFinished(List<GameDataResponse> allPlayerData);
         void OnMessage(string message, Player player);
     }
 }

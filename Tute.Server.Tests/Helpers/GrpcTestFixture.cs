@@ -4,14 +4,13 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Tute.Server.Tests.Helpers;
 
-public class GrpcTestFixture<TStartup> : IAsyncDisposable where TStartup : class
+public class GrpcTestFixture<TStartup> : IAsyncDisposable
+    where TStartup : class
 {
     private TestServer? _server;
     private WebApplication? _host;
     private HttpMessageHandler? _handler;
     private Action<IWebHostBuilder>? _configureWebHost;
-
-
 
     public void ConfigureWebHost(Action<IWebHostBuilder> configure)
     {
@@ -32,7 +31,6 @@ public class GrpcTestFixture<TStartup> : IAsyncDisposable where TStartup : class
         }
     }
 
-
     public HttpMessageHandler Handler
     {
         get
@@ -45,7 +43,8 @@ public class GrpcTestFixture<TStartup> : IAsyncDisposable where TStartup : class
     public async ValueTask DisposeAsync()
     {
         _handler?.Dispose();
-        if (_host is not null) await _host.DisposeAsync();
+        if (_host is not null)
+            await _host.DisposeAsync();
         _server?.Dispose();
     }
 }

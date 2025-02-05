@@ -1,3 +1,4 @@
+using Grpc.Core;
 using Grpc.Net.Client;
 using MagicOnion.Client;
 using Moq;
@@ -17,19 +18,26 @@ public class GamingHubTests : IAsyncDisposable
     public GamingHubTests()
     {
         _fixture = new GrpcTestFixture<Program>();
-        _channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
-        {
-            HttpHandler = _fixture.Handler
-        });
+        _channel = GrpcChannel.ForAddress(
+            "http://localhost",
+            new GrpcChannelOptions { HttpHandler = _fixture.Handler }
+        );
     }
 
     [Fact]
     public async Task Should_join_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
-
-        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
-        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         _ = await client.JoinAsync("test", "first");
         var (self, players) = await client2.JoinAsync("test", "second");
         var playerNames = players.Select(p => p.Name).ToList();
@@ -43,26 +51,76 @@ public class GamingHubTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Should_not_join_twice_a_room()
+    {
+        var receiverMock = new Mock<IGamingHubReceiver>();
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        _ = await client.JoinAsync("test", "first");
+
+        var join = async () => await client.JoinAsync("test", "first");
+
+        await join.ShouldThrowAsync<RpcException>();
+    }
+
+    [Fact]
     public async Task Should_leave_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
-
-        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
-        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         _ = await client.JoinAsync("test", "first");
         var (self, players) = await client2.JoinAsync("test", "second");
 
         await client.LeaveAsync();
+
         receiverMock.Verify(i => i.OnLeave(It.Is<Player>(i => i.Name == "first")), Times.Once());
+    }
+
+    [Fact]
+    public async Task Should_not_leave_if_user_is_not_in_a_room()
+    {
+        var receiverMock = new Mock<IGamingHubReceiver>();
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var leave = async () => await client.LeaveAsync();
+
+        await leave.ShouldThrowAsync<RpcException>();
     }
 
     [Fact]
     public async Task Should_start_a_game()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
-
-        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
-        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         var (player1, _) = await client.JoinAsync("test", "first");
         var (player2, players) = await client2.JoinAsync("test", "second");
 
@@ -77,12 +135,36 @@ public class GamingHubTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Should_not_start_a_game_if_there_are_not_enough_players()
+    {
+        var receiverMock = new Mock<IGamingHubReceiver>();
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        _ = await client.JoinAsync("test", "first");
+
+        var start = async () => await client.StartAsync();
+
+        await start.ShouldThrowAsync<RpcException>();
+        receiverMock.Verify(i => i.OnStart(), Times.Never());
+    }
+
+    [Fact]
     public async Task Should_change_leader()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
-
-        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, GamingHubReceiverEmptyFake.Instance, cancellationToken: TestContext.Current.CancellationToken);
-        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            GamingHubReceiverEmptyFake.Instance,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         var (player1, _) = await client.JoinAsync("test", "first");
         var (player2, players) = await client2.JoinAsync("test", "second");
 
@@ -90,18 +172,34 @@ public class GamingHubTests : IAsyncDisposable
         player2.IsLeader.ShouldBeFalse();
 
         await client.LeaveAsync();
-        receiverMock.Verify(i => i.OnLeave(It.Is<Player>(i => i.Name == "first" && i.IsLeader == true)), Times.Once());
-        receiverMock.Verify(i => i.OnLeave(It.Is<Player>(i => i.Name == "second" && i.IsLeader == false)), Times.Once());
-        receiverMock.Verify(i => i.OnJoin(It.Is<Player>(i => i.Name == "second" && i.IsLeader == true)), Times.Once());
+        receiverMock.Verify(
+            i => i.OnLeave(It.Is<Player>(i => i.Name == "first" && i.IsLeader == true)),
+            Times.Once()
+        );
+        receiverMock.Verify(
+            i => i.OnLeave(It.Is<Player>(i => i.Name == "second" && i.IsLeader == false)),
+            Times.Once()
+        );
+        receiverMock.Verify(
+            i => i.OnJoin(It.Is<Player>(i => i.Name == "second" && i.IsLeader == true)),
+            Times.Once()
+        );
     }
 
     [Fact]
     public async Task Should_stop_game_while_playing_when_player_leave()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
-
-        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, GamingHubReceiverEmptyFake.Instance, cancellationToken: TestContext.Current.CancellationToken);
-        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(_channel, receiverMock.Object!, cancellationToken: TestContext.Current.CancellationToken);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            GamingHubReceiverEmptyFake.Instance,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            receiverMock.Object!,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         var (player1, _) = await client.JoinAsync("test", "first");
         var (player2, players) = await client2.JoinAsync("test", "second");
 
@@ -109,7 +207,71 @@ public class GamingHubTests : IAsyncDisposable
         await client.LeaveAsync();
 
         receiverMock.Verify(i => i.OnLeave(It.IsAny<Player>()), Times.Once());
-        receiverMock.Verify(i => i.OnFinished(It.Is<IList<GameDataResponse>>(i => i.Count == 1)), Times.Once());
+        receiverMock.Verify(
+            i => i.OnFinished(It.Is<List<GameDataResponse>>(i => i.Count == 2)),
+            Times.Once()
+        );
+    }
+
+    [Fact(Timeout = 10_000)]
+    public async Task Should_play_the_game_and_finish()
+    {
+        var clientFake1 = new GamingHubReceiverFake();
+        var clientFake2 = new GamingHubReceiverFake();
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake1,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake2,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var (player1, _) = await client.JoinAsync("test", "first");
+        var (player2, players) = await client2.JoinAsync("test", "second");
+
+        await client.StartAsync();
+
+        var handler1 = GameHandler(clientFake1, client, player1, TestContext.Current.CancellationToken);
+        var handler2 = GameHandler(clientFake2, client2, player2, TestContext.Current.CancellationToken);
+
+        await Task.WhenAll(handler1, handler2);
+
+        clientFake1.IsFinished.ShouldBeTrue();
+        clientFake2.IsFinished.ShouldBeTrue();
+    }
+
+    private static async Task GameHandler(
+        GamingHubReceiverFake receiver,
+        IGamingHub client,
+        Player player,
+        CancellationToken cancellationToken
+    )
+    {
+        while (!receiver.IsFinished)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (receiver.GameDataResponse?.NextPlayer?.ConnectionId == player.ConnectionId)
+            {
+                var pinte = receiver.GameDataResponse?.PinteType;
+
+                var firstCard =
+                    receiver.GameDataResponse?.UsedCards.Count != 0 == true
+                        ? receiver.GameDataResponse?.UsedCards.First().Value
+                        : null;
+
+                var cardTouse =
+                    receiver
+                        .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
+                        .FirstOrDefault(i => i.Type == firstCard?.Type || i.Type == pinte)
+                    ?? receiver.GameDataResponse?.PlayerData.Cards.FirstOrDefault()
+                    ?? throw new Exception("Card to use can't be null");
+
+                await receiver.SetData(await client.MakeMoveAsync(cardTouse));
+            }
+        }
     }
 
     public async ValueTask DisposeAsync()

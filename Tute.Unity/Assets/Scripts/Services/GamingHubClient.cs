@@ -21,7 +21,7 @@ namespace Assets.Scripts.Services
         public event Action<Player> OnJoinEvent;
         public event Action<Player> OnLeaveEvent;
         public event Action OnStartEvent;
-        public event Action<IList<GameDataResponse>> OnFinishEvent;
+        public event Action<List<GameDataResponse>> OnFinishEvent;
         public event Action<string, Player> OnMessageEvent;
 
         public async ValueTask ConnectAsync(ChannelBase grpcChannel)
@@ -70,7 +70,7 @@ namespace Assets.Scripts.Services
 
         public void OnStart() => OnStartEvent?.Invoke();
 
-        public void OnFinished(IList<GameDataResponse> playerDatas) =>
+        public void OnFinished(List<GameDataResponse> playerDatas) =>
             OnFinishEvent?.Invoke(playerDatas);
 
         public void OnChangedPinte(CardData cardData) =>

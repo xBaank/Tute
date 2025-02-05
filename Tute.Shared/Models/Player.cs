@@ -14,5 +14,7 @@ namespace Tute.Shared.Models
 
         [Key(2)]
         public bool IsLeader { get; set; }
+
+        public override string ToString() => Name;
     }
 }

@@ -3,49 +3,46 @@ using Tute.Shared.Models;
 
 namespace Tute.Server.Tests.Fakes;
 
-internal class GamingHubReceiverEmptyFake : IGamingHubReceiver
+internal class GamingHubReceiverFake : IGamingHubReceiver
 {
-    public static readonly GamingHubReceiverEmptyFake Instance = new();
+    public GameDataResponse? GameDataResponse { get; private set; }
+    public bool IsFinished { get; set; }
 
-    private GamingHubReceiverEmptyFake() { }
+    private SemaphoreSlim _semaphoreSlim = new(1);
 
-    public void OnCante(Player player, CardData cante)
+    public void OnCante(Player player, CardData cante) { }
+
+    public void OnChangedPinte(CardData cardData) { }
+
+    public void OnFinished(List<GameDataResponse> allPlayerData)
     {
+        IsFinished = true;
     }
 
-    public void OnChangedPinte(CardData cardData)
+    public void OnGameData(GameDataResponse gameData) => SetData(gameData).GetAwaiter().GetResult();
+    public async Task SetData(GameDataResponse gameData)
     {
+        await _semaphoreSlim.WaitAsync();
+        try
+        {
+            Console.WriteLine($"Setted {gameData.PlayerData.Player.Name}");
+            GameDataResponse = gameData;
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
+        }
     }
 
-    public void OnFinished(IList<GameDataResponse> allPlayerData)
-    {
-    }
+    public void OnJoin(Player player) { }
 
-    public void OnGameData(GameDataResponse gameData)
-    {
-    }
+    public void OnLeave(Player player) { }
 
-    public void OnJoin(Player player)
-    {
-    }
+    public void OnMessage(string message, Player player) { }
 
-    public void OnLeave(Player player)
-    {
-    }
+    public void OnStart() { }
 
-    public void OnMessage(string message, Player player)
-    {
-    }
+    public void OnTute(Player player, CardData tute) { }
 
-    public void OnStart()
-    {
-    }
-
-    public void OnTute(Player player, CardData tute)
-    {
-    }
-
-    public void OnUsedCard(CardData card, Player userCard)
-    {
-    }
+    public void OnUsedCard(CardData card, Player userCard) { }
 }
