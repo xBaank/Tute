@@ -24,6 +24,7 @@ public class GameController(
     {
         if (gameRoom.State == GameState.Playing)
         {
+            room.All.OnLeave(self);
             room.All.OnFinished(GetAllPlayersData());
             await ClearRoom();
         }
@@ -33,8 +34,8 @@ public class GameController(
             if (gameRoom.Players.Count == 1)
             {
                 var player = gameRoom.Players.First();
-                player.IsLeader = true;
                 room.All.OnLeave(player);
+                player.IsLeader = true;
                 room.All.OnJoin(player);
             }
         }
