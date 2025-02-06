@@ -14,14 +14,16 @@ public class GamingHubTests : IAsyncDisposable
 {
     private readonly GrpcChannel _channel;
     private readonly GrpcTestFixture<Program> _fixture;
+    private readonly ITestOutputHelper output;
 
-    public GamingHubTests()
+    public GamingHubTests(ITestOutputHelper output)
     {
         _fixture = new GrpcTestFixture<Program>();
         _channel = GrpcChannel.ForAddress(
             "http://localhost",
             new GrpcChannelOptions { HttpHandler = _fixture.Handler }
         );
+        this.output = output;
     }
 
     [Fact]
@@ -216,8 +218,8 @@ public class GamingHubTests : IAsyncDisposable
     [Fact(Timeout = 10_000)]
     public async Task Should_play_the_game_and_finish()
     {
-        var clientFake1 = new GamingHubReceiverFake();
-        var clientFake2 = new GamingHubReceiverFake();
+        var clientFake1 = new GamingHubReceiverFake(output);
+        var clientFake2 = new GamingHubReceiverFake(output);
         var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
             _channel,
             clientFake1,
@@ -238,18 +240,18 @@ public class GamingHubTests : IAsyncDisposable
 
         await Task.WhenAll(handler1, handler2);
 
-        clientFake1.IsFinished.ShouldBeTrue();
-        clientFake2.IsFinished.ShouldBeTrue();
+        clientFake1.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
+        clientFake2.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
     }
 
-    private static async Task GameHandler(
+    private async Task GameHandler(
         GamingHubReceiverFake receiver,
         IGamingHub client,
         Player player,
         CancellationToken cancellationToken
     )
     {
-        while (!receiver.IsFinished)
+        while (!receiver.IsFinished.Task.IsCompletedSuccessfully)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -265,12 +267,26 @@ public class GamingHubTests : IAsyncDisposable
                 var cardTouse =
                     receiver
                         .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
-                        .FirstOrDefault(i => i.Type == firstCard?.Type || i.Type == pinte)
-                    ?? receiver.GameDataResponse?.PlayerData.Cards.FirstOrDefault()
-                    ?? throw new Exception("Card to use can't be null");
+                        .FirstOrDefault(i => i.Type == firstCard?.Type)
+                    ?? receiver
+                        .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
+                        .FirstOrDefault(i => i.Type == pinte)
+                    ?? receiver.GameDataResponse?.PlayerData.Cards.FirstOrDefault();
 
-                await receiver.SetData(await client.MakeMoveAsync(cardTouse));
+                //Just wait till onFinish is received
+                if (cardTouse is null)
+                {
+                    await receiver.IsFinished.Task;
+                    break;
+                }
+
+
+                output.WriteLine($"Player {player.Name} is trying to make a move");
+                await client.MakeMove(cardTouse);
+                output.WriteLine($"Player {player.Name} completed a move");
             }
+
+            await Task.Yield();
         }
     }
 

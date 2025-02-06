@@ -3,12 +3,12 @@ using Tute.Shared.Models;
 
 namespace Tute.Server.Tests.Fakes;
 
-internal class GamingHubReceiverFake : IGamingHubReceiver
+internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHubReceiver
 {
     public GameDataResponse? GameDataResponse { get; private set; }
-    public bool IsFinished { get; set; }
+    public TaskCompletionSource IsFinished { get; set; } = new();
 
-    private SemaphoreSlim _semaphoreSlim = new(1);
+    private SemaphoreSlim _semaphore = new(1);
 
     public void OnCante(Player player, CardData cante) { }
 
@@ -16,21 +16,21 @@ internal class GamingHubReceiverFake : IGamingHubReceiver
 
     public void OnFinished(List<GameDataResponse> allPlayerData)
     {
-        IsFinished = true;
+        outputHelper.WriteLine("Game finished");
+        IsFinished.TrySetResult();
     }
 
-    public void OnGameData(GameDataResponse gameData) => SetData(gameData).GetAwaiter().GetResult();
-    public async Task SetData(GameDataResponse gameData)
+    public void OnGameData(GameDataResponse gameData)
     {
-        await _semaphoreSlim.WaitAsync();
+        _semaphore.Wait();
         try
         {
-            Console.WriteLine($"Setted {gameData.PlayerData.Player.Name}");
+            outputHelper.WriteLine($"Received data for {gameData.PlayerData.Player.Name}, Next player is {gameData.NextPlayer.Name}");
             GameDataResponse = gameData;
         }
         finally
         {
-            _semaphoreSlim.Release();
+            _semaphore.Release();
         }
     }
 

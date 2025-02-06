@@ -132,9 +132,8 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     public ValueTask ChangePinte(CardData card) =>
         gameController?.ChangePinte(card) ?? ThrowNoGameRoomException<ValueTask>();
 
-    public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) =>
-        gameController?.MakeMoveAsync(card)
-        ?? ThrowNoGameRoomException<ValueTask<GameDataResponse>>();
+    public ValueTask MakeMove(CardData card) =>
+        gameController?.MakeMoveAsync(card) ?? ThrowNoGameRoomException<ValueTask>();
 
     protected override ValueTask OnDisconnected() => LeaveAsync();
 

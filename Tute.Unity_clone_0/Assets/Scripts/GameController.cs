@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Assets.Scripts.Cards;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
@@ -65,7 +64,6 @@ namespace Assets.Scripts
         private readonly List<Player> _players = new();
         private Player _nextPlayer;
         private Player _selfPlayer;
-        private Task _currentTask;
         private CardRowManager _cardRowManager;
         private GameDataResponse _currentData;
         private Vector2 _cardUsedPosition;
@@ -154,7 +152,6 @@ namespace Assets.Scripts
                 _selfPlayer = null;
                 _nextPlayer = null;
                 _currentData = null;
-                _currentTask = null;
                 _pinte = null;
 
                 var winner = playerDatas.OrderBy(i => i.GainedCards.Sum(i => i.Value)).FirstOrDefault();
@@ -484,9 +481,6 @@ namespace Assets.Scripts
 
         private async UniTask MakeMove(CardData card)
         {
-            if (_currentTask != null && !_currentTask.IsCompleted)
-                return;
-
             if (_nextPlayer == null || _selfPlayer == null)
                 return;
 
@@ -499,10 +493,9 @@ namespace Assets.Scripts
 
             _cardUsedPosition = instancedCard.transform.position;
 
-            GameDataResponse gameDataResponse;
             try
             {
-                gameDataResponse = await _gamingHubClient.MakeMoveAsync(card);
+                await _gamingHubClient.MakeMove(card);
                 Debug.Log("Game data sent");
             }
             catch (RpcException ex)
@@ -516,13 +509,6 @@ namespace Assets.Scripts
             _currentCardsGo.Remove(instancedCard);
             audioController.PlayFlick();
             Destroy(instancedCard.gameObject);
-            var tasks = new List<UniTask>()
-            {
-                SetData(gameDataResponse, true),
-                _cardRowManager.UpdateCardPositions(),
-            };
-            _currentTask = UniTask.WhenAll(tasks).AsTask();
-            await _currentTask;
         }
 
         private void OnGUI()

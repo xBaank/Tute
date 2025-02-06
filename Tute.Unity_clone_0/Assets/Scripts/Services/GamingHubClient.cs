@@ -46,8 +46,8 @@ namespace Assets.Scripts.Services
         // You can watch connection state, use this for retry etc.
         public Task WaitForDisconnectAsync() => client.WaitForDisconnect();
 
-        public ValueTask<GameDataResponse> MakeMoveAsync(CardData card) =>
-            client.MakeMoveAsync(card);
+        public ValueTask MakeMove(CardData card) =>
+            client.MakeMove(card);
 
         public ValueTask ChangePinteAsync(CardData card) => client.ChangePinte(card);
 

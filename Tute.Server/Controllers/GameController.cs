@@ -253,7 +253,7 @@ public class GameController(
         }
     }
 
-    public async ValueTask<GameDataResponse> MakeMoveAsync(CardData card)
+    public async ValueTask MakeMoveAsync(CardData card)
     {
         if (ConnectionId != gameRoom.NextPlayer?.ConnectionId)
             throw new ReturnStatusException((StatusCode)400, "Not your turn");
@@ -335,8 +335,6 @@ public class GameController(
                         gameRoom.Pinte = null;
                         room.All.OnChangedPinte(gameRoom.Pinte);
                     }
-                    if (playerConnectionId == ConnectionId)
-                        continue;
                     room.Single(playerConnectionId)
                         .OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
                 }
@@ -345,8 +343,6 @@ public class GameController(
             {
                 foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerData)
                 {
-                    if (playerConnectionId == ConnectionId)
-                        continue;
                     room.Single(playerConnectionId)
                         .OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
                 }
@@ -360,8 +356,6 @@ public class GameController(
                 }
                 room.All.OnFinished(GetAllPlayersData());
             }
-
-            return CreateDataFor(gameRoom.PlayerData[ConnectionId]);
         }
         finally
         {

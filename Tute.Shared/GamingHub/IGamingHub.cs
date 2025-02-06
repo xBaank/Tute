@@ -11,7 +11,7 @@ namespace Tute.Shared.GamingHub
         ValueTask<(Player self, Player[] players)> JoinAsync(string roomName, string name);
         ValueTask StartAsync();
         ValueTask LeaveAsync();
-        ValueTask<GameDataResponse> MakeMoveAsync(CardData card);
+        ValueTask MakeMove(CardData card);
         ValueTask ChangePinte(CardData card);
         ValueTask Cante(CardData king, CardData prince);
         ValueTask Tute(IList<CardData> cards);
