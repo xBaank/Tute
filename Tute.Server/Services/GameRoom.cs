@@ -1,4 +1,5 @@
 ﻿using MagicOnion.Server;
+using Tute.Server.Extensions;
 using Tute.Shared.Models;
 
 namespace Tute.Server.Services;
@@ -22,4 +23,8 @@ public class GameRoom
     public CardData? Pinte { get; set; }
 
     public CardData? PinteType { get; set; }
+
+    public required bool HaveShuffle { get; init; }
+
+    public List<CardData> Shuffled() => HaveShuffle ? [.. InitialDeck.Shuffled()] : [.. InitialDeck];
 }

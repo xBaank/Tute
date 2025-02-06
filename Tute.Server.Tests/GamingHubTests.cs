@@ -216,9 +216,9 @@ public class GamingHubTests : IAsyncDisposable
     }
 
     [Theory(Timeout = 10_000)]
-    [InlineData("deck")]
-    [InlineData("short_deck")]
-    public async Task Should_play_the_game_and_finish(string deckName)
+    [InlineData("deck", false)]
+    [InlineData("short_deck", false)]
+    public async Task Should_play_the_game_and_finish(string deckName, bool shuffled)
     {
         var clientFake1 = new GamingHubReceiverFake(output);
         var clientFake2 = new GamingHubReceiverFake(output);
@@ -232,8 +232,8 @@ public class GamingHubTests : IAsyncDisposable
             clientFake2,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        var (player1, _) = await client.JoinAsync("test", "first", deckName);
-        var (player2, players) = await client2.JoinAsync("test", "second");
+        var (player1, _) = await client.JoinAsync("test", "first", deckName, shuffled);
+        var (player2, _) = await client2.JoinAsync("test", "second");
 
         await client.StartAsync();
 

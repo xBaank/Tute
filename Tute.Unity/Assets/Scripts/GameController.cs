@@ -487,28 +487,36 @@ namespace Assets.Scripts
             if (_nextPlayer.ConnectionId != _selfPlayer.ConnectionId)
                 return;
 
-            var instancedCard = _currentCardsGo.FirstOrDefault(x => x.name == card.Name);
-            if (instancedCard == null)
-                return;
-
-            _cardUsedPosition = instancedCard.transform.position;
-
+            await _currentSemaphore.WaitAsync();
             try
             {
-                await _gamingHubClient.MakeMove(card);
-                Debug.Log("Game data sent");
-            }
-            catch (RpcException ex)
-            {
-                //Cant perform
-                Debug.LogException(ex);
-                return;
-            }
+                var instancedCard = _currentCardsGo.FirstOrDefault(x => x.name == card.Name);
+                if (instancedCard == null)
+                    return;
 
-            _cardRowManager.RemoveCard(instancedCard);
-            _currentCardsGo.Remove(instancedCard);
-            audioController.PlayFlick();
-            Destroy(instancedCard.gameObject);
+                _cardUsedPosition = instancedCard.transform.position;
+
+                try
+                {
+                    await _gamingHubClient.MakeMove(card);
+                    Debug.Log("Game data sent");
+                }
+                catch (RpcException ex)
+                {
+                    //Cant perform
+                    Debug.LogException(ex);
+                    return;
+                }
+
+                _cardRowManager.RemoveCard(instancedCard);
+                _currentCardsGo.Remove(instancedCard);
+                audioController.PlayFlick();
+                Destroy(instancedCard.gameObject);
+            }
+            finally
+            {
+                _currentSemaphore.Release();
+            }
         }
 
         private void OnGUI()

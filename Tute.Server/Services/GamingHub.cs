@@ -31,9 +31,9 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     };
 
     //TODO fix leave join
-    public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name, string? deckName)
+    public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name, string? deckName, bool shuffled)
     {
-        var newGameRoom = await GetOrCreateRoomAsync(roomname, deckName ?? "deck");
+        var newGameRoom = await GetOrCreateRoomAsync(roomname, deckName ?? "deck", shuffled);
         var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId };
 
         if (gameController?.IsPlayerInRoom == true)
@@ -82,7 +82,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         _ => throw new ReturnStatusException((StatusCode)400, $"{deckName} does not exist")
     };
 
-    private async Task<GameRoom> GetOrCreateRoomAsync(string roomname, string deckName)
+    private async Task<GameRoom> GetOrCreateRoomAsync(string roomname, Deck deck, bool shuffled)
     {
         if (gameRooms.TryGetValue(roomname, out var value))
         {
@@ -90,7 +90,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         }
         else
         {
-            var file = File.OpenRead(GetDeckPath(deckName));
+            var file = File.OpenRead(GetDeckPath(deck));
             var cards = await JsonSerializer.DeserializeAsync<List<CardData>>(
                 file,
                 options: options
@@ -108,6 +108,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
                 PlayerData = [],
                 UsedCards = [],
                 Cards = [],
+                HaveShuffle = shuffled,
             };
             gameRooms[roomname] = gameRoom;
             return gameRoom;

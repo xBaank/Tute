@@ -83,7 +83,7 @@ public class GameController(
 
         room.All.OnStart();
 
-        var gameCards = new Stack<CardData>(gameRoom.InitialDeck.Shuffled());
+        var gameCards = new Stack<CardData>(gameRoom.Shuffled());
         var pinte = gameCards.Pop();
 
         gameRoom.State = GameState.Playing;
