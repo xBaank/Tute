@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Grpc.Core;
 using MagicOnion.Client;
+using Tute.Shared.Constants;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
@@ -34,7 +35,7 @@ namespace Assets.Scripts.Services
 
         public async ValueTask<(Player, Player[])> JoinAsync(string roomName, string playername)
         {
-            var (self, roomPlayers) = await client.JoinAsync(roomName, playername);
+            var (self, roomPlayers) = await client.JoinAsync(roomName, playername, DecksConstants.ShortDeck.DeckName);
             return (self, roomPlayers);
         }
 

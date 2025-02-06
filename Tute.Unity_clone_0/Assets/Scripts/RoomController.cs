@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using TMPro;
-using Tute.Shared.Models;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,6 +35,9 @@ public class RoomController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
+        RenderRoomName();
+        RenderPlayerList();
+
         MainManager.Instance.OnRoomSizeChanged += RoomSizeChanged;
 
         joinButton.onClick.RemoveAllListeners();
@@ -53,8 +54,7 @@ public class RoomController : MonoBehaviour
         try
         {
             await MainManager.Instance.ChangeRoom(tmp_roomName.text, tmp_playerName.text);
-            tmp_room.text = $"Room: {tmp_roomName.text}";
-            tmp_name.text = $"Name: {tmp_playerName.text}";
+            RenderRoomName();
             RenderPlayerList();
         }
         finally
@@ -63,7 +63,19 @@ public class RoomController : MonoBehaviour
         }
     }
 
-    private void RoomSizeChanged(List<Player> players)
+    private void RenderRoomName()
+    {
+        if (MainManager.Instance.GameRoom is null)
+        {
+            tmp_room.text = string.Empty;
+            tmp_name.text = string.Empty;
+            return;
+        }
+        tmp_room.text = $"Room: {MainManager.Instance.GameRoom.RoomName}";
+        tmp_name.text = $"Name: {MainManager.Instance.GameRoom.Player.Name}";
+    }
+
+    private void RoomSizeChanged()
     {
         RenderPlayerList();
     }
@@ -80,8 +92,14 @@ public class RoomController : MonoBehaviour
 
     private void RenderPlayerList()
     {
+        if (MainManager.Instance.GameRoom is null)
+        {
+            tmp_playernames.text = string.Empty;
+            return;
+        }
+
         var stringBuilder = new StringBuilder();
-        foreach (var item in MainManager.Instance.Players)
+        foreach (var item in MainManager.Instance.GameRoom.Players)
         {
             var leaderTag = item.IsLeader ? "(Leader)" : "";
             stringBuilder.AppendLine($"- {leaderTag} {item.Name}");

@@ -20,7 +20,7 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
-    public class GameController : MonoBehaviour
+    public partial class GameController : MonoBehaviour
     {
         [SerializeField]
         private Card cardPrefab;
@@ -65,7 +65,6 @@ namespace Assets.Scripts
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
         private readonly SemaphoreSlim _currentSemaphore = new(1);
-        private readonly List<Player> _players = new();
         private Player _nextPlayer;
         private Player _selfPlayer;
         private CardRowManager _cardRowManager;
@@ -73,21 +72,6 @@ namespace Assets.Scripts
         private Vector2 _cardUsedPosition;
         private Pinte _pinte;
         private GrpcChannelx _channel;
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static void OnRuntimeInitialize()
-        {
-            GrpcChannelProviderHost.Initialize(
-                new DefaultGrpcChannelProvider(
-                    () =>
-                        new GrpcChannelOptions()
-                        {
-                            HttpHandler = new YetAnotherHttpHandler() { Http2Only = true },
-                            DisposeHttpClient = true,
-                        }
-                )
-            );
-        }
 
         private void Start()
         {
@@ -162,10 +146,13 @@ namespace Assets.Scripts
                     .OrderBy(i => i.GainedCards.Sum(i => i.Value))
                     .FirstOrDefault();
                 chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
-                //TODO wait for input
-                await UniTask.WaitForSeconds(5);
+
+
+                await UniTask.WaitForSeconds(1);
+                await UniTask.WaitUntil(() => Input.anyKey);
+
                 await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
-                MainManager.Instance.RoomSizeChaged(_players);
+                MainManager.Instance.RoomSizeChaged();
             }
             finally
             {
@@ -173,7 +160,7 @@ namespace Assets.Scripts
             }
         }
 
-        private async UniTask<List<Player>> JoinRoom(string roomName, string playerName)
+        private async UniTask<GameRoom> JoinRoom(string roomName, string playerName)
         {
             if (string.IsNullOrWhiteSpace(roomName) || string.IsNullOrWhiteSpace(playerName))
             {
@@ -185,9 +172,8 @@ namespace Assets.Scripts
 
             var (selfPlayer, players) = await _gamingHubClient.JoinAsync(roomName, playerName);
             _selfPlayer = selfPlayer;
-            _players.Clear();
-            _players.AddRange(players);
-            return _players;
+            var gameroom = new GameRoom(roomName, players.ToList(), selfPlayer);
+            return gameroom;
         }
 
         private async UniTask LeaveRoom()
@@ -197,32 +183,25 @@ namespace Assets.Scripts
             chatController.ClearMessages();
             await _gamingHubClient.LeaveAsync();
             _selfPlayer = null;
-            _players.Clear();
+            MainManager.Instance.LeaveRoom();
         }
 
         private void OnPlayerJoined(Player player)
         {
-            var isAlready = _players.Any(i => i.ConnectionId == player.ConnectionId);
+            var isAlready = MainManager.Instance.GameRoom.Players.Any(i => i.ConnectionId == player.ConnectionId);
             if (isAlready)
                 return;
-            _players.Add(player);
-            MainManager.Instance.RoomSizeChaged(_players);
+            MainManager.Instance.GameRoom.Players.Add(player);
+            MainManager.Instance.RoomSizeChaged();
         }
 
         private void OnPlayerLeaved(Player player)
         {
-            var toRemove = _players.FirstOrDefault(i => i.ConnectionId == player.ConnectionId);
+            var toRemove = MainManager.Instance.GameRoom.Players.FirstOrDefault(i => i.ConnectionId == player.ConnectionId);
             if (toRemove == null)
                 return;
-            if (toRemove.ConnectionId == _selfPlayer?.ConnectionId)
-            {
-                LeaveRoom().Forget();
-            }
-            else
-            {
-                _players.Remove(toRemove);
-            }
-            MainManager.Instance.RoomSizeChaged(_players);
+            MainManager.Instance.GameRoom.Players.Remove(toRemove);
+            MainManager.Instance.RoomSizeChaged();
         }
 
         private IEnumerable<Card> InstanceCards(IList<CardData> data)
@@ -552,6 +531,24 @@ namespace Assets.Scripts
             GUI.Label(
                 new Rect(15, 60, 100, 30),
                 $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
+            );
+        }
+    }
+
+    public partial class GameController
+    {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void OnRuntimeInitialize()
+        {
+            GrpcChannelProviderHost.Initialize(
+                new DefaultGrpcChannelProvider(
+                    () =>
+                        new GrpcChannelOptions()
+                        {
+                            HttpHandler = new YetAnotherHttpHandler() { Http2Only = true },
+                            DisposeHttpClient = true,
+                        }
+                )
             );
         }
     }

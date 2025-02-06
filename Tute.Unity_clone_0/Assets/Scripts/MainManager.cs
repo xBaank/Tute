@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
+using Assets.Scripts;
 using Cysharp.Threading.Tasks;
-using Tute.Shared.Models;
 using UnityEngine;
 
 public class MainManager : MonoBehaviour
@@ -9,12 +8,12 @@ public class MainManager : MonoBehaviour
     private static MainManager instance;
     public static MainManager Instance => instance;
 
-    public event Func<string, string, UniTask<List<Player>>> OnRoomJoin;
-    public event Action OnStartGame;
-    public event Action<List<Player>> OnRoomSizeChanged;
-    public event Action OnLeaveRoom;
+    public GameRoom GameRoom { get; private set; }
 
-    public List<Player> Players { get; private set; } = new();
+    public event Func<string, string, UniTask<GameRoom>> OnRoomJoin;
+    public event Action OnStartGame;
+    public event Action OnRoomSizeChanged;
+    public event Action OnLeaveRoom;
 
     private void Awake()
     {
@@ -32,20 +31,19 @@ public class MainManager : MonoBehaviour
     {
         if (OnRoomJoin is null)
             return;
-        Players = await OnRoomJoin.Invoke(roomName, playerName);
+        GameRoom = await OnRoomJoin.Invoke(roomName, playerName);
     }
 
     public void StartGame() => OnStartGame?.Invoke();
 
-    public void RoomSizeChaged(List<Player> player)
+    public void RoomSizeChaged()
     {
-        Players = player;
-        OnRoomSizeChanged?.Invoke(player);
+        OnRoomSizeChanged?.Invoke();
     }
 
     public void LeaveRoom()
     {
-        Players.Clear();
+        GameRoom = null;
         OnLeaveRoom?.Invoke();
     }
 }
