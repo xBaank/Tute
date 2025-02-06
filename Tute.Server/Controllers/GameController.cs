@@ -5,6 +5,7 @@ using MagicOnion.Server;
 using MagicOnion.Server.Hubs;
 using Tute.Server.Extensions;
 using Tute.Server.Services;
+using Tute.Shared.Constants;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
@@ -253,7 +254,7 @@ public class GameController(
         }
     }
 
-    public async ValueTask MakeMoveAsync(CardData card)
+    public async ValueTask MakeMove(CardData card)
     {
         if (ConnectionId != gameRoom.NextPlayer?.ConnectionId)
             throw new ReturnStatusException((StatusCode)400, "Not your turn");
@@ -304,11 +305,6 @@ public class GameController(
             var oldNextPlayer = gameRoom.NextPlayer;
             gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex()];
 
-            if (oldNextPlayer?.ConnectionId == gameRoom.NextPlayer?.ConnectionId)
-            {
-                throw new ReturnStatusException((StatusCode)500, "Should not happen");
-            }
-
             room.All.OnUsedCard(card, self);
 
             if (gameRoom.PlayerData.Count == gameRoom.UsedCards.Count)
@@ -341,25 +337,34 @@ public class GameController(
             }
             else
             {
-                foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerData)
-                {
-                    room.Single(playerConnectionId)
-                        .OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
-                }
+                EmitGameDataForEachPlayer();
             }
 
-            if (gameRoom.PlayerData.All(i => i.Value.Cards.Count == 0))
+            var isGameFinished = gameRoom.PlayerData.All(i => i.Value.Cards.Count == 0);
+
+            if (isGameFinished)
             {
                 if (winner is not null)
                 {
                     gameRoom.PlayerData[winner.Value.Key].GainedCards.Add(CardsConstants.DiezDelMonte);
                 }
+                gameRoom.NextPlayer = null;
+                EmitGameDataForEachPlayer();
                 room.All.OnFinished(GetAllPlayersData());
             }
         }
         finally
         {
             semaphoreSlim.Release();
+        }
+    }
+
+    private void EmitGameDataForEachPlayer()
+    {
+        foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerData)
+        {
+            room.Single(playerConnectionId)
+                .OnGameData(CreateDataFor(gameRoom.PlayerData[playerConnectionId]));
         }
     }
 

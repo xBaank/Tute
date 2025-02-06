@@ -1,80 +1,81 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tute.Shared.Models;
 
-namespace Tute.Shared.Models
+namespace Tute.Shared.Constants
 {
     public static class CardsConstants
     {
-        public static readonly CardData DiezDelMonte = new CardData()
+        public static readonly CardData DiezDelMonte = new()
         {
             Value = 10,
             Name = "Las diez del monte",
             Number = 100,
         };
-        public static readonly CardData VeinteEnBastos = new CardData()
+        public static readonly CardData VeinteEnBastos = new()
         {
             Value = 20,
             Name = "Las veinte en vastos",
             Number = 101,
             Type = CardType.Clubs,
         };
-        public static readonly CardData VeinteEnCopas = new CardData()
+        public static readonly CardData VeinteEnCopas = new()
         {
             Value = 20,
             Name = "Las veinte en copas",
             Number = 102,
             Type = CardType.Cups,
         };
-        public static readonly CardData VeinteEnEspadas = new CardData()
+        public static readonly CardData VeinteEnEspadas = new()
         {
             Value = 20,
             Name = "Las veinte en espadas",
             Number = 103,
             Type = CardType.Swords,
         };
-        public static readonly CardData VeinteEnOros = new CardData()
+        public static readonly CardData VeinteEnOros = new()
         {
             Value = 20,
             Name = "Las veinte en oros",
             Number = 104,
             Type = CardType.Coins,
         };
-        public static readonly CardData CuarentaEnOros = new CardData()
+        public static readonly CardData CuarentaEnOros = new()
         {
             Value = 40,
             Name = "Las cuarenta en oros",
             Number = 106,
             Type = CardType.Coins,
         };
-        public static readonly CardData CuarentaEnBastos = new CardData()
+        public static readonly CardData CuarentaEnBastos = new()
         {
             Value = 40,
             Name = "Las cuarenta en bastos",
             Number = 107,
             Type = CardType.Clubs,
         };
-        public static readonly CardData CuarentaEnEspadas = new CardData()
+        public static readonly CardData CuarentaEnEspadas = new()
         {
             Value = 40,
             Name = "Las cuarenta en espadas",
             Number = 108,
             Type = CardType.Swords,
         };
-        public static readonly CardData CuarentaEnCopas = new CardData()
+        public static readonly CardData CuarentaEnCopas = new()
         {
             Value = 40,
             Name = "Las cuarenta en copas",
             Number = 109,
             Type = CardType.Cups,
         };
-        public static readonly CardData TuteReyes = new CardData()
+        public static readonly CardData TuteReyes = new()
         {
             Value = 200,
             Name = "Tute en reyes",
             Number = 110,
         };
-        public static readonly CardData TutePrincipes = new CardData()
+        public static readonly CardData TutePrincipes = new()
         {
             Value = 200,
             Name = "Tute en principes",

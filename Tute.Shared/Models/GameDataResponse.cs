@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using MessagePack;
+using Tute.Shared.Constants;
+
+#nullable enable
 
 namespace Tute.Shared.Models
 {
@@ -8,22 +11,22 @@ namespace Tute.Shared.Models
     public partial class GameDataResponse
     {
         [Key(0)]
-        public CardData Pinte { get; set; }
+        public CardData? Pinte { get; set; }
 
         [Key(1)]
-        public Player NextPlayer { get; set; }
+        public Player? NextPlayer { get; set; }
 
         [Key(2)]
-        public Dictionary<Guid, CardData> UsedCards { get; set; }
+        public Dictionary<Guid, CardData> UsedCards { get; set; } = new();
 
         [Key(3)]
-        public PlayerData PlayerData { get; set; }
+        public PlayerData PlayerData { get; set; } = new();
 
         [Key(4)]
         public GameState GameState { get; set; }
 
         [Key(5)]
-        public IList<CardData> GainedCards { get; set; }
+        public List<CardData> GainedCards { get; set; } = new();
 
         [Key(6)]
         public CardType PinteType { get; set; }
@@ -35,3 +38,5 @@ namespace Tute.Shared.Models
         public IEnumerable<CardData> Cantes => CardsConstants.GetCantes(GainedCards);
     }
 }
+
+#nullable disable

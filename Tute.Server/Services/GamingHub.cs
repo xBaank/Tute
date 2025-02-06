@@ -6,6 +6,7 @@ using Grpc.Core;
 using MagicOnion;
 using MagicOnion.Server.Hubs;
 using Tute.Server.Controllers;
+using Tute.Shared.Constants;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
@@ -30,9 +31,9 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     };
 
     //TODO fix leave join
-    public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name)
+    public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name, string? deckName)
     {
-        var newGameRoom = await GetOrCreateRoomAsync(roomname);
+        var newGameRoom = await GetOrCreateRoomAsync(roomname, deckName ?? "deck");
         var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId };
 
         if (gameController?.IsPlayerInRoom == true)
@@ -74,7 +75,14 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         return (self, [.. newGameRoom.Players]);
     }
 
-    private async Task<GameRoom> GetOrCreateRoomAsync(string roomname)
+    private static string GetDeckPath(Deck deckName) => deckName switch
+    {
+        _ when deckName == DecksConstants.NormalDeck => "Data/deck.json",
+        _ when deckName == DecksConstants.ShortDeck => "Data/short_deck.json",
+        _ => throw new ReturnStatusException((StatusCode)400, $"{deckName} does not exist")
+    };
+
+    private async Task<GameRoom> GetOrCreateRoomAsync(string roomname, string deckName)
     {
         if (gameRooms.TryGetValue(roomname, out var value))
         {
@@ -82,7 +90,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         }
         else
         {
-            var file = File.OpenRead("Data/deck.json");
+            var file = File.OpenRead(GetDeckPath(deckName));
             var cards = await JsonSerializer.DeserializeAsync<List<CardData>>(
                 file,
                 options: options
@@ -133,7 +141,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         gameController?.ChangePinte(card) ?? ThrowNoGameRoomException<ValueTask>();
 
     public ValueTask MakeMove(CardData card) =>
-        gameController?.MakeMoveAsync(card) ?? ThrowNoGameRoomException<ValueTask>();
+        gameController?.MakeMove(card) ?? ThrowNoGameRoomException<ValueTask>();
 
     protected override ValueTask OnDisconnected() => LeaveAsync();
 

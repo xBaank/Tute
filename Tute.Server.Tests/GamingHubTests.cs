@@ -215,8 +215,10 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Fact(Timeout = 10_000)]
-    public async Task Should_play_the_game_and_finish()
+    [Theory(Timeout = 10_000)]
+    [InlineData("deck")]
+    [InlineData("short_deck")]
+    public async Task Should_play_the_game_and_finish(string deckName)
     {
         var clientFake1 = new GamingHubReceiverFake(output);
         var clientFake2 = new GamingHubReceiverFake(output);
@@ -230,7 +232,7 @@ public class GamingHubTests : IAsyncDisposable
             clientFake2,
             cancellationToken: TestContext.Current.CancellationToken
         );
-        var (player1, _) = await client.JoinAsync("test", "first");
+        var (player1, _) = await client.JoinAsync("test", "first", deckName);
         var (player2, players) = await client2.JoinAsync("test", "second");
 
         await client.StartAsync();
@@ -242,6 +244,16 @@ public class GamingHubTests : IAsyncDisposable
 
         clientFake1.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
         clientFake2.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
+        clientFake1.GameDataResponse.ShouldNotBeNull();
+        clientFake2.GameDataResponse.ShouldNotBeNull();
+        clientFake1.GameDataResponse.PlayerData.Cards.ShouldBeEmpty();
+        clientFake2.GameDataResponse.PlayerData.Cards.ShouldBeEmpty();
+        clientFake1.GameDataResponse.NextPlayer.ShouldBeNull();
+        clientFake2.GameDataResponse.NextPlayer.ShouldBeNull();
+        clientFake1.FinalGameDataResponse.ShouldNotBeNull();
+        clientFake2.FinalGameDataResponse.ShouldNotBeNull();
+        clientFake1.FinalGameDataResponse.Count.ShouldBe(2);
+        clientFake2.FinalGameDataResponse.Count.ShouldBe(2);
     }
 
     private async Task GameHandler(
@@ -274,7 +286,7 @@ public class GamingHubTests : IAsyncDisposable
                     ?? receiver.GameDataResponse?.PlayerData.Cards.FirstOrDefault();
 
                 //Just wait till onFinish is received
-                if (cardTouse is null)
+                if (cardTouse is null || receiver.GameDataResponse?.NextPlayer is null)
                 {
                     await receiver.IsFinished.Task;
                     break;

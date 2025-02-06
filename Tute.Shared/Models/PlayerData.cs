@@ -10,9 +10,9 @@ namespace Tute.Shared.Models
         public Player Player { get; set; }
 
         [Key(1)]
-        public IList<CardData> Cards { get; set; }
+        public List<CardData> Cards { get; set; }
 
         [Key(2)]
-        public IList<CardData> GainedCards { get; set; }
+        public List<CardData> GainedCards { get; set; }
     }
 }

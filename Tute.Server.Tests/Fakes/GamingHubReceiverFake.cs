@@ -6,6 +6,7 @@ namespace Tute.Server.Tests.Fakes;
 internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHubReceiver
 {
     public GameDataResponse? GameDataResponse { get; private set; }
+    public List<GameDataResponse>? FinalGameDataResponse { get; private set; }
     public TaskCompletionSource IsFinished { get; set; } = new();
 
     private SemaphoreSlim _semaphore = new(1);
@@ -17,6 +18,7 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
     public void OnFinished(List<GameDataResponse> allPlayerData)
     {
         outputHelper.WriteLine("Game finished");
+        FinalGameDataResponse = allPlayerData;
         IsFinished.TrySetResult();
     }
 
@@ -25,7 +27,7 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
         _semaphore.Wait();
         try
         {
-            outputHelper.WriteLine($"Received data for {gameData.PlayerData.Player.Name}, Next player is {gameData.NextPlayer.Name}");
+            outputHelper.WriteLine($"Received data for {gameData.PlayerData.Player.Name}, Next player is {gameData.NextPlayer?.Name}");
             GameDataResponse = gameData;
         }
         finally
