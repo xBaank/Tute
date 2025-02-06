@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Assets.Scripts.Cards;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Services;
@@ -44,6 +45,9 @@ namespace Assets.Scripts
 
         [SerializeField]
         private Transform pintePosition;
+
+        [SerializeField]
+        private Transform gainedPosition;
 
         [SerializeField]
         private Sprite[] spriteSheet;
@@ -154,7 +158,9 @@ namespace Assets.Scripts
                 _currentData = null;
                 _pinte = null;
 
-                var winner = playerDatas.OrderBy(i => i.GainedCards.Sum(i => i.Value)).FirstOrDefault();
+                var winner = playerDatas
+                    .OrderBy(i => i.GainedCards.Sum(i => i.Value))
+                    .FirstOrDefault();
                 chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
                 //TODO wait for input
                 await UniTask.WaitForSeconds(5);
@@ -409,11 +415,12 @@ namespace Assets.Scripts
             );
         }
 
-        private async UniTask SetData(GameDataResponse gameDataResponse, bool isResponse = false)
+        private async UniTask SetData(GameDataResponse gameDataResponse)
         {
             await _currentSemaphore.WaitAsync();
             try
             {
+                var winned = gameDataResponse.GainedCards.Count > _currentData?.GainedCards.Count;
                 _currentData = gameDataResponse;
                 var playerData = gameDataResponse.PlayerData;
 
@@ -429,7 +436,26 @@ namespace Assets.Scripts
 
                 if (!newUsedCards.Any() && !gameDataResponse.UsedCards.Any())
                 {
+                    const float time = 0.25f;
                     await UniTask.WaitForSeconds(1, cancellationToken: destroyCancellationToken);
+                    var moveTasks = _currentUsedCardsGo
+                        .Select(i =>
+                            winned
+                                ? i.transform.DOMove(gainedPosition.transform.position, time).AsyncWaitForCompletion()
+                                : i.transform.DOMove(new Vector2(0, 20), time).AsyncWaitForCompletion()
+                        )
+                        .ToList();
+                    var rotateTasks = _currentUsedCardsGo
+                        .Select(i =>
+                            winned
+                                ? i.transform.DORotate(new Vector3(0, 0, 90), time).AsyncWaitForCompletion()
+                                : i.transform.DORotate(new Vector3(0, 0, 90), time).AsyncWaitForCompletion()
+                        )
+                        .ToList();
+
+                    var tasks = new List<List<Task>>() { moveTasks, rotateTasks }.SelectMany(i => i).ToList();
+                    await Task.WhenAll(tasks);
+
                     foreach (var item in _currentUsedCardsGo)
                     {
                         Destroy(item.gameObject);
@@ -460,11 +486,7 @@ namespace Assets.Scripts
                     await _cardRowManager.UpdateCardPositions();
                 }
 
-                //If we win
-                if (
-                    isResponse
-                    && gameDataResponse.NextPlayer?.ConnectionId == _selfPlayer?.ConnectionId
-                )
+                if (winned)
                 {
                     await CheckTute();
                     await CheckCantar();

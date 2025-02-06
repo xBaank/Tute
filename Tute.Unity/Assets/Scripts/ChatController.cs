@@ -7,26 +7,32 @@ namespace Assets.Scripts
 {
     public class ChatController : MonoBehaviour
     {
-        [SerializeField] private TMP_Text chatMessagePrefab;
-        [SerializeField] private GameObject content;
-        [SerializeField] private TMP_InputField inputField;
+        [SerializeField]
+        private TMP_Text chatMessagePrefab;
+
+        [SerializeField]
+        private GameObject content;
+
+        [SerializeField]
+        private TMP_InputField inputField;
         private GamingHubClient _gamingHubClient;
 
         private void Start()
         {
             inputField.onSubmit.RemoveAllListeners();
             inputField.onSubmit.AddListener(SendChatMessage);
-
         }
 
         private void OnDestroy()
         {
-            if (_gamingHubClient is not null) _gamingHubClient.OnMessageEvent -= OnMessage;
+            if (_gamingHubClient is not null)
+                _gamingHubClient.OnMessageEvent -= OnMessage;
         }
 
         public void SetGamingHubClient(GamingHubClient client)
         {
-            if (_gamingHubClient is not null) _gamingHubClient.OnMessageEvent -= OnMessage;
+            if (_gamingHubClient is not null)
+                _gamingHubClient.OnMessageEvent -= OnMessage;
             _gamingHubClient = client;
             _gamingHubClient.OnMessageEvent += OnMessage;
         }
@@ -40,12 +46,14 @@ namespace Assets.Scripts
         }
 
         private void SendChatMessage(string message) => _gamingHubClient.SendMessage(message);
+
         public void OnMessage(string message, Player player)
         {
             var tmp_text = Instantiate(chatMessagePrefab, content.transform);
             tmp_text.richText = true;
             tmp_text.text = $"<color=lightblue>{player.Name}</color> : {message}";
         }
+
         public void OnSystemMessage(string message)
         {
             var tmp_text = Instantiate(chatMessagePrefab, content.transform);

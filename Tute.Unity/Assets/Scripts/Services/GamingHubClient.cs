@@ -46,14 +46,14 @@ namespace Assets.Scripts.Services
         // You can watch connection state, use this for retry etc.
         public Task WaitForDisconnectAsync() => client.WaitForDisconnect();
 
-        public ValueTask MakeMove(CardData card) =>
-            client.MakeMove(card);
+        public ValueTask MakeMove(CardData card) => client.MakeMove(card);
 
         public ValueTask ChangePinteAsync(CardData card) => client.ChangePinte(card);
 
         public ValueTask Cante(CardData king, CardData prince) => client.Cante(king, prince);
 
         public ValueTask Tute(IList<CardData> cards) => client.Tute(cards);
+
         public ValueTask SendMessage(string message) => client.SendMessage(message);
 
         public ValueTask StartAsync() => client.StartAsync();

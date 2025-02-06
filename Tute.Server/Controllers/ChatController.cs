@@ -12,7 +12,7 @@ internal class ChatController(
     private readonly List<(Player sender, string message)> messages = [];
     public ValueTask SendMessage(string message)
     {
-        var max = Math.Min(message.Length, 20);
+        var max = Math.Min(message.Length, 100);
         var trimmed = message.Trim()[..max];
         messages.Add((self, trimmed));
         room.All.OnMessage(trimmed, self);
