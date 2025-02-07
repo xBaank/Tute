@@ -27,5 +27,7 @@ internal class GamingHubReceiverEmptyFake : IGamingHubReceiver
 
     public void OnTute(Player player, CardData tute) { }
 
+    public void OnUpdated(Player player) { }
+
     public void OnUsedCard(CardData card, Player userCard) { }
 }

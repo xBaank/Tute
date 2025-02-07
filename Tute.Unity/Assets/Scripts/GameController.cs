@@ -98,6 +98,7 @@ namespace Assets.Scripts
             _gamingHubClient.OnTuteEvent += OnTute;
             _gamingHubClient.OnJoinEvent += OnPlayerJoined;
             _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
+            _gamingHubClient.OnUpdatedEvent += OnPlayerUpdated;
             _gamingHubClient.OnStartEvent += () => OnStart().Forget();
             _gamingHubClient.OnFinishEvent += (i) => OnFinish(i).Forget();
             MainManager.Instance.OnRoomJoin += JoinRoom;
@@ -113,7 +114,7 @@ namespace Assets.Scripts
 
         private async UniTask StartGame()
         {
-            if (_selfPlayer == null)
+            if (_selfPlayer is null)
                 return;
             await _gamingHubClient.StartAsync();
         }
@@ -137,7 +138,6 @@ namespace Assets.Scripts
                 _currentUsedCardsGo.Clear();
                 if (_pinte != null)
                     Destroy(_pinte.gameObject);
-                _selfPlayer = null;
                 _nextPlayer = null;
                 _currentData = null;
                 _pinte = null;
@@ -146,7 +146,6 @@ namespace Assets.Scripts
                     .OrderBy(i => i.GainedCards.Sum(i => i.Value))
                     .FirstOrDefault();
                 chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
-
 
                 await UniTask.WaitForSeconds(1);
                 await UniTask.WaitUntil(() => Input.anyKey);
@@ -178,7 +177,7 @@ namespace Assets.Scripts
 
         private async UniTask LeaveRoom()
         {
-            if (_selfPlayer == null)
+            if (_selfPlayer is null)
                 return;
             chatController.ClearMessages();
             await _gamingHubClient.LeaveAsync();
@@ -188,7 +187,9 @@ namespace Assets.Scripts
 
         private void OnPlayerJoined(Player player)
         {
-            var isAlready = MainManager.Instance.GameRoom.Players.Any(i => i.ConnectionId == player.ConnectionId);
+            var isAlready = MainManager.Instance.GameRoom.Players.Any(i =>
+                i.ConnectionId == player.ConnectionId
+            );
             if (isAlready)
                 return;
             MainManager.Instance.GameRoom.Players.Add(player);
@@ -197,10 +198,26 @@ namespace Assets.Scripts
 
         private void OnPlayerLeaved(Player player)
         {
-            var toRemove = MainManager.Instance.GameRoom.Players.FirstOrDefault(i => i.ConnectionId == player.ConnectionId);
-            if (toRemove == null)
+            var toRemove = MainManager.Instance.GameRoom.Players.FirstOrDefault(i =>
+                i.ConnectionId == player.ConnectionId
+            );
+            if (toRemove is null)
                 return;
             MainManager.Instance.GameRoom.Players.Remove(toRemove);
+            MainManager.Instance.RoomSizeChaged();
+        }
+
+        private void OnPlayerUpdated(Player player)
+        {
+            var toUpdate = MainManager.Instance.GameRoom.Players.FirstOrDefault(i =>
+                i.ConnectionId == player.ConnectionId
+            );
+            if (toUpdate is null)
+                return;
+
+            toUpdate.ConnectionId = player.ConnectionId;
+            toUpdate.Name = player.Name;
+            toUpdate.IsLeader = player.IsLeader;
             MainManager.Instance.RoomSizeChaged();
         }
 
@@ -420,19 +437,29 @@ namespace Assets.Scripts
                     var moveTasks = _currentUsedCardsGo
                         .Select(i =>
                             winned
-                                ? i.transform.DOMove(gainedPosition.transform.position, time).AsyncWaitForCompletion()
-                                : i.transform.DOMove(new Vector2(0, 20), time).AsyncWaitForCompletion()
+                                ? i
+                                    .transform.DOMove(gainedPosition.transform.position, time)
+                                    .AsyncWaitForCompletion()
+                                : i
+                                    .transform.DOMove(new Vector2(0, 20), time)
+                                    .AsyncWaitForCompletion()
                         )
                         .ToList();
                     var rotateTasks = _currentUsedCardsGo
                         .Select(i =>
                             winned
-                                ? i.transform.DORotate(new Vector3(0, 0, 90), time).AsyncWaitForCompletion()
-                                : i.transform.DORotate(new Vector3(0, 0, 90), time).AsyncWaitForCompletion()
+                                ? i
+                                    .transform.DORotate(new Vector3(0, 0, 90), time)
+                                    .AsyncWaitForCompletion()
+                                : i
+                                    .transform.DORotate(new Vector3(0, 0, 90), time)
+                                    .AsyncWaitForCompletion()
                         )
                         .ToList();
 
-                    var tasks = new List<List<Task>>() { moveTasks, rotateTasks }.SelectMany(i => i).ToList();
+                    var tasks = new List<List<Task>>() { moveTasks, rotateTasks }
+                        .SelectMany(i => i)
+                        .ToList();
                     await Task.WhenAll(tasks);
 
                     foreach (var item in _currentUsedCardsGo)

@@ -179,11 +179,7 @@ public class GamingHubTests : IAsyncDisposable
             Times.Once()
         );
         receiverMock.Verify(
-            i => i.OnLeave(It.Is<Player>(i => i.Name == "second" && i.IsLeader == false)),
-            Times.Once()
-        );
-        receiverMock.Verify(
-            i => i.OnJoin(It.Is<Player>(i => i.Name == "second" && i.IsLeader == true)),
+            i => i.OnUpdated(It.Is<Player>(i => i.Name == "second" && i.IsLeader == true)),
             Times.Once()
         );
     }

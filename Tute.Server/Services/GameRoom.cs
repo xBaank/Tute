@@ -26,5 +26,6 @@ public class GameRoom
 
     public required bool HaveShuffle { get; init; }
 
-    public List<CardData> Shuffled() => HaveShuffle ? [.. InitialDeck.Shuffled()] : [.. InitialDeck];
+    public List<CardData> Shuffled() =>
+        HaveShuffle ? [.. InitialDeck.Shuffled()] : [.. InitialDeck];
 }

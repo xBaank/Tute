@@ -21,6 +21,7 @@ namespace Assets.Scripts.Services
         public event Func<Player, CardData, UniTask> OnTuteEvent;
         public event Action<Player> OnJoinEvent;
         public event Action<Player> OnLeaveEvent;
+        public event Action<Player> OnUpdatedEvent;
         public event Action OnStartEvent;
         public event Action<List<GameDataResponse>> OnFinishEvent;
         public event Action<string, Player> OnMessageEvent;
@@ -35,7 +36,11 @@ namespace Assets.Scripts.Services
 
         public async ValueTask<(Player, Player[])> JoinAsync(string roomName, string playername)
         {
-            var (self, roomPlayers) = await client.JoinAsync(roomName, playername, DecksConstants.ShortDeck.DeckName);
+            var (self, roomPlayers) = await client.JoinAsync(
+                roomName,
+                playername,
+                DecksConstants.ShortDeck.DeckName
+            );
             return (self, roomPlayers);
         }
 
@@ -62,6 +67,8 @@ namespace Assets.Scripts.Services
         public void OnJoin(Player player) => OnJoinEvent?.Invoke(player);
 
         public void OnLeave(Player player) => OnLeaveEvent?.Invoke(player);
+
+        public void OnUpdated(Player player) => OnUpdatedEvent?.Invoke(player);
 
         public void OnGameData(GameDataResponse gameData) =>
             OnGameDataEvent?.Invoke(gameData).Forget();

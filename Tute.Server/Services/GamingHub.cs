@@ -31,7 +31,12 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     };
 
     //TODO fix leave join
-    public async ValueTask<(Player, Player[])> JoinAsync(string roomname, string name, string? deckName, bool shuffled)
+    public async ValueTask<(Player, Player[])> JoinAsync(
+        string roomname,
+        string name,
+        string? deckName,
+        bool shuffled
+    )
     {
         var newGameRoom = await GetOrCreateRoomAsync(roomname, deckName ?? "deck", shuffled);
         var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId };
@@ -75,12 +80,13 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         return (self, [.. newGameRoom.Players]);
     }
 
-    private static string GetDeckPath(Deck deckName) => deckName switch
-    {
-        _ when deckName == DecksConstants.NormalDeck => "Data/deck.json",
-        _ when deckName == DecksConstants.ShortDeck => "Data/short_deck.json",
-        _ => throw new ReturnStatusException((StatusCode)400, $"{deckName} does not exist")
-    };
+    private static string GetDeckPath(Deck deckName) =>
+        deckName switch
+        {
+            _ when deckName == DecksConstants.NormalDeck => "Data/deck.json",
+            _ when deckName == DecksConstants.ShortDeck => "Data/short_deck.json",
+            _ => throw new ReturnStatusException((StatusCode)400, $"{deckName} does not exist"),
+        };
 
     private async Task<GameRoom> GetOrCreateRoomAsync(string roomname, Deck deck, bool shuffled)
     {
@@ -155,5 +161,6 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     private static T ThrowNoGameRoomException<T>() =>
         throw new ReturnStatusException((StatusCode)400, "No gameroom found");
 
-    public ValueTask SendMessage(string message) => chatController?.SendMessage(message) ?? ThrowNoGameRoomException<ValueTask>();
+    public ValueTask SendMessage(string message) =>
+        chatController?.SendMessage(message) ?? ThrowNoGameRoomException<ValueTask>();
 }

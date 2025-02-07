@@ -27,33 +27,22 @@ public class GameController(
         if (gameRoom.State == GameState.Playing)
         {
             room.All.OnFinished(GetAllPlayersData());
-            room.All.OnLeave(self);
-            await ClearRoom();
+            gameRoom.State = GameState.Room;
+            //await ClearRoom();
         }
-        else if (gameRoom.State == GameState.Room)
+
+        if (gameRoom.State == GameState.Room)
         {
             await ExitSelf();
             if (gameRoom.Players.Count == 1)
             {
                 var player = gameRoom.Players.First();
-                room.All.OnLeave(player);
                 player.IsLeader = true;
-                room.All.OnJoin(player);
+                room.All.OnUpdated(player);
             }
         }
 
         return gameRoom.Players.Count == 0;
-    }
-
-    private async ValueTask ClearRoom()
-    {
-        gameRoom.Players.Clear();
-        gameRoom.PlayerData.Clear();
-        foreach (var item in gameRoom.RoomContexts)
-        {
-            await room.RemoveAsync(item.Value);
-        }
-        await ExitSelf();
     }
 
     private async ValueTask ExitSelf()
@@ -124,7 +113,6 @@ public class GameController(
         await semaphoreSlim.WaitAsync();
         try
         {
-
             var number = cards[0].Number;
             var cardsGrouped = cards.GroupBy(i => i.Type);
 
@@ -214,7 +202,6 @@ public class GameController(
 
         try
         {
-
             var number = gameRoom.Pinte.Number;
 
             if (number is 2)
@@ -316,8 +303,8 @@ public class GameController(
                 gameRoom.PlayerData[winnerKey].GainedCards =
                 [
                     .. gameRoom.PlayerData[winnerKey].GainedCards,
-                .. gameRoom.UsedCards.Values,
-            ];
+                    .. gameRoom.UsedCards.Values,
+                ];
                 gameRoom.UsedCards = [];
 
                 foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerData)
@@ -346,7 +333,9 @@ public class GameController(
             {
                 if (winner is not null)
                 {
-                    gameRoom.PlayerData[winner.Value.Key].GainedCards.Add(CardsConstants.DiezDelMonte);
+                    gameRoom
+                        .PlayerData[winner.Value.Key]
+                        .GainedCards.Add(CardsConstants.DiezDelMonte);
                 }
                 gameRoom.NextPlayer = null;
                 EmitGameDataForEachPlayer();
@@ -385,9 +374,11 @@ public class GameController(
             gameRoom.UsedCards.Where(i => i.Value.Type == firstCard.Type).Sum(i => i.Value.Value)
             == 0;
 
+        KeyValuePair<Guid, CardData>? bestByNumber = null;
+
         if (bestByValue is not null && allSameValue)
         {
-            bestByValue = gameRoom
+            bestByNumber = gameRoom
                 .UsedCards.Where(i => i.Value.Type == firstCard.Type)
                 .MaxByOrDefault(i => i.Value.Number);
         }
@@ -397,7 +388,10 @@ public class GameController(
             .MaxByOrDefault(i => i.Value.Value);
 
         var winner =
-            bestByType ?? bestByValue ?? throw new InvalidOperationException("No winner found");
+            bestByNumber
+            ?? bestByType
+            ?? bestByValue
+            ?? throw new InvalidOperationException("No winner found");
         return winner;
     }
 
