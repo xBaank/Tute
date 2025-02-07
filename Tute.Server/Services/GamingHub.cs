@@ -85,6 +85,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         {
             _ when deckName == DecksConstants.NormalDeck => "Data/deck.json",
             _ when deckName == DecksConstants.ShortDeck => "Data/short_deck.json",
+            _ when deckName == DecksConstants.Cante20Deck => "Data/cante_20_deck.json",
             _ => throw new ReturnStatusException((StatusCode)400, $"{deckName} does not exist"),
         };
 
@@ -104,6 +105,9 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
 
             if (cards is null || cards.Count == 0)
                 throw new ReturnStatusException((StatusCode)400, "No deck found");
+
+            //For some reason the array is deserialized reversed
+            cards.Reverse();
 
             var gameRoom = new GameRoom()
             {

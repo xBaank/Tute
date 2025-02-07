@@ -3,7 +3,7 @@
 namespace Tute.Shared.Models
 {
     [MessagePackObject]
-    public class CardData
+    public partial class CardData
     {
         [Key(0)]
         public string Name { get; set; }

@@ -1,17 +1,19 @@
-﻿using Tute.Shared.GamingHub;
+﻿using Moq;
+using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
 namespace Tute.Server.Tests.Fakes;
 
 internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHubReceiver
 {
+    public Mock<IGamingHubReceiver> Mock { get; } = new();
     public GameDataResponse? GameDataResponse { get; private set; }
     public List<GameDataResponse>? FinalGameDataResponse { get; private set; }
     public TaskCompletionSource IsFinished { get; set; } = new();
 
     private SemaphoreSlim _semaphore = new(1);
 
-    public void OnCante(Player player, CardData cante) { }
+    public void OnCante(Player player, CardData cante) => Mock.Object.OnCante(player, cante);
 
     public void OnChangedPinte(CardData cardData) { }
 
@@ -48,7 +50,7 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
 
     public void OnUsedCard(CardData card, Player userCard) { }
 
-    public void OnUpdated(Player player) { }
+    public void OnUpdated(Player player) => Mock.Object.OnUpdated(player);
 
-    public void OnDiezDelMonte(Player player, CardData diezDelMonte) { }
+    public void OnDiezDelMonte(Player player, CardData diezDelMonte) => Mock.Object.OnDiezDelMonte(player, diezDelMonte);
 }

@@ -5,6 +5,7 @@ using Moq;
 using Shouldly;
 using Tute.Server.Tests.Fakes;
 using Tute.Server.Tests.Helpers;
+using Tute.Shared.Constants;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
@@ -214,6 +215,7 @@ public class GamingHubTests : IAsyncDisposable
     [Theory(Timeout = 10_000)]
     [InlineData("deck", false)]
     [InlineData("short_deck", false)]
+    [InlineData("cante_20_deck", false)]
     public async Task Should_play_the_game_and_finish(string deckName, bool shuffled)
     {
         var clientFake1 = new GamingHubReceiverFake(output);
@@ -254,6 +256,66 @@ public class GamingHubTests : IAsyncDisposable
         clientFake2.FinalGameDataResponse.All(i => i.GameState == GameState.Room).ShouldBeTrue();
     }
 
+    [Theory(Timeout = 10_000)]
+    [InlineData("short_deck", false)]
+    public async Task Should_get_las_diez_del_monte(string deckName, bool shuffled)
+    {
+        var clientFake1 = new GamingHubReceiverFake(output);
+        var clientFake2 = new GamingHubReceiverFake(output);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake1,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake2,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var (player1, _) = await client.JoinAsync("test", "first", deckName, shuffled);
+        var (player2, players) = await client2.JoinAsync("test", "second");
+
+        await client.StartAsync();
+
+        var handler1 = GameHandler(clientFake1, client, player1, TestContext.Current.CancellationToken);
+        var handler2 = GameHandler(clientFake2, client2, player2, TestContext.Current.CancellationToken);
+
+        await Task.WhenAll(handler1, handler2);
+
+        clientFake1.Mock.Verify(i => i.OnDiezDelMonte(It.Is<Player>(i => i.ConnectionId == player1.ConnectionId), It.Is<CardData>(i => i.Number == CardsConstants.DiezDelMonte.Number)), Times.Once);
+        clientFake2.Mock.Verify(i => i.OnDiezDelMonte(It.Is<Player>(i => i.ConnectionId == player1.ConnectionId), It.Is<CardData>(i => i.Number == CardsConstants.DiezDelMonte.Number)), Times.Once);
+    }
+
+    [Theory(Timeout = 10_000)]
+    [InlineData("cante_20_deck", false)]
+    public async Task Should_cantar_las_veinte(string deckName, bool shuffled)
+    {
+        var clientFake1 = new GamingHubReceiverFake(output);
+        var clientFake2 = new GamingHubReceiverFake(output);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake1,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake2,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var (player1, _) = await client.JoinAsync("test", "first", deckName, shuffled);
+        var (player2, players) = await client2.JoinAsync("test", "second");
+
+        await client.StartAsync();
+
+        var handler1 = GameHandler(clientFake1, client, player1, TestContext.Current.CancellationToken);
+        var handler2 = GameHandler(clientFake2, client2, player2, TestContext.Current.CancellationToken);
+
+        await Task.WhenAll(handler1, handler2);
+
+        clientFake1.Mock.Verify(i => i.OnCante(It.Is<Player>(i => i.ConnectionId == player1.ConnectionId), It.Is<CardData>(i => i.Number == CardsConstants.VeinteEnCopas.Number)), Times.Once);
+        clientFake2.Mock.Verify(i => i.OnCante(It.Is<Player>(i => i.ConnectionId == player1.ConnectionId), It.Is<CardData>(i => i.Number == CardsConstants.VeinteEnCopas.Number)), Times.Once);
+    }
+
     private async Task GameHandler(
         GamingHubReceiverFake receiver,
         IGamingHub client,
@@ -281,7 +343,25 @@ public class GamingHubTests : IAsyncDisposable
                     ?? receiver
                         .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
                         .FirstOrDefault(i => i.Type == pinte)
+
                     ?? receiver.GameDataResponse?.PlayerData.Cards.FirstOrDefault();
+
+                var alreadycantes = receiver.GameDataResponse?
+                    .Cantes.OrderByDescending(i => i.Number)
+                    .Select(i => i.Type)
+                    .ToList();
+
+                var cantes = receiver.GameDataResponse?.PlayerData.Cards
+                    .Where(i => i.Number is 11 or 12)
+                    .GroupBy(i => i.Type)
+                    .Where(i => alreadycantes?.Contains(i.Key) == false)
+                    .FirstOrDefault(i => i.Count() == 2);
+
+                var king = cantes?.FirstOrDefault(i => i.Number == 12);
+                var prince = cantes?.FirstOrDefault(i => i.Number == 11);
+
+                if (king is not null && prince is not null)
+                    await client.Cante(king, prince);
 
                 //Just wait till onFinish is received
                 if (cardTouse is null || receiver.GameDataResponse?.NextPlayer is null)
