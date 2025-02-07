@@ -15,6 +15,9 @@
 	</ItemGroup>
   
   <ItemGroup>
+    <None Update="Data\cante_40_deck.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\cante_20_deck.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

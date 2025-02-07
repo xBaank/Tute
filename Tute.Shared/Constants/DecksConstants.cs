@@ -23,5 +23,6 @@ namespace Tute.Shared.Constants
         public readonly static Deck NormalDeck = "deck";
         public readonly static Deck ShortDeck = "short_deck";
         public readonly static Deck Cante20Deck = "cante_20_deck";
+        public readonly static Deck Cante40Deck = "cante_40_deck";
     }
 }

@@ -86,6 +86,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
             _ when deckName == DecksConstants.NormalDeck => "Data/deck.json",
             _ when deckName == DecksConstants.ShortDeck => "Data/short_deck.json",
             _ when deckName == DecksConstants.Cante20Deck => "Data/cante_20_deck.json",
+            _ when deckName == DecksConstants.Cante40Deck => "Data/cante_40_deck.json",
             _ => throw new ReturnStatusException((StatusCode)400, $"{deckName} does not exist"),
         };
 

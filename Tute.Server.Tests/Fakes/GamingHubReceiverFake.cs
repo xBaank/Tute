@@ -29,7 +29,9 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
         _semaphore.Wait();
         try
         {
-            outputHelper.WriteLine($"Received data for {gameData.PlayerData.Player.Name}, Next player is {gameData.NextPlayer?.Name}");
+            outputHelper.WriteLine(
+                $"Received data for {gameData.PlayerData.Player.Name}, Next player is {gameData.NextPlayer?.Name}"
+            );
             GameDataResponse = gameData;
         }
         finally
@@ -52,5 +54,6 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
 
     public void OnUpdated(Player player) => Mock.Object.OnUpdated(player);
 
-    public void OnDiezDelMonte(Player player, CardData diezDelMonte) => Mock.Object.OnDiezDelMonte(player, diezDelMonte);
+    public void OnDiezDelMonte(Player player, CardData diezDelMonte) =>
+        Mock.Object.OnDiezDelMonte(player, diezDelMonte);
 }
