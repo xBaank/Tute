@@ -48,7 +48,7 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
 
     public void OnStart() { }
 
-    public void OnTute(Player player, CardData tute) { }
+    public void OnTute(Player player, CardData tute) => Mock.Object.OnTute(player, tute);
 
     public void OnUsedCard(CardData card, Player userCard) { }
 

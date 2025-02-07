@@ -1,5 +1,7 @@
 {
     "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
     "methodDisplay": "method",
-    "methodDisplayOptions": "replaceUnderscoreWithSpace,useOperatorMonikers"
+    "methodDisplayOptions": "replaceUnderscoreWithSpace,useOperatorMonikers",
+    "parallelizeAssembly": true,
+    "parallelizeTestCollections": true
 }

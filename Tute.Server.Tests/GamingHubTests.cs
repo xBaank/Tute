@@ -217,6 +217,7 @@ public class GamingHubTests : IAsyncDisposable
     [InlineData("short_deck", false)]
     [InlineData("cante_20_deck", false)]
     [InlineData("cante_40_deck", false)]
+    [InlineData("tute_kings_deck", false)]
     public async Task Should_play_the_game_and_finish(string deckName, bool shuffled)
     {
         var clientFake1 = new GamingHubReceiverFake(output);
@@ -322,8 +323,9 @@ public class GamingHubTests : IAsyncDisposable
     }
 
     [Theory(Timeout = 10_000)]
-    [InlineData("cante_20_deck", false)]
-    public async Task Should_cantar_las_veinte(string deckName, bool shuffled)
+    [InlineData("cante_20_deck", false, CardsConstants.VeinteEnCopasNumber)]
+    [InlineData("cante_40_deck", false, CardsConstants.CuarentaEnCopasNumber)]
+    public async Task Should_cantar_las_veinte(string deckName, bool shuffled, int cardNumber)
     {
         var clientFake1 = new GamingHubReceiverFake(output);
         var clientFake2 = new GamingHubReceiverFake(output);
@@ -361,7 +363,7 @@ public class GamingHubTests : IAsyncDisposable
             i =>
                 i.OnCante(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
-                    It.Is<CardData>(i => i.Number == CardsConstants.VeinteEnCopas.Number)
+                    It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once
         );
@@ -369,15 +371,16 @@ public class GamingHubTests : IAsyncDisposable
             i =>
                 i.OnCante(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
-                    It.Is<CardData>(i => i.Number == CardsConstants.VeinteEnCopas.Number)
+                    It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once
         );
     }
 
     [Theory(Timeout = 10_000)]
-    [InlineData("cante_40_deck", false)]
-    public async Task Should_cantar_las_cuarenta(string deckName, bool shuffled)
+    [InlineData("tute_kings_deck", false, CardsConstants.TuteReyesNumber)]
+    [InlineData("tute_prince_deck", false, CardsConstants.TutePrincipesNumber)]
+    public async Task Should_tute(string deckName, bool shuffled, int cardNumber)
     {
         var clientFake1 = new GamingHubReceiverFake(output);
         var clientFake2 = new GamingHubReceiverFake(output);
@@ -411,19 +414,22 @@ public class GamingHubTests : IAsyncDisposable
 
         await Task.WhenAll(handler1, handler2);
 
+
+        clientFake1.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
+        clientFake2.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
         clientFake1.Mock.Verify(
             i =>
-                i.OnCante(
+                i.OnTute(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
-                    It.Is<CardData>(i => i.Number == CardsConstants.CuarentaEnCopas.Number)
+                    It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once
         );
         clientFake2.Mock.Verify(
             i =>
-                i.OnCante(
+                i.OnTute(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
-                    It.Is<CardData>(i => i.Number == CardsConstants.CuarentaEnCopas.Number)
+                    It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once
         );
@@ -457,6 +463,19 @@ public class GamingHubTests : IAsyncDisposable
                         .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
                         .FirstOrDefault(i => i.Type == pinte)
                     ?? receiver.GameDataResponse?.PlayerData.Cards.FirstOrDefault();
+
+                var tuteKingCards = receiver
+                        .GameDataResponse?.PlayerData.Cards.Where(i => i.Number == 12).ToList();
+                var tutePrinceCards = receiver
+                        .GameDataResponse?.PlayerData.Cards.Where(i => i.Number == 11).ToList();
+
+                if (tuteKingCards?.Count == 4 || tutePrinceCards?.Count == 4)
+                {
+                    var toUse = tuteKingCards?.Count == 4 ? tuteKingCards : tutePrinceCards;
+                    await client.Tute(toUse!);
+                    break;
+                }
+
 
                 var alreadycantes = receiver
                     .GameDataResponse?.Cantes.OrderByDescending(i => i.Number)

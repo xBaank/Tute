@@ -127,6 +127,8 @@ public class GameController(
 
     public async ValueTask Tute(IList<CardData> cards)
     {
+        CheckPlaying();
+
         if (cards.Count != 4)
         {
             throw new ReturnStatusException((StatusCode)400, "Cards must be 4");
@@ -149,7 +151,6 @@ public class GameController(
             var tute = CardsConstants.GetTute(number);
 
             gameRoom.PlayerData[ConnectionId].GainedCards.Add(tute);
-            room.Single(ConnectionId).OnGameData(CreateDataFor(gameRoom.PlayerData[ConnectionId]));
             room.All.OnTute(self, tute);
 
             foreach (var item in gameRoom.PlayerData)
@@ -157,6 +158,9 @@ public class GameController(
                 item.Value.Cards.Clear();
             }
 
+            gameRoom.NextPlayer = null;
+
+            EmitGameDataForEachPlayer();
             FinishGame();
         }
         finally
@@ -167,6 +171,8 @@ public class GameController(
 
     public async ValueTask Cante(CardData king, CardData prince)
     {
+        CheckPlaying();
+
         if (gameRoom.PinteType is null)
         {
             throw new ReturnStatusException((StatusCode)400, "No pinte was set");
@@ -215,6 +221,8 @@ public class GameController(
 
     public async ValueTask ChangePinte(CardData card)
     {
+        CheckPlaying();
+
         if (gameRoom.NextPlayer?.ConnectionId != ConnectionId)
             throw new ReturnStatusException((StatusCode)400, "It's not your turn");
         if (gameRoom.Pinte is null)
@@ -265,6 +273,8 @@ public class GameController(
 
     public async ValueTask MakeMove(CardData card)
     {
+        CheckPlaying();
+
         if (ConnectionId != gameRoom.NextPlayer?.ConnectionId)
             throw new ReturnStatusException((StatusCode)400, "Not your turn");
 
@@ -457,4 +467,9 @@ public class GameController(
             GameState = gameRoom.State,
             GainedCards = playerData.GainedCards,
         };
+
+    private void CheckPlaying()
+    {
+        if (gameRoom.State != GameState.Playing) throw new ReturnStatusException((StatusCode)400, "Game is not started");
+    }
 }

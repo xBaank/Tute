@@ -24,7 +24,7 @@ namespace Tute.Shared.Constants
         {
             Value = 20,
             Name = "Las veinte en copas",
-            Number = 102,
+            Number = VeinteEnCopasNumber,
             Type = CardType.Cups,
         };
         public static readonly CardData VeinteEnEspadas = new()
@@ -66,21 +66,26 @@ namespace Tute.Shared.Constants
         {
             Value = 40,
             Name = "Las cuarenta en copas",
-            Number = 109,
+            Number = CuarentaEnCopasNumber,
             Type = CardType.Cups,
         };
         public static readonly CardData TuteReyes = new()
         {
             Value = 200,
             Name = "Tute en reyes",
-            Number = 110,
+            Number = TuteReyesNumber,
         };
         public static readonly CardData TutePrincipes = new()
         {
             Value = 200,
             Name = "Tute en principes",
-            Number = 111,
+            Number = TutePrincipesNumber,
         };
+
+        public const int TuteReyesNumber = 110;
+        public const int TutePrincipesNumber = 111;
+        public const int VeinteEnCopasNumber = 102;
+        public const int CuarentaEnCopasNumber = 109;
 
         public static IEnumerable<CardData> GetCantes(IEnumerable<CardData> cards) =>
             cards.Where(i =>
