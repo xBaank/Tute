@@ -26,8 +26,7 @@ public class GameController(
     {
         if (gameRoom.State == GameState.Playing)
         {
-            room.All.OnFinished(GetAllPlayersData());
-            gameRoom.State = GameState.Room;
+            FinishGame();
             //await ClearRoom();
         }
 
@@ -73,33 +72,56 @@ public class GameController(
         room.All.OnStart();
 
         var gameCards = new Stack<CardData>(gameRoom.Shuffled());
-        var pinte = gameCards.Pop();
 
         gameRoom.State = GameState.Playing;
         gameRoom.PlayerData = [];
         gameRoom.UsedCards = [];
         gameRoom.Cards = gameCards;
         //TODO should persist next player between games
-        gameRoom.NextPlayer = gameRoom.Players.First();
-        gameRoom.Pinte = pinte;
-        gameRoom.PinteType = pinte;
+        gameRoom.NextPlayer ??= gameRoom.Players.First();
 
-        //TODO maybe change the way cards are distributed
+        //Init players data
         foreach (var item in gameRoom.Players)
         {
-            var initialHand = gameCards.PopRange(7).ToList();
-            PlayerData gameData = new()
+            gameRoom.PlayerData[item.ConnectionId] = new PlayerData()
             {
-                Cards = initialHand,
+                Cards = [],
                 GainedCards = [],
                 Player = item,
             };
-            gameRoom.PlayerData[item.ConnectionId] = gameData;
-            room.Single(item.ConnectionId)
-                .OnGameData(CreateDataFor(gameRoom.PlayerData[item.ConnectionId]));
         }
 
+        //Add cards
+        while (true)
+        {
+            var currentplayer = gameRoom.Players.First();
+
+            foreach (var item in gameRoom.Players)
+            {
+                var isNext = gameCards.TryPop(out var nextCard);
+                if (isNext) gameRoom.PlayerData[item.ConnectionId].Cards.Add(nextCard);
+            }
+
+            var firstCardsCount = gameRoom.PlayerData.Values.First().Cards.Count;
+
+            if (!gameRoom.PlayerData.Values.All(i => i.Cards.Count == firstCardsCount))
+            {
+                throw new InvalidOperationException("Error assigning cards");
+            }
+
+            if (gameRoom.PlayerData.Values.All(i => i.Cards.Count == 7))
+            {
+                break;
+            }
+        }
+
+        var pinte = gameCards.Pop();
+        gameRoom.Pinte = pinte;
+        gameRoom.PinteType = pinte;
+
+        EmitGameDataForEachPlayer();
         room.All.OnChangedPinte(pinte);
+
         return ValueTask.CompletedTask;
     }
 
@@ -135,7 +157,7 @@ public class GameController(
                 item.Value.Cards.Clear();
             }
 
-            room.All.OnFinished(GetAllPlayersData());
+            FinishGame();
         }
         finally
         {
@@ -333,13 +355,13 @@ public class GameController(
             {
                 if (winner is not null)
                 {
-                    gameRoom
-                        .PlayerData[winner.Value.Key]
-                        .GainedCards.Add(CardsConstants.DiezDelMonte);
+                    var playerData = gameRoom.PlayerData[winner.Value.Key];
+                    playerData.GainedCards.Add(CardsConstants.DiezDelMonte);
+                    room.All.OnDiezDelMonte(playerData.Player, CardsConstants.DiezDelMonte);
                 }
                 gameRoom.NextPlayer = null;
                 EmitGameDataForEachPlayer();
-                room.All.OnFinished(GetAllPlayersData());
+                FinishGame();
             }
         }
         finally
@@ -416,6 +438,12 @@ public class GameController(
         var nextPlayer = gameRoom.Players.ElementAtOrDefault(currentIndex + 1);
         var nextIndex = nextPlayer == default ? 0 : gameRoom.Players.IndexOf(nextPlayer);
         return nextIndex;
+    }
+
+    private void FinishGame()
+    {
+        gameRoom.State = GameState.Room;
+        room.All.OnFinished(GetAllPlayersData());
     }
 
     private GameDataResponse CreateDataFor(PlayerData playerData) =>

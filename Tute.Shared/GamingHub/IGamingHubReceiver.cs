@@ -12,6 +12,7 @@ namespace Tute.Shared.GamingHub
         void OnUsedCard(CardData card, Player userCard);
         void OnCante(Player player, CardData cante);
         void OnTute(Player player, CardData tute);
+        void OnDiezDelMonte(Player player, CardData tute);
         void OnChangedPinte(CardData cardData);
         void OnStart();
         void OnFinished(List<GameDataResponse> allPlayerData);

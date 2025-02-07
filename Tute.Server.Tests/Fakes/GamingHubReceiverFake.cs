@@ -49,4 +49,6 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
     public void OnUsedCard(CardData card, Player userCard) { }
 
     public void OnUpdated(Player player) { }
+
+    public void OnDiezDelMonte(Player player, CardData diezDelMonte) { }
 }

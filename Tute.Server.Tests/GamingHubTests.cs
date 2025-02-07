@@ -250,6 +250,8 @@ public class GamingHubTests : IAsyncDisposable
         clientFake2.FinalGameDataResponse.ShouldNotBeNull();
         clientFake1.FinalGameDataResponse.Count.ShouldBe(2);
         clientFake2.FinalGameDataResponse.Count.ShouldBe(2);
+        clientFake1.FinalGameDataResponse.All(i => i.GameState == GameState.Room).ShouldBeTrue();
+        clientFake2.FinalGameDataResponse.All(i => i.GameState == GameState.Room).ShouldBeTrue();
     }
 
     private async Task GameHandler(

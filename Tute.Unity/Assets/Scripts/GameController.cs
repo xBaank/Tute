@@ -96,6 +96,7 @@ namespace Assets.Scripts
             _gamingHubClient.OnChangedPinteEvent += OnChangedPinte;
             _gamingHubClient.OnCanteEvent += OnCante;
             _gamingHubClient.OnTuteEvent += OnTute;
+            _gamingHubClient.OnDiezDelMonteEvent += OnDiezDelMonte;
             _gamingHubClient.OnJoinEvent += OnPlayerJoined;
             _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
             _gamingHubClient.OnUpdatedEvent += OnPlayerUpdated;
@@ -147,7 +148,6 @@ namespace Assets.Scripts
                     .FirstOrDefault();
                 chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
 
-                await UniTask.WaitForSeconds(1);
                 await UniTask.WaitUntil(() => Input.anyKey);
 
                 await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
@@ -179,10 +179,10 @@ namespace Assets.Scripts
         {
             if (_selfPlayer is null)
                 return;
-            chatController.ClearMessages();
             await _gamingHubClient.LeaveAsync();
             _selfPlayer = null;
             MainManager.Instance.LeaveRoom();
+            chatController.ClearMessages();
         }
 
         private void OnPlayerJoined(Player player)
@@ -297,6 +297,12 @@ namespace Assets.Scripts
         private UniTask OnTute(Player player, CardData tute)
         {
             chatController.OnSystemMessage($"Player {player.Name} tute {tute.Name}");
+            return UniTask.CompletedTask;
+        }
+
+        private UniTask OnDiezDelMonte(Player player, CardData tute)
+        {
+            chatController.OnSystemMessage($"Player {player.Name} se lleva {tute.Name}");
             return UniTask.CompletedTask;
         }
 

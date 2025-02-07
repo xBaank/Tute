@@ -3,7 +3,6 @@
     public enum GameState
     {
         Room,
-        Playing,
-        Finished,
+        Playing
     }
 }

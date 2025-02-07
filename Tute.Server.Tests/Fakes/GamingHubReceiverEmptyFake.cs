@@ -13,6 +13,8 @@ internal class GamingHubReceiverEmptyFake : IGamingHubReceiver
 
     public void OnChangedPinte(CardData cardData) { }
 
+    public void OnDiezDelMonte(Player player, CardData tute) { }
+
     public void OnFinished(List<GameDataResponse> allPlayerData) { }
 
     public void OnGameData(GameDataResponse gameData) { }

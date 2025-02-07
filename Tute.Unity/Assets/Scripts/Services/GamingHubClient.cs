@@ -19,6 +19,7 @@ namespace Assets.Scripts.Services
         public event Func<CardData, UniTask> OnChangedPinteEvent;
         public event Func<Player, CardData, UniTask> OnCanteEvent;
         public event Func<Player, CardData, UniTask> OnTuteEvent;
+        public event Func<Player, CardData, UniTask> OnDiezDelMonteEvent;
         public event Action<Player> OnJoinEvent;
         public event Action<Player> OnLeaveEvent;
         public event Action<Player> OnUpdatedEvent;
@@ -90,7 +91,11 @@ namespace Assets.Scripts.Services
         public void OnTute(Player player, CardData cardData) =>
             OnTuteEvent?.Invoke(player, cardData).Forget();
 
+        public void OnDiezDelMonte(Player player, CardData cardData) =>
+            OnDiezDelMonteEvent?.Invoke(player, cardData).Forget();
+
         public void OnMessage(string message, Player player) =>
             OnMessageEvent?.Invoke(message, player);
+
     }
 }
