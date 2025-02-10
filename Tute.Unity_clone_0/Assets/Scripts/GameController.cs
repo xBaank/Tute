@@ -78,7 +78,7 @@ namespace Assets.Scripts
             _cardRowManager = new CardRowManager(
                 stackPosition.position.x,
                 stackPosition.position.y,
-                1.25f
+                1.1f
             );
 
             SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
