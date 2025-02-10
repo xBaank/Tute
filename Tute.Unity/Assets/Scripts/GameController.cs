@@ -570,6 +570,10 @@ namespace Assets.Scripts
                 new Rect(15, 60, 100, 30),
                 $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
             );
+            GUI.Label(
+            new Rect(15, 75, 100, 30),
+            $"Wins: {_currentData?.PlayerData.WinsCount}"
+            );
         }
     }
 

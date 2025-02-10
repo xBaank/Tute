@@ -70,7 +70,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         gameRoom = newGameRoom;
         roomName = roomname;
         room = await Group.AddAsync(roomname);
-        newGameRoom.RoomContexts[ConnectionId] = Context;
+        newGameRoom.RoomContextsByConnection[ConnectionId] = Context;
         newGameRoom.Players.Add(self);
         gameController = new(gameRoom, self, room, Context);
         chatController = new(room, self);
@@ -117,9 +117,9 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
                 InitialDeck = cards,
                 State = GameState.Room,
                 Players = [],
-                RoomContexts = [],
-                PlayerData = [],
-                UsedCards = [],
+                RoomContextsByConnection = [],
+                PlayerDataByConnetion = [],
+                UsedCardsByConnection = [],
                 Cards = [],
                 HaveShuffle = shuffled,
             };

@@ -266,6 +266,10 @@ public class GamingHubTests : IAsyncDisposable
         clientFake2.FinalGameDataResponse.Count.ShouldBe(2);
         clientFake1.FinalGameDataResponse.All(i => i.GameState == GameState.Room).ShouldBeTrue();
         clientFake2.FinalGameDataResponse.All(i => i.GameState == GameState.Room).ShouldBeTrue();
+        clientFake1.FinalGameDataResponse.First().PlayerData.WinsCount.ShouldBe(1);
+        clientFake2.FinalGameDataResponse.First().PlayerData.WinsCount.ShouldBe(1);
+        clientFake1.FinalGameDataResponse.ElementAt(1).PlayerData.WinsCount.ShouldBe(0);
+        clientFake2.FinalGameDataResponse.ElementAt(1).PlayerData.WinsCount.ShouldBe(0);
     }
 
     [Theory(Timeout = 10_000)]
