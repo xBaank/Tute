@@ -78,11 +78,12 @@ namespace Assets.Scripts
             _cardRowManager = new CardRowManager(
                 stackPosition.position.x,
                 stackPosition.position.y,
-                1.5f,
-                15f
+                1.25f
             );
 
             SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
+            exitButton.gameObject.SetActive(false);
+            chatController.Hide();
 
             ConnectToServer().Forget();
 
@@ -123,6 +124,8 @@ namespace Assets.Scripts
         private async UniTaskVoid OnStart()
         {
             await SceneManager.UnloadSceneAsync("Menu");
+            exitButton.gameObject.SetActive(true);
+            chatController.Show();
         }
 
         private async UniTaskVoid OnFinish(IList<GameDataResponse> playerDatas)
@@ -144,12 +147,14 @@ namespace Assets.Scripts
                 _pinte = null;
 
                 var winner = playerDatas
-                    .OrderBy(i => i.GainedCards.Sum(i => i.Value))
+                    .OrderByDescending(i => i.GainedCards.Sum(i => i.Value))
                     .FirstOrDefault();
                 chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
 
                 await UniTask.WaitUntil(() => Input.anyKey);
 
+                exitButton.gameObject.SetActive(false);
+                chatController.Hide();
                 await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
                 MainManager.Instance.RoomSizeChaged();
             }
@@ -182,7 +187,7 @@ namespace Assets.Scripts
             await _gamingHubClient.LeaveAsync();
             _selfPlayer = null;
             MainManager.Instance.LeaveRoom();
-            chatController.ClearMessages();
+            chatController.Hide();
         }
 
         private void OnPlayerJoined(Player player)

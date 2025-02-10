@@ -1,29 +1,31 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Assets.Scripts.Cards
 {
     public class CardRowManager
     {
-        private float xPosition = 0f; // Fixed X position for the row
-        private float yPosition = 3f; // Fixed Y position for the row
-        private float cardSpacing = 2f; // Distance between cards
+        private readonly float xPosition = 0f; // Fixed X position for the row
+        private readonly float yPosition = 4f; // Fixed Y position for the row
+        private readonly float yDiff = 0.2f;
+        private readonly float zRotation = 5;
+        private readonly float cardSpacing = 0.2f; // Distance between cards
 
         private readonly SemaphoreSlim se = new(1);
         private readonly List<Card> cards = new();
         public Vector2 CurrentPosition { get; set; }
-        public float SnapSpeed { get; set; } = 30f; // Speed of snapping animation
 
         public bool IsOrdering { get; private set; }
 
-        public CardRowManager(float xPosition, float yPosition, float cardSpacing, float snapSpeed)
+        public CardRowManager(float xPosition, float yPosition, float cardSpacing)
         {
             this.xPosition = xPosition;
             this.yPosition = yPosition;
             this.cardSpacing = cardSpacing;
-            SnapSpeed = snapSpeed;
         }
 
         public void Clear() => cards.Clear();
@@ -84,9 +86,29 @@ namespace Assets.Scripts.Cards
 
                 for (var i = 0; i < cards.Count; i++)
                 {
-                    Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition, 0f);
+                    var tmpi = i;
+                    var middle = cards.Count / 2;
+                    var isPar = cards.Count % 2 == 0;
+                    if (isPar && tmpi == middle && tmpi < cards.Count - 1) tmpi++;
+                    float zRotation;
+                    float yOffset;
+                    if (i >= middle)
+                    {
+                        var diff = middle - tmpi;
+                        yOffset = diff * yDiff;
+                        zRotation = this.zRotation * diff;
+                    }
+                    else
+                    {
+                        var diff = tmpi - middle;
+                        yOffset = diff * yDiff;
+                        zRotation = Mathf.Abs(this.zRotation * diff);
+                    }
+                    Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition + yOffset, (i / 10f) * -1);
+                    var targetRotation = new Vector3(0, 0, zRotation);
+
                     tasks.Add(
-                        SnapCard(cards[i], targetPosition, cards[i].destroyCancellationToken)
+                        SnapCard(cards[i], targetPosition, targetRotation, cards[i].destroyCancellationToken)
                     );
                 }
 
@@ -107,20 +129,14 @@ namespace Assets.Scripts.Cards
         private async UniTask SnapCard(
             Card card,
             Vector3 targetPosition,
+            Vector3 targetRotation,
             CancellationToken cancellationToken
         )
         {
-            while (Vector3.Distance(card.transform.position, targetPosition) > 0.01f)
-            {
-                card.transform.position = Vector3.Lerp(
-                    card.transform.position,
-                    targetPosition,
-                    Time.deltaTime * SnapSpeed
-                );
-
-                await UniTask.Yield(cancellationToken);
-            }
-            card.transform.position = targetPosition;
+            cancellationToken.ThrowIfCancellationRequested();
+            var moveTask = card.transform.DOMove(targetPosition, 0.15f).SetEase(Ease.InOutExpo).AsyncWaitForCompletion();
+            var rotateTask = card.transform.DORotate(targetRotation, 0.15f).SetEase(Ease.InOutExpo).AsyncWaitForCompletion();
+            await Task.WhenAll(moveTask, rotateTask);
         }
     }
 }

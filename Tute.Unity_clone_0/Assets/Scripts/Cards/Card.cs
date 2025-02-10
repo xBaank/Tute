@@ -57,7 +57,8 @@ namespace Assets.Scripts.Cards
                 return;
 
             var mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition) + (Vector3)startDif;
-            Vector3 newPos = new(mousePos.x, mousePos.y, 0);
+            Vector3 newPos = new(mousePos.x, mousePos.y, -5f);
+            transform.Rotate(Vector3.zero);
             transform.position = newPos;
         }
 

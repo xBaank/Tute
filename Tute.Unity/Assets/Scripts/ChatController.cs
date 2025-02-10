@@ -36,8 +36,7 @@ namespace Assets.Scripts
             _gamingHubClient = client;
             _gamingHubClient.OnMessageEvent += OnMessage;
         }
-
-        public void ClearMessages()
+        private void ClearMessages()
         {
             for (var i = 0; i < content.transform.childCount; i++)
             {
@@ -59,6 +58,17 @@ namespace Assets.Scripts
             var tmp_text = Instantiate(chatMessagePrefab, content.transform);
             tmp_text.color = Color.cyan;
             tmp_text.text = $"{message}";
+        }
+
+        public void Hide()
+        {
+            ClearMessages();
+            gameObject.SetActive(false);
+        }
+
+        public void Show()
+        {
+            gameObject.SetActive(true);
         }
     }
 }

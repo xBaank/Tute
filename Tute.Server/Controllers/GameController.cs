@@ -27,7 +27,6 @@ public class GameController(
         if (gameRoom.State == GameState.Playing)
         {
             FinishGame();
-            //await ClearRoom();
         }
 
         if (gameRoom.State == GameState.Room)
@@ -396,8 +395,6 @@ public class GameController(
     {
         var firstCard = gameRoom.UsedCards.FirstOrDefault().Value;
 
-        //TODO calculate winner by number if no value difference
-
         var bestByValue = gameRoom
             .UsedCards.Where(i => i.Value.Type == firstCard.Type)
             .MaxByOrDefault(i => i.Value.Value);
@@ -406,9 +403,11 @@ public class GameController(
             gameRoom.UsedCards.Where(i => i.Value.Type == firstCard.Type).Sum(i => i.Value.Value)
             == 0;
 
+        var anyPinte = gameRoom.UsedCards.Any(i => i.Value.Type == gameRoom.PinteType?.Type);
+
         KeyValuePair<Guid, CardData>? bestByNumber = null;
 
-        if (bestByValue is not null && allSameValue)
+        if (bestByValue is not null && allSameValue && !anyPinte)
         {
             bestByNumber = gameRoom
                 .UsedCards.Where(i => i.Value.Type == firstCard.Type)
