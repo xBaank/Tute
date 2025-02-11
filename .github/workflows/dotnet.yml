@@ -10,7 +10,7 @@ on:
     branches: [ "*" ]
 
 jobs:
-  build:
+  build-server:
 
     runs-on: ubuntu-latest
 
@@ -22,7 +22,15 @@ jobs:
         dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
+    - name: Build Server
       run: dotnet build --no-restore
-    - name: Test
+    - name: Test Server
       run: dotnet test --no-build --verbosity normal
+  build-client:
+    - uses: game-ci/unity-builder@v4
+      env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      with:
+        targetPlatform: Windows
