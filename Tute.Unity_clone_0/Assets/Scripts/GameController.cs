@@ -12,7 +12,6 @@ using Grpc.Core;
 using Tute.Shared.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -49,9 +48,6 @@ namespace Assets.Scripts
         private Sprite[] spriteSheet;
 
         [SerializeField]
-        private Button exitButton;
-
-        [SerializeField]
         private ChatController chatController;
 
         [SerializeField]
@@ -65,6 +61,7 @@ namespace Assets.Scripts
         private GameDataResponse _currentData;
         private Vector2 _cardUsedPosition;
         private Pinte _pinte;
+        private bool IsMenuLoaded;
 
         private Player SelfPlayer => GamingHubManager.Instance.GameRoom?.Player;
         private GamingHubClient Client => GamingHubManager.Instance.Client;
@@ -77,13 +74,11 @@ namespace Assets.Scripts
                 1.1f
             );
 
-            LoadMenu();
+            SetupMenu().Forget();
 
             //TODO take from input
             Client.ConnectAsync("localhost", 5000).AsUniTask().Forget();
 
-            exitButton.onClick.RemoveAllListeners();
-            exitButton.onClick.AddListener(() => LeaveRoom().Forget());
             Client.OnGameDataEvent += OnGameData;
             Client.OnUsedCardEvent += OnUsedCard;
             Client.OnChangedPinteEvent += OnChangedPinte;
@@ -94,19 +89,40 @@ namespace Assets.Scripts
             Client.OnFinishEvent += (i) => OnFinish(i).Forget();
         }
 
-        private void LoadMenu()
+        private async UniTaskVoid SetupMenu()
         {
-            SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
-            exitButton.gameObject.SetActive(false);
-            chatController.Hide();
+            await LoadMenu(true);
+            await HandleMenu();
         }
 
-        private async UniTaskVoid OnStart()
+        private async UniTask HandleMenu()
         {
+            while (!destroyCancellationToken.IsCancellationRequested)
+            {
+                await UniTask.WaitUntil(() => Input.GetKeyDown(KeyCode.Escape) && _currentData?.GameState == GameState.Playing);
+                await LoadMenu(false);
+                await UniTask.WaitUntil(() => Input.GetKeyDown(KeyCode.Escape) && _currentData?.GameState == GameState.Playing);
+                await UnloadMenu();
+            }
+        }
+
+        private async UniTask LoadMenu(bool clearmessages)
+        {
+            if (IsMenuLoaded) return;
+            await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
+            IsMenuLoaded = true;
+            chatController.Hide(clearmessages);
+        }
+
+        private async UniTask UnloadMenu()
+        {
+            if (!IsMenuLoaded) return;
             await SceneManager.UnloadSceneAsync("Menu");
-            exitButton.gameObject.SetActive(true);
+            IsMenuLoaded = false;
             chatController.Show();
         }
+
+        private async UniTaskVoid OnStart() => await UnloadMenu();
 
         private async UniTaskVoid OnFinish(IList<GameDataResponse> playerDatas)
         {
@@ -132,23 +148,12 @@ namespace Assets.Scripts
                 chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
 
                 await UniTask.WaitUntil(() => Input.anyKey);
-
-                exitButton.gameObject.SetActive(false);
-                chatController.Hide();
-                await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
+                await LoadMenu(true);
             }
             finally
             {
                 _currentSemaphore.Release();
             }
-        }
-
-
-
-        private async UniTask LeaveRoom()
-        {
-            await GamingHubManager.Instance.LeaveRoom();
-            chatController.Hide();
         }
 
         private IEnumerable<Card> InstanceCards(IList<CardData> data)
@@ -444,6 +449,9 @@ namespace Assets.Scripts
 
         private async UniTask MakeMove(CardData card)
         {
+            if (IsMenuLoaded)
+                return;
+
             if (_nextPlayer == null || SelfPlayer == null)
                 return;
 

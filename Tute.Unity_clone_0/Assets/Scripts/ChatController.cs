@@ -57,9 +57,9 @@ namespace Assets.Scripts
             tmp_text.text = $"{message}";
         }
 
-        public void Hide()
+        public void Hide(bool clearMessages = true)
         {
-            ClearMessages();
+            if (clearMessages) ClearMessages();
             gameObject.SetActive(false);
         }
 
