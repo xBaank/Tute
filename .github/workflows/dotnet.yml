@@ -28,6 +28,7 @@ jobs:
   build-client:
      runs-on: ubuntu-latest
      steps:
+     - uses: actions/checkout@v4
      - name: Cd Tute.Unity
        run: cd Tute.Unity
      - name: Build Tute
