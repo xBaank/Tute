@@ -28,10 +28,13 @@ jobs:
   build-client:
      runs-on: ubuntu-latest
      steps:
-      - uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: Windows
+     - name: Cd Tute.Unity
+       run: cd Tute.Unity
+     - name: Build Tute
+     - uses: game-ci/unity-builder@v4
+       env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+       with:
+        targetPlatform: Windows
