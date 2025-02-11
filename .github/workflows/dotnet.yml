@@ -29,8 +29,6 @@ jobs:
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v4
-     - name: Cd Tute.Unity
-       run: cd Tute.Unity
      - name: Build Tute
        uses: game-ci/unity-builder@v4
        env:
@@ -38,4 +36,5 @@ jobs:
         UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
        with:
+        projectPath: ./Tute.Unity
         targetPlatform: Windows
