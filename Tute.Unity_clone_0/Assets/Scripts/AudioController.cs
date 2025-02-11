@@ -1,16 +1,18 @@
 using UnityEngine;
 
-public class AudioController : MonoBehaviour
+namespace Assets.Scripts
 {
-    [SerializeField]
-    AudioClip flick;
-
-    AudioSource audioSource;
-
-    private void Start()
+    public class AudioController : MonoBehaviour
     {
-        audioSource = GetComponent<AudioSource>();
-    }
+        [SerializeField]
+        private AudioClip flick;
+        private AudioSource audioSource;
 
-    public void PlayFlick() => audioSource.PlayOneShot(flick);
+        private void Start()
+        {
+            audioSource = GetComponent<AudioSource>();
+        }
+
+        public void PlayFlick() => audioSource.PlayOneShot(flick);
+    }
 }

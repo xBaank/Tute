@@ -1,18 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Assets.Scripts.Cards;
 using Assets.Scripts.Extensions;
+using Assets.Scripts.Managers;
 using Assets.Scripts.Services;
-using Cysharp.Net.Http;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Grpc.Core;
-using Grpc.Net.Client;
-using MagicOnion;
-using MagicOnion.Unity;
 using Tute.Shared.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -61,17 +57,17 @@ namespace Assets.Scripts
         [SerializeField]
         private AudioController audioController;
 
-        private readonly GamingHubClient _gamingHubClient = new();
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
         private readonly SemaphoreSlim _currentSemaphore = new(1);
         private Player _nextPlayer;
-        private Player _selfPlayer;
         private CardRowManager _cardRowManager;
         private GameDataResponse _currentData;
         private Vector2 _cardUsedPosition;
         private Pinte _pinte;
-        private GrpcChannelx _channel;
+
+        private Player SelfPlayer => GamingHubManager.Instance.GameRoom?.Player;
+        private GamingHubClient Client => GamingHubManager.Instance.Client;
 
         private void Start()
         {
@@ -81,44 +77,28 @@ namespace Assets.Scripts
                 1.1f
             );
 
-            SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
-            exitButton.gameObject.SetActive(false);
-            chatController.Hide();
+            LoadMenu();
 
-            ConnectToServer().Forget();
-
-            chatController.SetGamingHubClient(_gamingHubClient);
+            //TODO take from input
+            Client.ConnectAsync("localhost", 5000).AsUniTask().Forget();
 
             exitButton.onClick.RemoveAllListeners();
             exitButton.onClick.AddListener(() => LeaveRoom().Forget());
-
-            _gamingHubClient.OnGameDataEvent += OnGameData;
-            _gamingHubClient.OnUsedCardEvent += OnUsedCard;
-            _gamingHubClient.OnChangedPinteEvent += OnChangedPinte;
-            _gamingHubClient.OnCanteEvent += OnCante;
-            _gamingHubClient.OnTuteEvent += OnTute;
-            _gamingHubClient.OnDiezDelMonteEvent += OnDiezDelMonte;
-            _gamingHubClient.OnJoinEvent += OnPlayerJoined;
-            _gamingHubClient.OnLeaveEvent += OnPlayerLeaved;
-            _gamingHubClient.OnUpdatedEvent += OnPlayerUpdated;
-            _gamingHubClient.OnStartEvent += () => OnStart().Forget();
-            _gamingHubClient.OnFinishEvent += (i) => OnFinish(i).Forget();
-            MainManager.Instance.OnRoomJoin += JoinRoom;
-            MainManager.Instance.OnStartGame += () => StartGame().Forget();
-            MainManager.Instance.OnLeaveRoom += () => LeaveRoom().Forget();
+            Client.OnGameDataEvent += OnGameData;
+            Client.OnUsedCardEvent += OnUsedCard;
+            Client.OnChangedPinteEvent += OnChangedPinte;
+            Client.OnCanteEvent += OnCante;
+            Client.OnTuteEvent += OnTute;
+            Client.OnDiezDelMonteEvent += OnDiezDelMonte;
+            Client.OnStartEvent += () => OnStart().Forget();
+            Client.OnFinishEvent += (i) => OnFinish(i).Forget();
         }
 
-        private async UniTaskVoid ConnectToServer()
+        private void LoadMenu()
         {
-            _channel = GrpcChannelx.ForTarget(new GrpcChannelTarget("localhost", 5000, true));
-            await _gamingHubClient.ConnectAsync(_channel);
-        }
-
-        private async UniTask StartGame()
-        {
-            if (_selfPlayer is null)
-                return;
-            await _gamingHubClient.StartAsync();
+            SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
+            exitButton.gameObject.SetActive(false);
+            chatController.Hide();
         }
 
         private async UniTaskVoid OnStart()
@@ -156,7 +136,6 @@ namespace Assets.Scripts
                 exitButton.gameObject.SetActive(false);
                 chatController.Hide();
                 await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
-                MainManager.Instance.RoomSizeChaged();
             }
             finally
             {
@@ -164,66 +143,12 @@ namespace Assets.Scripts
             }
         }
 
-        private async UniTask<GameRoom> JoinRoom(string roomName, string playerName)
-        {
-            if (string.IsNullOrWhiteSpace(roomName) || string.IsNullOrWhiteSpace(playerName))
-            {
-                throw new ArgumentNullException(
-                    "roomName, playerName",
-                    "Room name and player name must not be empty"
-                );
-            }
 
-            var (selfPlayer, players) = await _gamingHubClient.JoinAsync(roomName, playerName);
-            _selfPlayer = selfPlayer;
-            var gameroom = new GameRoom(roomName, players.ToList(), selfPlayer);
-            return gameroom;
-        }
 
         private async UniTask LeaveRoom()
         {
-            if (_selfPlayer is null)
-                return;
-            await _gamingHubClient.LeaveAsync();
-            _selfPlayer = null;
-            MainManager.Instance.LeaveRoom();
+            await GamingHubManager.Instance.LeaveRoom();
             chatController.Hide();
-        }
-
-        private void OnPlayerJoined(Player player)
-        {
-            var isAlready = MainManager.Instance.GameRoom.Players.Any(i =>
-                i.ConnectionId == player.ConnectionId
-            );
-            if (isAlready)
-                return;
-            MainManager.Instance.GameRoom.Players.Add(player);
-            MainManager.Instance.RoomSizeChaged();
-        }
-
-        private void OnPlayerLeaved(Player player)
-        {
-            var toRemove = MainManager.Instance.GameRoom.Players.FirstOrDefault(i =>
-                i.ConnectionId == player.ConnectionId
-            );
-            if (toRemove is null)
-                return;
-            MainManager.Instance.GameRoom.Players.Remove(toRemove);
-            MainManager.Instance.RoomSizeChaged();
-        }
-
-        private void OnPlayerUpdated(Player player)
-        {
-            var toUpdate = MainManager.Instance.GameRoom.Players.FirstOrDefault(i =>
-                i.ConnectionId == player.ConnectionId
-            );
-            if (toUpdate is null)
-                return;
-
-            toUpdate.ConnectionId = player.ConnectionId;
-            toUpdate.Name = player.Name;
-            toUpdate.IsLeader = player.IsLeader;
-            MainManager.Instance.RoomSizeChaged();
         }
 
         private IEnumerable<Card> InstanceCards(IList<CardData> data)
@@ -296,7 +221,7 @@ namespace Assets.Scripts
             }
 
             var toUse = tuteKingCards.Count == 4 ? tuteKingCards : tutePrinceCards;
-            await _gamingHubClient.Tute(toUse);
+            await Client.Tute(toUse);
         }
 
         private UniTask OnTute(Player player, CardData tute)
@@ -338,7 +263,7 @@ namespace Assets.Scripts
                 return;
             }
 
-            await _gamingHubClient.Cante(king, prince);
+            await Client.Cante(king, prince);
         }
 
         private UniTask OnCante(Player player, CardData cante)
@@ -352,11 +277,11 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
-                if (_nextPlayer?.ConnectionId != _selfPlayer?.ConnectionId)
+                if (_nextPlayer?.ConnectionId != SelfPlayer?.ConnectionId)
                     return;
                 try
                 {
-                    await _gamingHubClient.ChangePinteAsync(card);
+                    await Client.ChangePinteAsync(card);
                     var toRemove = _currentCardsGo.FirstOrDefault(i =>
                         i.CardData.Name == card.Name
                     );
@@ -404,7 +329,7 @@ namespace Assets.Scripts
         {
             var item = InstanceUsedCard(cardData);
 
-            if (player.ConnectionId != _selfPlayer.ConnectionId)
+            if (player.ConnectionId != SelfPlayer.ConnectionId)
             {
                 item.transform.position = new Vector3(0, 20);
             }
@@ -510,7 +435,6 @@ namespace Assets.Scripts
                 }
 
                 _nextPlayer = gameDataResponse.NextPlayer;
-                _selfPlayer = playerData.Player;
             }
             finally
             {
@@ -520,10 +444,10 @@ namespace Assets.Scripts
 
         private async UniTask MakeMove(CardData card)
         {
-            if (_nextPlayer == null || _selfPlayer == null)
+            if (_nextPlayer == null || SelfPlayer == null)
                 return;
 
-            if (_nextPlayer.ConnectionId != _selfPlayer.ConnectionId)
+            if (_nextPlayer.ConnectionId != SelfPlayer.ConnectionId)
                 return;
 
             await _currentSemaphore.WaitAsync();
@@ -537,7 +461,7 @@ namespace Assets.Scripts
 
                 try
                 {
-                    await _gamingHubClient.MakeMove(card);
+                    await Client.MakeMove(card);
                     Debug.Log("Game data sent");
                 }
                 catch (RpcException ex)
@@ -560,7 +484,7 @@ namespace Assets.Scripts
 
         private void OnGUI()
         {
-            GUI.Label(new Rect(15, 15, 100, 30), $"Leader: {_selfPlayer?.IsLeader}");
+            GUI.Label(new Rect(15, 15, 100, 30), $"Leader: {SelfPlayer?.IsLeader}");
             GUI.Label(
                 new Rect(15, 30, 100, 30),
                 $"Points: {_currentData?.PlayerData.GainedCards.Sum(i => i.Value)}"
@@ -568,29 +492,11 @@ namespace Assets.Scripts
             GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {_currentData?.PinteType.ToString()}");
             GUI.Label(
                 new Rect(15, 60, 100, 30),
-                $"Your turn: {_selfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
+                $"Your turn: {SelfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
             );
             GUI.Label(
             new Rect(15, 75, 100, 30),
             $"Wins: {_currentData?.PlayerData.WinsCount}"
-            );
-        }
-    }
-
-    public partial class GameController
-    {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static void OnRuntimeInitialize()
-        {
-            GrpcChannelProviderHost.Initialize(
-                new DefaultGrpcChannelProvider(
-                    () =>
-                        new GrpcChannelOptions()
-                        {
-                            HttpHandler = new YetAnotherHttpHandler() { Http2Only = true },
-                            DisposeHttpClient = true,
-                        }
-                )
             );
         }
     }

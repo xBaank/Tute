@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Grpc.Core;
+using MagicOnion;
 using MagicOnion.Client;
+using MagicOnion.Unity;
 using Tute.Shared.Constants;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
@@ -13,6 +15,7 @@ namespace Assets.Scripts.Services
     public class GamingHubClient : IGamingHubReceiver
     {
         private IGamingHub client;
+        private ChannelBase channel;
 
         public event Func<GameDataResponse, UniTask> OnGameDataEvent;
         public event Func<CardData, Player, UniTask> OnUsedCardEvent;
@@ -27,13 +30,20 @@ namespace Assets.Scripts.Services
         public event Action<List<GameDataResponse>> OnFinishEvent;
         public event Action<string, Player> OnMessageEvent;
 
+        public bool IsConnected { get; private set; }
+        public string Target => channel?.Target ?? string.Empty;
+
         public async ValueTask ConnectAsync(ChannelBase grpcChannel)
         {
+            channel = grpcChannel;
             client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
                 grpcChannel,
                 this
             );
+            IsConnected = true;
         }
+
+        public ValueTask ConnectAsync(string host, int port) => ConnectAsync(GrpcChannelx.ForTarget(new GrpcChannelTarget(host, port, true)));
 
         public async ValueTask<(Player, Player[])> JoinAsync(string roomName, string playername)
         {
@@ -51,7 +61,11 @@ namespace Assets.Scripts.Services
         public Task DisposeAsync() => client.DisposeAsync();
 
         // You can watch connection state, use this for retry etc.
-        public Task WaitForDisconnectAsync() => client.WaitForDisconnect();
+        public Task WaitForDisconnectAsync()
+        {
+            IsConnected = false;
+            return client.WaitForDisconnect();
+        }
 
         public ValueTask MakeMove(CardData card) => client.MakeMove(card);
 

@@ -1,4 +1,6 @@
+using Assets.Scripts.Managers;
 using Assets.Scripts.Services;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using Tute.Shared.Models;
 using UnityEngine;
@@ -15,27 +17,22 @@ namespace Assets.Scripts
 
         [SerializeField]
         private TMP_InputField inputField;
-        private GamingHubClient _gamingHubClient;
+
+        private GamingHubClient Client => GamingHubManager.Instance.Client;
 
         private void Start()
         {
+            Client.OnMessageEvent += OnMessage;
             inputField.onSubmit.RemoveAllListeners();
             inputField.onSubmit.AddListener(SendChatMessage);
         }
 
         private void OnDestroy()
         {
-            if (_gamingHubClient is not null)
-                _gamingHubClient.OnMessageEvent -= OnMessage;
+            if (Client is not null)
+                Client.OnMessageEvent -= OnMessage;
         }
 
-        public void SetGamingHubClient(GamingHubClient client)
-        {
-            if (_gamingHubClient is not null)
-                _gamingHubClient.OnMessageEvent -= OnMessage;
-            _gamingHubClient = client;
-            _gamingHubClient.OnMessageEvent += OnMessage;
-        }
         private void ClearMessages()
         {
             for (var i = 0; i < content.transform.childCount; i++)
@@ -44,7 +41,7 @@ namespace Assets.Scripts
             }
         }
 
-        private void SendChatMessage(string message) => _gamingHubClient.SendMessage(message);
+        private void SendChatMessage(string message) => Client.SendMessage(message).AsUniTask().Forget();
 
         public void OnMessage(string message, Player player)
         {
