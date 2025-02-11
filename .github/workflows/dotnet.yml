@@ -37,4 +37,4 @@ jobs:
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
        with:
         projectPath: ./Tute.Unity
-        targetPlatform: Windows
+        targetPlatform: StandaloneWindows
