@@ -27,6 +27,7 @@ public class MainManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    //From menu
     public async UniTask ChangeRoom(string roomName, string playerName)
     {
         if (OnRoomJoin is null)
@@ -36,6 +37,8 @@ public class MainManager : MonoBehaviour
 
     public void StartGame() => OnStartGame?.Invoke();
 
+
+    //From ingame
     public void RoomSizeChaged()
     {
         OnRoomSizeChanged?.Invoke();

@@ -11,8 +11,8 @@ namespace Assets.Scripts.Cards
     {
         private readonly float xPosition = 0f; // Fixed X position for the row
         private readonly float yPosition = 4f; // Fixed Y position for the row
-        private readonly float yDiff = 0.2f;
-        private readonly float zRotation = 5;
+        private readonly float yDiff = 0.1f;
+        private readonly float zRotation = 4f;
         private readonly float cardSpacing = 0.2f; // Distance between cards
 
         private readonly SemaphoreSlim se = new(1);
@@ -95,14 +95,16 @@ namespace Assets.Scripts.Cards
                     if (i >= middle)
                     {
                         var diff = middle - tmpi;
-                        yOffset = diff * yDiff;
                         zRotation = this.zRotation * diff;
+                        var rotateDiff = zRotation / this.zRotation * 0.15f;
+                        yOffset = diff * yDiff + rotateDiff;
                     }
                     else
                     {
                         var diff = tmpi - middle;
-                        yOffset = diff * yDiff;
                         zRotation = Mathf.Abs(this.zRotation * diff);
+                        var rotateDiff = zRotation / this.zRotation * 0.15f;
+                        yOffset = diff * yDiff - rotateDiff;
                     }
                     Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition + yOffset, (i / 10f) * -1);
                     var targetRotation = new Vector3(0, 0, zRotation);

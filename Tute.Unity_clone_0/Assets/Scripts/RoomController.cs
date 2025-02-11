@@ -1,6 +1,8 @@
-using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using TMPro;
+using Tute.Shared.Models;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +15,10 @@ public class RoomController : MonoBehaviour
     private TMP_Text tmp_name;
 
     [SerializeField]
-    private TMP_Text tmp_playernames;
+    private GameObject textContainer;
+
+    [SerializeField]
+    private TMP_Text playerNamePrefab;
 
     [SerializeField]
     private TMP_InputField tmp_roomName;
@@ -31,6 +36,7 @@ public class RoomController : MonoBehaviour
     private Button exitButton;
 
     private readonly SemaphoreSlim semaphoreSlim = new(1);
+    private Dictionary<Player, TMP_Text> textsByPlayer = new();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -71,8 +77,8 @@ public class RoomController : MonoBehaviour
             tmp_name.text = string.Empty;
             return;
         }
-        tmp_room.text = $"Room: {MainManager.Instance.GameRoom.RoomName}";
-        tmp_name.text = $"Name: {MainManager.Instance.GameRoom.Player.Name}";
+        tmp_room.text = $"<b><color=grey>Room</color></b>: {MainManager.Instance.GameRoom.RoomName}";
+        tmp_name.text = $"<b><color=grey>Name</color></b>: {MainManager.Instance.GameRoom.Player.Name}";
     }
 
     private void RoomSizeChanged()
@@ -92,18 +98,38 @@ public class RoomController : MonoBehaviour
 
     private void RenderPlayerList()
     {
+        //Remove all if player is not in a room
         if (MainManager.Instance.GameRoom is null)
         {
-            tmp_playernames.text = string.Empty;
+            for (var i = 0; i < textContainer.transform.childCount; i++)
+            {
+                Destroy(textContainer.transform.GetChild(i).gameObject);
+                textsByPlayer.Clear();
+            }
             return;
         }
 
-        var stringBuilder = new StringBuilder();
+        //Remove players that left the room
+        foreach (var item in textsByPlayer.ToDictionary(i => i.Key, i => i.Value))
+        {
+            if (!MainManager.Instance.GameRoom.Players.Contains(item.Key))
+            {
+                if (item.Value.gameObject != null) Destroy(item.Value.gameObject);
+                textsByPlayer.Remove(item.Key);
+            }
+        }
+
+        //Add new player in the room
         foreach (var item in MainManager.Instance.GameRoom.Players)
         {
-            var leaderTag = item.IsLeader ? "(Leader)" : "";
-            stringBuilder.AppendLine($"- {leaderTag} {item.Name}");
+            var leaderTag = item.IsLeader ? "<b><color=orange>(Leader)</color></b>" : "";
+            var text = $"- {leaderTag} {item.Name}";
+            var tmpText = !textsByPlayer.ContainsKey(item) ? Instantiate(playerNamePrefab, textContainer.transform) : textsByPlayer[item];
+            tmpText.richText = true;
+            tmpText.text = text;
+            tmpText.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            tmpText.fontSize = 18;
+            textsByPlayer[item] = tmpText;
         }
-        tmp_playernames.text = stringBuilder.ToString();
     }
 }
