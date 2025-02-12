@@ -3,6 +3,7 @@ using Grpc.Net.Client;
 using MagicOnion.Client;
 using Moq;
 using Shouldly;
+using Tute.Server.Tests.Extensions;
 using Tute.Server.Tests.Fakes;
 using Tute.Server.Tests.Helpers;
 using Tute.Shared.Constants;
@@ -16,6 +17,7 @@ public class GamingHubTests : IAsyncDisposable
     private readonly GrpcChannel _channel;
     private readonly GrpcTestFixture<Program> _fixture;
     private readonly ITestOutputHelper output;
+    private readonly TimeSpan _verifyTimeout = TimeSpan.FromSeconds(5);
 
     public GamingHubTests(ITestOutputHelper output)
     {
@@ -27,7 +29,7 @@ public class GamingHubTests : IAsyncDisposable
         this.output = output;
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_join_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -50,10 +52,16 @@ public class GamingHubTests : IAsyncDisposable
         players.Length.ShouldBe(2);
         playerNames.ShouldContain("first");
         playerNames.ShouldContain("second");
-        receiverMock.Verify(i => i.OnJoin(It.IsAny<Player>()), Times.Once());
+
+        await receiverMock.AsyncVerify(
+            i => i.OnJoin(It.IsAny<Player>()),
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
+        );
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_not_join_twice_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -74,7 +82,7 @@ public class GamingHubTests : IAsyncDisposable
         await join.ShouldThrowAsync<RpcException>();
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_leave_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -93,10 +101,15 @@ public class GamingHubTests : IAsyncDisposable
 
         await client.LeaveAsync();
 
-        receiverMock.Verify(i => i.OnLeave(It.Is<Player>(i => i.Name == "first")), Times.Once());
+        await receiverMock.AsyncVerify(
+            i => i.OnLeave(It.Is<Player>(i => i.Name == "first")),
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
+        );
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_not_leave_if_user_is_not_in_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -110,7 +123,7 @@ public class GamingHubTests : IAsyncDisposable
         await leave.ShouldThrowAsync<RpcException>();
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_start_a_game()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -131,13 +144,23 @@ public class GamingHubTests : IAsyncDisposable
         player2.IsLeader.ShouldBeFalse();
 
         await client2.StartAsync();
-        receiverMock.Verify(i => i.OnStart(), Times.Never());
+        await receiverMock.AsyncVerify(
+            i => i.OnStart(),
+            Times.Never(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
+        );
 
         await client.StartAsync();
-        receiverMock.Verify(i => i.OnStart(), Times.Exactly(2));
+        await receiverMock.AsyncVerify(
+            i => i.OnStart(),
+            Times.Exactly(2),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
+        );
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_not_start_a_game_if_there_are_not_enough_players()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -151,10 +174,15 @@ public class GamingHubTests : IAsyncDisposable
         var start = async () => await client.StartAsync();
 
         await start.ShouldThrowAsync<RpcException>();
-        receiverMock.Verify(i => i.OnStart(), Times.Never());
+        await receiverMock.AsyncVerify(
+            i => i.OnStart(),
+            Times.Never(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
+        );
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_change_leader()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -175,17 +203,21 @@ public class GamingHubTests : IAsyncDisposable
         player2.IsLeader.ShouldBeFalse();
 
         await client.LeaveAsync();
-        receiverMock.Verify(
+        await receiverMock.AsyncVerify(
             i => i.OnLeave(It.Is<Player>(i => i.Name == "first" && i.IsLeader == true)),
-            Times.Once()
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
-        receiverMock.Verify(
+        await receiverMock.AsyncVerify(
             i => i.OnUpdated(It.Is<Player>(i => i.Name == "second" && i.IsLeader == true)),
-            Times.Once()
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
     }
 
-    [Fact]
+    [Fact(Timeout = 30_000)]
     public async Task Should_stop_game_while_playing_when_player_leave()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -205,14 +237,21 @@ public class GamingHubTests : IAsyncDisposable
         await client.StartAsync();
         await client.LeaveAsync();
 
-        receiverMock.Verify(i => i.OnLeave(It.IsAny<Player>()), Times.Once());
-        receiverMock.Verify(
+        await receiverMock.AsyncVerify(
+            i => i.OnLeave(It.IsAny<Player>()),
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
+        );
+        await receiverMock.AsyncVerify(
             i => i.OnFinished(It.Is<List<GameDataResponse>>(i => i.Count == 2)),
-            Times.Once()
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
     }
 
-    [Theory(Timeout = 20_000)]
+    [Theory(Timeout = 30_000)]
     [InlineData("deck", false)]
     [InlineData("short_deck", false)]
     [InlineData("cante_20_deck", false)]
@@ -272,7 +311,7 @@ public class GamingHubTests : IAsyncDisposable
         clientFake2.FinalGameDataResponse.ElementAt(1).PlayerData.WinsCount.ShouldBe(0);
     }
 
-    [Theory(Timeout = 20_000)]
+    [Theory(Timeout = 30_000)]
     [InlineData("short_deck", false)]
     public async Task Should_get_las_diez_del_monte(string deckName, bool shuffled)
     {
@@ -308,25 +347,29 @@ public class GamingHubTests : IAsyncDisposable
 
         await Task.WhenAll(handler1, handler2);
 
-        clientFake1.Mock.Verify(
+        await clientFake1.Mock.AsyncVerify(
             i =>
                 i.OnDiezDelMonte(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == CardsConstants.DiezDelMonte.Number)
                 ),
-            Times.Once
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
-        clientFake2.Mock.Verify(
+        await clientFake2.Mock.AsyncVerify(
             i =>
                 i.OnDiezDelMonte(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == CardsConstants.DiezDelMonte.Number)
                 ),
-            Times.Once
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
     }
 
-    [Theory(Timeout = 20_000)]
+    [Theory(Timeout = 30_000)]
     [InlineData("cante_20_deck", false, CardsConstants.VeinteEnCopasNumber)]
     [InlineData("cante_40_deck", false, CardsConstants.CuarentaEnCopasNumber)]
     public async Task Should_cantar_las_veinte(string deckName, bool shuffled, int cardNumber)
@@ -363,25 +406,29 @@ public class GamingHubTests : IAsyncDisposable
 
         await Task.WhenAll(handler1, handler2);
 
-        clientFake1.Mock.Verify(
+        await clientFake1.Mock.AsyncVerify(
             i =>
                 i.OnCante(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
-            Times.Once
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
-        clientFake2.Mock.Verify(
+        await clientFake2.Mock.AsyncVerify(
             i =>
                 i.OnCante(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
-            Times.Once
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
     }
 
-    [Theory(Timeout = 20_000)]
+    [Theory(Timeout = 30_000)]
     [InlineData("tute_kings_deck", false, CardsConstants.TuteReyesNumber)]
     [InlineData("tute_prince_deck", false, CardsConstants.TutePrincipesNumber)]
     public async Task Should_tute(string deckName, bool shuffled, int cardNumber)
@@ -420,21 +467,25 @@ public class GamingHubTests : IAsyncDisposable
 
         clientFake1.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
         clientFake2.IsFinished.Task.IsCompletedSuccessfully.ShouldBeTrue();
-        clientFake1.Mock.Verify(
+        await clientFake1.Mock.AsyncVerify(
             i =>
                 i.OnTute(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
-            Times.Once
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
-        clientFake2.Mock.Verify(
+        await clientFake2.Mock.AsyncVerify(
             i =>
                 i.OnTute(
                     It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
-            Times.Once
+            Times.Once(),
+            _verifyTimeout,
+            token: TestContext.Current.CancellationToken
         );
     }
 
