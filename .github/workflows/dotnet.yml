@@ -26,9 +26,16 @@ jobs:
     - name: Test Server
       run: dotnet test --no-build --verbosity normal
   build-client:
-     runs-on: windows-latest
+     runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v4
+     - uses: actions/cache@v3
+       with:
+          path: Tute.Unity/Library
+          key: Library-Tute.Unity-TargetPlatform
+          restore-keys: |
+            Library-Tute.Unity-
+            Library-
      - name: Setup .NET
        uses: actions/setup-dotnet@v4
        with:
@@ -46,3 +53,7 @@ jobs:
        with:
         projectPath: ./Tute.Unity
         targetPlatform: StandaloneWindows
+     - uses: actions/upload-artifact@v3
+       with:
+          name: Build
+          path: build
