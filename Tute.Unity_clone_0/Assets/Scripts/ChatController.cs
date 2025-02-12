@@ -33,13 +33,6 @@ namespace Assets.Scripts
                 Client.OnMessageEvent -= OnMessage;
         }
 
-        private void ClearMessages()
-        {
-            for (var i = 0; i < content.transform.childCount; i++)
-            {
-                Destroy(content.transform.GetChild(i).gameObject);
-            }
-        }
 
         private void SendChatMessage(string message) => Client.SendMessage(message).AsUniTask().Forget();
 
@@ -57,9 +50,8 @@ namespace Assets.Scripts
             tmp_text.text = $"{message}";
         }
 
-        public void Hide(bool clearMessages = true)
+        public void Hide()
         {
-            if (clearMessages) ClearMessages();
             gameObject.SetActive(false);
         }
 

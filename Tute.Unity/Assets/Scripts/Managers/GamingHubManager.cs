@@ -10,31 +10,31 @@ using UnityEngine;
 
 namespace Assets.Scripts.Managers
 {
-    public partial class GamingHubManager : MonoBehaviour
+    public partial class GamingHubManager : SingletonBase<GamingHubManager>
     {
-        private static GamingHubManager instance;
-        public static GamingHubManager Instance => instance;
-
         public GameRoom GameRoom { get; private set; }
         public GamingHubClient Client { get; } = new();
+        public GameDataResponse CurrentData { get; private set; }
+        public GameState State => CurrentData?.GameState ?? default;
 
         public event Action OnRoomDataUpdated;
 
 
         private void Awake()
         {
-            if (instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
             Client.OnJoinEvent += OnPlayerJoin;
             Client.OnLeaveEvent += OnPlayerLeaved;
             Client.OnUpdatedEvent += OnPlayerUpdated;
+            Client.OnGameDataEvent += SetCurrentState;
+            Client.OnFinishEvent += (_) => CurrentData = null;
 
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            CreateInstance();
+        }
+
+        private UniTask SetCurrentState(GameDataResponse gameDataResponse)
+        {
+            CurrentData = gameDataResponse;
+            return UniTask.CompletedTask;
         }
 
         private void OnPlayerJoin(Player player)
@@ -99,7 +99,7 @@ namespace Assets.Scripts.Managers
         }
     }
 
-    public partial class GamingHubManager : MonoBehaviour
+    public partial class GamingHubManager
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnRuntimeInitialize()

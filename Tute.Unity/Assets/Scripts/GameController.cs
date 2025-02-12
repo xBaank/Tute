@@ -11,7 +11,6 @@ using DG.Tweening;
 using Grpc.Core;
 using Tute.Shared.Models;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts
 {
@@ -58,12 +57,11 @@ namespace Assets.Scripts
         private readonly SemaphoreSlim _currentSemaphore = new(1);
         private Player _nextPlayer;
         private CardRowManager _cardRowManager;
-        private GameDataResponse _currentData;
         private Vector2 _cardUsedPosition;
         private Pinte _pinte;
-        private bool IsMenuLoaded;
 
         private Player SelfPlayer => GamingHubManager.Instance.GameRoom?.Player;
+        private GameDataResponse CurrentData => GamingHubManager.Instance.CurrentData;
         private GamingHubClient Client => GamingHubManager.Instance.Client;
 
         private void Start()
@@ -74,7 +72,10 @@ namespace Assets.Scripts
                 1.1f
             );
 
-            SetupMenu().Forget();
+            MenuManager.Instance.SetupMenu(
+                onLoadMenu: () => chatController.Hide(false),
+                onUnloadMenu: () => chatController.Show()
+            ).Forget();
 
             //TODO take from input
             Client.ConnectAsync("localhost", 5000).AsUniTask().Forget();
@@ -89,40 +90,7 @@ namespace Assets.Scripts
             Client.OnFinishEvent += (i) => OnFinish(i).Forget();
         }
 
-        private async UniTaskVoid SetupMenu()
-        {
-            await LoadMenu(true);
-            await HandleMenu();
-        }
-
-        private async UniTask HandleMenu()
-        {
-            while (!destroyCancellationToken.IsCancellationRequested)
-            {
-                await UniTask.WaitUntil(() => Input.GetKeyDown(KeyCode.Escape) && _currentData?.GameState == GameState.Playing);
-                await LoadMenu(false);
-                await UniTask.WaitUntil(() => Input.GetKeyDown(KeyCode.Escape) && _currentData?.GameState == GameState.Playing);
-                await UnloadMenu();
-            }
-        }
-
-        private async UniTask LoadMenu(bool clearmessages)
-        {
-            if (IsMenuLoaded) return;
-            await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive);
-            IsMenuLoaded = true;
-            chatController.Hide(clearmessages);
-        }
-
-        private async UniTask UnloadMenu()
-        {
-            if (!IsMenuLoaded) return;
-            await SceneManager.UnloadSceneAsync("Menu");
-            IsMenuLoaded = false;
-            chatController.Show();
-        }
-
-        private async UniTaskVoid OnStart() => await UnloadMenu();
+        private async UniTaskVoid OnStart() => await MenuManager.Instance.UnloadMenu();
 
         private async UniTaskVoid OnFinish(IList<GameDataResponse> playerDatas)
         {
@@ -139,7 +107,6 @@ namespace Assets.Scripts
                 if (_pinte != null)
                     Destroy(_pinte.gameObject);
                 _nextPlayer = null;
-                _currentData = null;
                 _pinte = null;
 
                 var winner = playerDatas
@@ -148,7 +115,7 @@ namespace Assets.Scripts
                 chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
 
                 await UniTask.WaitUntil(() => Input.anyKey);
-                await LoadMenu(true);
+                await MenuManager.Instance.LoadMenu();
             }
             finally
             {
@@ -243,7 +210,7 @@ namespace Assets.Scripts
 
         private async UniTask CheckCantar()
         {
-            var alreadycantes = _currentData
+            var alreadycantes = CurrentData
                 .Cantes.OrderByDescending(i => i.Number)
                 .Select(i => i.Type)
                 .ToList();
@@ -357,8 +324,7 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
-                var winned = gameDataResponse.GainedCards.Count > _currentData?.GainedCards.Count;
-                _currentData = gameDataResponse;
+                var winned = gameDataResponse.GainedCards.Count > CurrentData?.GainedCards.Count;
                 var playerData = gameDataResponse.PlayerData;
 
                 var newCards = playerData
@@ -449,9 +415,6 @@ namespace Assets.Scripts
 
         private async UniTask MakeMove(CardData card)
         {
-            if (IsMenuLoaded)
-                return;
-
             if (_nextPlayer == null || SelfPlayer == null)
                 return;
 
@@ -495,16 +458,16 @@ namespace Assets.Scripts
             GUI.Label(new Rect(15, 15, 100, 30), $"Leader: {SelfPlayer?.IsLeader}");
             GUI.Label(
                 new Rect(15, 30, 100, 30),
-                $"Points: {_currentData?.PlayerData.GainedCards.Sum(i => i.Value)}"
+                $"Points: {CurrentData?.PlayerData.GainedCards.Sum(i => i.Value)}"
             );
-            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {_currentData?.PinteType.ToString()}");
+            GUI.Label(new Rect(15, 45, 100, 30), $"Pinte: {CurrentData?.PinteType.ToString()}");
             GUI.Label(
                 new Rect(15, 60, 100, 30),
                 $"Your turn: {SelfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
             );
             GUI.Label(
             new Rect(15, 75, 100, 30),
-            $"Wins: {_currentData?.PlayerData.WinsCount}"
+            $"Wins: {CurrentData?.PlayerData.WinsCount}"
             );
         }
     }
