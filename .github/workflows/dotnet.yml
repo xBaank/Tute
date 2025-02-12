@@ -33,6 +33,10 @@ jobs:
        uses: actions/setup-dotnet@v4
        with:
         dotnet-version: 9.0.x
+     - name: Restore tools
+       run: dotnet tool restore
+     - name: Restore nuget packages
+       run: dotnet nugetforunity restore Tute.Unity
      - name: Build Tute
        uses: game-ci/unity-builder@v4
        env:
