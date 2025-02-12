@@ -494,7 +494,7 @@ public class GamingHubTests : IAsyncDisposable
         IGamingHub client,
         Player player,
         CancellationToken cancellationToken
-    )
+    ) => await Task.Run(async () =>
     {
         while (!receiver.IsFinished.Task.IsCompletedSuccessfully)
         {
@@ -563,7 +563,7 @@ public class GamingHubTests : IAsyncDisposable
 
             await Task.Yield();
         }
-    }
+    }, cancellationToken);
 
     public async ValueTask DisposeAsync()
     {
