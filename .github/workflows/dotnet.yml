@@ -40,9 +40,9 @@ jobs:
         name: Tute-server-linux64
         path: Tute.Server/bin/Release/net9.0/linux-x64/publish
     - uses: actions/upload-artifact@v4
-        with:
-          name: Tute-server-linux64
-          path: Tute.Server/bin/Release/net9.0/linux-x64/publish
+      with:
+        name: Tute-server-osx64
+        path: Tute.Server/bin/Release/net9.0/osx-x64/publish
   build-client:
      runs-on: ubuntu-latest
      steps:
