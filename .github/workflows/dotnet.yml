@@ -52,7 +52,7 @@ jobs:
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
        with:
         projectPath: ./Tute.Unity
-        targetPlatform: StandaloneWindows
+        targetPlatform: StandaloneWindows64
      - uses: actions/upload-artifact@v4
        with:
           name: Build
