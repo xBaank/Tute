@@ -73,8 +73,8 @@ namespace Assets.Scripts
             );
 
             MenuManager.Instance.SetupMenu(
-                onLoadMenu: () => chatController.Hide(false),
-                onUnloadMenu: () => chatController.Show()
+                onLoadMenu: chatController.Hide,
+                onUnloadMenu: chatController.Show
             ).Forget();
 
             //TODO take from input
@@ -109,11 +109,6 @@ namespace Assets.Scripts
                 _nextPlayer = null;
                 _pinte = null;
 
-                var winner = playerDatas
-                    .OrderByDescending(i => i.GainedCards.Sum(i => i.Value))
-                    .FirstOrDefault();
-                chatController.OnSystemMessage($"El ganador es {winner.PlayerData.Player.Name}");
-
                 await UniTask.WaitUntil(() => Input.anyKey);
                 await MenuManager.Instance.LoadMenu();
             }
@@ -132,7 +127,7 @@ namespace Assets.Scripts
                 card.CardData = item;
                 card.CardRowManager = _cardRowManager;
                 card.AudioController = audioController;
-                card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
+                card.Sprite = spriteSheet.FirstOrDefault(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
                 card.transform.position = spawPosition.position;
                 yield return card;
@@ -324,7 +319,7 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
-                var winned = gameDataResponse.GainedCards.Count > CurrentData?.GainedCards.Count;
+                var winned = gameDataResponse.NextPlayer.ConnectionId == SelfPlayer.ConnectionId && gameDataResponse.MoveIndex != 0;
                 var playerData = gameDataResponse.PlayerData;
 
                 var newCards = playerData
@@ -401,6 +396,7 @@ namespace Assets.Scripts
 
                 if (winned)
                 {
+                    //TODO move checks to server
                     await CheckTute();
                     await CheckCantar();
                 }

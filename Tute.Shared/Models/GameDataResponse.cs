@@ -30,6 +30,9 @@ namespace Tute.Shared.Models
 
         [Key(6)]
         public CardType PinteType { get; set; }
+
+        [Key(7)]
+        public int MoveIndex { get; set; }
     }
 
     public partial class GameDataResponse

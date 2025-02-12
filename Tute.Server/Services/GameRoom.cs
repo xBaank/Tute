@@ -24,6 +24,8 @@ public class GameRoom
 
     public CardData? PinteType { get; set; }
 
+    public int MoveIndex { get; set; }
+
     public required bool HaveShuffle { get; init; }
 
     public List<CardData> Shuffled() =>

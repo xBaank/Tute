@@ -78,6 +78,7 @@ public class GameController(
         gameRoom.Cards = gameCards;
         //TODO should persist next player between games
         gameRoom.NextPlayer ??= gameRoom.Players.First();
+        gameRoom.MoveIndex = 0;
 
         //Init players data
         foreach (var item in gameRoom.Players)
@@ -339,6 +340,7 @@ public class GameController(
                 winner = GetWinner(gameRoom);
                 var winnerKey = winner.Value.Key;
                 gameRoom.NextPlayer = gameRoom.PlayerDataByConnetion[winnerKey].Player;
+                gameRoom.MoveIndex++;
 
                 gameRoom.PlayerDataByConnetion[winnerKey].GainedCards =
                 [
@@ -476,6 +478,7 @@ public class GameController(
             UsedCards = gameRoom.UsedCardsByConnection,
             GameState = gameRoom.State,
             GainedCards = playerData.GainedCards,
+            MoveIndex = gameRoom.MoveIndex,
         };
 
     private void CheckPlaying()

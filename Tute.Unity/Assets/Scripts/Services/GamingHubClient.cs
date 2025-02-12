@@ -50,7 +50,8 @@ namespace Assets.Scripts.Services
             var (self, roomPlayers) = await client.JoinAsync(
                 roomName,
                 playername,
-                DecksConstants.NormalDeck.DeckName
+                DecksConstants.Cante20Deck.DeckName,
+                false
             );
             return (self, roomPlayers);
         }

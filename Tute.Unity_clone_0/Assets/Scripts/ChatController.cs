@@ -1,3 +1,4 @@
+using Assets.Scripts.Extensions;
 using Assets.Scripts.Managers;
 using Assets.Scripts.Services;
 using Cysharp.Threading.Tasks;
@@ -25,6 +26,10 @@ namespace Assets.Scripts
             Client.OnMessageEvent += OnMessage;
             inputField.onSubmit.RemoveAllListeners();
             inputField.onSubmit.AddListener(SendChatMessage);
+            Client.OnJoinEvent += i => OnSystemMessage($"El jugador {i.Name} se ha unido");
+            Client.OnLeaveEvent += i => OnSystemMessage($"El jugador {i.Name} se ha ido");
+            Client.OnStartEvent += () => OnSystemMessage("La partida ha comenzado");
+            Client.OnFinishEvent += (data) => OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
         }
 
         private void OnDestroy()

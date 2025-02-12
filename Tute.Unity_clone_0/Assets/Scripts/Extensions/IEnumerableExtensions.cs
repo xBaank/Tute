@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Tute.Shared.Models;
 
 namespace Assets.Scripts.Extensions
 {
@@ -16,5 +17,9 @@ namespace Assets.Scripts.Extensions
                 action(item);
             }
         }
+
+        public static GameDataResponse GetWinner(this IEnumerable<GameDataResponse> gameDataResponses) => gameDataResponses
+            .OrderByDescending(i => i.GainedCards.Sum(i => i.Value))
+            .FirstOrDefault();
     }
 }
