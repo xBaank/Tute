@@ -1,11 +1,10 @@
 {
   "dependencies": {
-    "com.cysharp.magiconion.client.unity": "https://github.com/Cysharp/MagicOnion.git?path=/src/MagicOnion.Client.Unity/Assets/Scripts/MagicOnion.Client.Unity#7.0.0",
     "com.cysharp.slnmerge": "https://github.com/Cysharp/SlnMerge.git?path=src",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.cysharp.yetanotherhttphandler": "https://github.com/Cysharp/YetAnotherHttpHandler.git?path=src/YetAnotherHttpHandler",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
-    "com.github.messagepack-csharp": "https://github.com/MessagePack-CSharp/MessagePack-CSharp.git?path=src/MessagePack.UnityClient/Assets/Scripts/MessagePack",
+    "com.cysharp.magiconion.client.unity": "https://github.com/Cysharp/MagicOnion.git?path=/src/MagicOnion.Client.Unity/Assets/Scripts/MagicOnion.Client.Unity",
     "com.unity.collab-proxy": "2.6.0",
     "com.unity.feature.2d": "2.0.1",
     "com.unity.ide.rider": "3.0.31",
