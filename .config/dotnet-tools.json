@@ -8,6 +8,13 @@
         "dotnet-csharpier"
       ],
       "rollForward": false
+    },
+    "nugetforunity.cli": {
+      "version": "4.2.0",
+      "commands": [
+        "nugetforunity"
+      ],
+      "rollForward": false
     }
   }
 }
