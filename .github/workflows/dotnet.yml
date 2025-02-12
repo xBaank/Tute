@@ -1,0 +1,59 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build Server
+      run: dotnet build --no-restore
+    - name: Test Server
+      run: dotnet test --no-build --verbosity normal
+  build-client:
+     runs-on: ubuntu-latest
+     steps:
+     - uses: actions/checkout@v4
+     - uses: actions/cache@v4
+       with:
+          path: Tute.Unity/Library
+          key: Library-Tute.Unity-TargetPlatform
+          restore-keys: |
+            Library-Tute.Unity-
+            Library-
+     - name: Setup .NET
+       uses: actions/setup-dotnet@v4
+       with:
+        dotnet-version: 9.0.x
+     - name: Restore tools
+       run: dotnet tool restore
+     - name: Restore nuget packages
+       run: dotnet nugetforunity restore Tute.Unity
+     - name: Build Tute
+       uses: game-ci/unity-builder@v4
+       env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+       with:
+        projectPath: ./Tute.Unity
+        targetPlatform: StandaloneWindows
+     - uses: actions/upload-artifact@v4
+       with:
+          name: Build
+          path: build
