@@ -25,6 +25,12 @@ jobs:
       run: dotnet build --no-restore
     - name: Test Server
       run: dotnet test --no-build --verbosity normal
+    - name: Publish build
+      run: dotnet publish -c Release
+    - uses: actions/upload-artifact@v4
+      with:
+         name: Tute-server
+         path: Tute.Server/bin/Release/net9.0/publish
   build-client:
      runs-on: ubuntu-latest
      steps:
@@ -55,5 +61,5 @@ jobs:
         targetPlatform: StandaloneWindows64
      - uses: actions/upload-artifact@v4
        with:
-          name: Build
+          name: Tute-client
           path: build
