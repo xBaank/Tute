@@ -89,7 +89,8 @@ namespace Assets.Scripts.Cards
                     var tmpi = i;
                     var middle = cards.Count / 2;
                     var isPar = cards.Count % 2 == 0;
-                    if (isPar && tmpi == middle && tmpi < cards.Count - 1) tmpi++;
+                    if (isPar && tmpi == middle && tmpi < cards.Count - 1)
+                        tmpi++;
                     float zRotation;
                     float yOffset;
                     if (i >= middle)
@@ -106,11 +107,20 @@ namespace Assets.Scripts.Cards
                         var rotateDiff = zRotation / this.zRotation * 0.15f;
                         yOffset = diff * yDiff - rotateDiff;
                     }
-                    Vector3 targetPosition = new(xPosition + i * cardSpacing, yPosition + yOffset, (i / 10f) * -1);
+                    Vector3 targetPosition = new(
+                        xPosition + i * cardSpacing,
+                        yPosition + yOffset,
+                        (i / 10f) * -1
+                    );
                     var targetRotation = new Vector3(0, 0, zRotation);
 
                     tasks.Add(
-                        SnapCard(cards[i], targetPosition, targetRotation, cards[i].destroyCancellationToken)
+                        SnapCard(
+                            cards[i],
+                            targetPosition,
+                            targetRotation,
+                            cards[i].destroyCancellationToken
+                        )
                     );
                 }
 
@@ -136,8 +146,14 @@ namespace Assets.Scripts.Cards
         )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var moveTask = card.transform.DOMove(targetPosition, 0.15f).SetEase(Ease.InOutExpo).AsyncWaitForCompletion();
-            var rotateTask = card.transform.DORotate(targetRotation, 0.15f).SetEase(Ease.InOutExpo).AsyncWaitForCompletion();
+            var moveTask = card
+                .transform.DOMove(targetPosition, 0.15f)
+                .SetEase(Ease.InOutExpo)
+                .AsyncWaitForCompletion();
+            var rotateTask = card
+                .transform.DORotate(targetRotation, 0.15f)
+                .SetEase(Ease.InOutExpo)
+                .AsyncWaitForCompletion();
             await Task.WhenAll(moveTask, rotateTask);
         }
     }

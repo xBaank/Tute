@@ -43,7 +43,8 @@ namespace Assets.Scripts.Services
             IsConnected = true;
         }
 
-        public ValueTask ConnectAsync(string host, int port) => ConnectAsync(GrpcChannelx.ForTarget(new GrpcChannelTarget(host, port, true)));
+        public ValueTask ConnectAsync(string host, int port) =>
+            ConnectAsync(GrpcChannelx.ForTarget(new GrpcChannelTarget(host, port, true)));
 
         public async ValueTask<(Player, Player[])> JoinAsync(string roomName, string playername)
         {
@@ -71,10 +72,6 @@ namespace Assets.Scripts.Services
         public ValueTask MakeMove(CardData card) => client.MakeMove(card);
 
         public ValueTask ChangePinteAsync(CardData card) => client.ChangePinte(card);
-
-        public ValueTask Cante(CardData king, CardData prince) => client.Cante(king, prince);
-
-        public ValueTask Tute(IList<CardData> cards) => client.Tute(cards);
 
         public ValueTask SendMessage(string message) => client.SendMessage(message);
 
@@ -111,6 +108,5 @@ namespace Assets.Scripts.Services
 
         public void OnMessage(string message, Player player) =>
             OnMessageEvent?.Invoke(message, player);
-
     }
 }

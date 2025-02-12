@@ -2,7 +2,8 @@
 
 namespace Assets.Scripts.Managers
 {
-    public class SingletonBase<T> : MonoBehaviour where T : MonoBehaviour
+    public class SingletonBase<T> : MonoBehaviour
+        where T : MonoBehaviour
     {
         public static T Instance { get; private set; }
 

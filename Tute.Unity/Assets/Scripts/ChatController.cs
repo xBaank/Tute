@@ -29,7 +29,8 @@ namespace Assets.Scripts
             Client.OnJoinEvent += i => OnSystemMessage($"El jugador {i.Name} se ha unido");
             Client.OnLeaveEvent += i => OnSystemMessage($"El jugador {i.Name} se ha ido");
             Client.OnStartEvent += () => OnSystemMessage("La partida ha comenzado");
-            Client.OnFinishEvent += (data) => OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
+            Client.OnFinishEvent += (data) =>
+                OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
         }
 
         private void OnDestroy()
@@ -38,8 +39,8 @@ namespace Assets.Scripts
                 Client.OnMessageEvent -= OnMessage;
         }
 
-
-        private void SendChatMessage(string message) => Client.SendMessage(message).AsUniTask().Forget();
+        private void SendChatMessage(string message) =>
+            Client.SendMessage(message).AsUniTask().Forget();
 
         public void OnMessage(string message, Player player)
         {

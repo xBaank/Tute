@@ -145,12 +145,6 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     public ValueTask StartAsync() =>
         gameController?.Start() ?? ThrowNoGameRoomException<ValueTask>();
 
-    public ValueTask Tute(IList<CardData> cards) =>
-        gameController?.Tute(cards) ?? ThrowNoGameRoomException<ValueTask>();
-
-    public ValueTask Cante(CardData king, CardData prince) =>
-        gameController?.Cante(king, prince) ?? ThrowNoGameRoomException<ValueTask>();
-
     public ValueTask ChangePinte(CardData card) =>
         gameController?.ChangePinte(card) ?? ThrowNoGameRoomException<ValueTask>();
 

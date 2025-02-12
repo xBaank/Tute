@@ -35,10 +35,10 @@
         "number": 12
     },
     {
-        "name": "Three of Cups",
-        "value": 11,
-        "spritename": "three_cups",
-        "type": "Cups",
+        "name": "Three of Coins",
+        "value": 10,
+        "spritename": "three_coins",
+        "type": "Coins",
         "number": 3
     },
     {
@@ -56,10 +56,10 @@
         "number": 2
     },
     {
-        "name": "Three of Coins",
-        "value": 10,
-        "spritename": "three_coins",
-        "type": "Coins",
+        "name": "Three of Cups",
+        "value": 11,
+        "spritename": "three_cups",
+        "type": "Cups",
         "number": 3
     },
     {

@@ -72,10 +72,12 @@ namespace Assets.Scripts
                 1.1f
             );
 
-            MenuManager.Instance.SetupMenu(
-                onLoadMenu: chatController.Hide,
-                onUnloadMenu: chatController.Show
-            ).Forget();
+            MenuManager
+                .Instance.SetupMenu(
+                    onLoadMenu: chatController.Hide,
+                    onUnloadMenu: chatController.Show
+                )
+                .Forget();
 
             //TODO take from input
             Client.ConnectAsync("localhost", 5000).AsUniTask().Forget();
@@ -176,21 +178,6 @@ namespace Assets.Scripts
             }
         }
 
-        private async UniTask CheckTute()
-        {
-            var cards = _currentCardsGo.Select(i => i.CardData).ToList();
-            var tuteKingCards = cards.Where(i => i.Number == 12).ToList();
-            var tutePrinceCards = cards.Where(i => i.Number == 11).ToList();
-
-            if (tuteKingCards.Count != 4 && tutePrinceCards.Count != 4)
-            {
-                return;
-            }
-
-            var toUse = tuteKingCards.Count == 4 ? tuteKingCards : tutePrinceCards;
-            await Client.Tute(toUse);
-        }
-
         private UniTask OnTute(Player player, CardData tute)
         {
             chatController.OnSystemMessage($"Player {player.Name} tute {tute.Name}");
@@ -201,36 +188,6 @@ namespace Assets.Scripts
         {
             chatController.OnSystemMessage($"Player {player.Name} se lleva {tute.Name}");
             return UniTask.CompletedTask;
-        }
-
-        private async UniTask CheckCantar()
-        {
-            var alreadycantes = CurrentData
-                .Cantes.OrderByDescending(i => i.Number)
-                .Select(i => i.Type)
-                .ToList();
-
-            var cantes = _currentCardsGo
-                .Select(i => i.CardData)
-                .Where(i => i.Number == 11 || i.Number == 12)
-                .GroupBy(i => i.Type)
-                .Where(i => !alreadycantes.Contains(i.Key))
-                .FirstOrDefault(i => i.Count() == 2);
-
-            if (cantes == null || !cantes.Any())
-            {
-                return;
-            }
-
-            var king = cantes.FirstOrDefault(i => i.Number == 12);
-            var prince = cantes.FirstOrDefault(i => i.Number == 11);
-
-            if (king == null || prince == null)
-            {
-                return;
-            }
-
-            await Client.Cante(king, prince);
         }
 
         private UniTask OnCante(Player player, CardData cante)
@@ -319,7 +276,7 @@ namespace Assets.Scripts
             await _currentSemaphore.WaitAsync();
             try
             {
-                var winned = gameDataResponse.NextPlayer.ConnectionId == SelfPlayer.ConnectionId && gameDataResponse.MoveIndex != 0;
+                var winned = gameDataResponse.WinnerId == SelfPlayer.ConnectionId;
                 var playerData = gameDataResponse.PlayerData;
 
                 var newCards = playerData
@@ -394,13 +351,6 @@ namespace Assets.Scripts
                     await _cardRowManager.UpdateCardPositions();
                 }
 
-                if (winned)
-                {
-                    //TODO move checks to server
-                    await CheckTute();
-                    await CheckCantar();
-                }
-
                 _nextPlayer = gameDataResponse.NextPlayer;
             }
             finally
@@ -461,10 +411,7 @@ namespace Assets.Scripts
                 new Rect(15, 60, 100, 30),
                 $"Your turn: {SelfPlayer?.ConnectionId == _nextPlayer?.ConnectionId}"
             );
-            GUI.Label(
-            new Rect(15, 75, 100, 30),
-            $"Wins: {CurrentData?.PlayerData.WinsCount}"
-            );
+            GUI.Label(new Rect(15, 75, 100, 30), $"Wins: {CurrentData?.PlayerData.WinsCount}");
         }
     }
 }

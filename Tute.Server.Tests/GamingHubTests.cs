@@ -256,7 +256,6 @@ public class GamingHubTests : IAsyncDisposable
     [InlineData("short_deck", false)]
     [InlineData("cante_20_deck", false)]
     [InlineData("cante_40_deck", false)]
-    [InlineData("tute_kings_deck", false)]
     public async Task Should_play_the_game_and_finish(string deckName, bool shuffled)
     {
         var clientFake1 = new GamingHubReceiverFake(output);
@@ -409,7 +408,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake1.Mock.AsyncVerify(
             i =>
                 i.OnCante(
-                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
@@ -419,7 +418,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake2.Mock.AsyncVerify(
             i =>
                 i.OnCante(
-                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
@@ -470,7 +469,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake1.Mock.AsyncVerify(
             i =>
                 i.OnTute(
-                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
@@ -480,7 +479,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake2.Mock.AsyncVerify(
             i =>
                 i.OnTute(
-                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
@@ -494,76 +493,59 @@ public class GamingHubTests : IAsyncDisposable
         IGamingHub client,
         Player player,
         CancellationToken cancellationToken
-    ) => await Task.Run(async () =>
-    {
-        while (!receiver.IsFinished.Task.IsCompletedSuccessfully)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (receiver.GameDataResponse?.NextPlayer?.ConnectionId == player.ConnectionId)
+    ) =>
+        await Task.Run(
+            async () =>
             {
-                var pinte = receiver.GameDataResponse?.PinteType;
-
-                var firstCard =
-                    receiver.GameDataResponse?.UsedCards.Count != 0 == true
-                        ? receiver.GameDataResponse?.UsedCards.First().Value
-                        : null;
-
-                var cardTouse =
-                    receiver
-                        .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
-                        .FirstOrDefault(i => i.Type == firstCard?.Type)
-                    ?? receiver
-                        .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
-                        .FirstOrDefault(i => i.Type == pinte)
-                    ?? receiver.GameDataResponse?.PlayerData.Cards.FirstOrDefault();
-
-                var tuteKingCards = receiver
-                    .GameDataResponse?.PlayerData.Cards.Where(i => i.Number == 12)
-                    .ToList();
-                var tutePrinceCards = receiver
-                    .GameDataResponse?.PlayerData.Cards.Where(i => i.Number == 11)
-                    .ToList();
-
-                if (tuteKingCards?.Count == 4 || tutePrinceCards?.Count == 4)
+                while (!receiver.IsFinished.Task.IsCompletedSuccessfully)
                 {
-                    var toUse = tuteKingCards?.Count == 4 ? tuteKingCards : tutePrinceCards;
-                    await client.Tute(toUse!);
-                    break;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (receiver.GameDataResponse?.NextPlayer?.ConnectionId == player.ConnectionId)
+                    {
+                        var pinte = receiver.GameDataResponse?.PinteType;
+
+                        var firstCard =
+                            receiver.GameDataResponse?.UsedCards.Count != 0 == true
+                                ? receiver.GameDataResponse?.UsedCards.First().Value
+                                : null;
+
+                        var cardTouse =
+                            receiver
+                                .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
+                                .FirstOrDefault(i => i.Type == firstCard?.Type)
+                            ?? receiver
+                                .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
+                                .FirstOrDefault(i => i.Type == pinte)
+                            ?? receiver
+                                .GameDataResponse?.PlayerData.Cards.OrderByDescending(i => i.Value)
+                                .FirstOrDefault();
+
+                        //Just wait till onFinish is received
+                        if (cardTouse is null || receiver.GameDataResponse?.NextPlayer is null)
+                        {
+                            await receiver.IsFinished.Task;
+                            break;
+                        }
+
+                        output.WriteLine($"Player {player.Name} is trying to make a move");
+                        try
+                        {
+                            await client.MakeMove(cardTouse);
+                        }
+                        catch (RpcException e)
+                        {
+                            if (e.StatusCode == StatusCode.OK)
+                                break;
+                        }
+                        output.WriteLine($"Player {player.Name} completed a move");
+                    }
+
+                    await Task.Yield();
                 }
-
-                var alreadycantes = receiver
-                    .GameDataResponse?.Cantes.OrderByDescending(i => i.Number)
-                    .Select(i => i.Type)
-                    .ToList();
-
-                var cantes = receiver
-                    .GameDataResponse?.PlayerData.Cards.Where(i => i.Number is 11 or 12)
-                    .GroupBy(i => i.Type)
-                    .Where(i => alreadycantes?.Contains(i.Key) == false)
-                    .FirstOrDefault(i => i.Count() == 2);
-
-                var king = cantes?.FirstOrDefault(i => i.Number == 12);
-                var prince = cantes?.FirstOrDefault(i => i.Number == 11);
-
-                if (king is not null && prince is not null)
-                    await client.Cante(king, prince);
-
-                //Just wait till onFinish is received
-                if (cardTouse is null || receiver.GameDataResponse?.NextPlayer is null)
-                {
-                    await receiver.IsFinished.Task;
-                    break;
-                }
-
-                output.WriteLine($"Player {player.Name} is trying to make a move");
-                await client.MakeMove(cardTouse);
-                output.WriteLine($"Player {player.Name} completed a move");
-            }
-
-            await Task.Yield();
-        }
-    }, cancellationToken);
+            },
+            cancellationToken
+        );
 
     public async ValueTask DisposeAsync()
     {

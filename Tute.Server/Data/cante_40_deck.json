@@ -1,8 +1,8 @@
 [
     {
-        "name": "Prince of Cups",
+        "name": "Knight of Cups",
         "value": 3,
-        "spritename": "prince_cups",
+        "spritename": "knight_cups",
         "type": "Cups",
         "number": 11
     },
@@ -28,11 +28,11 @@
         "number": 4
     },
     {
-        "name": "Six of Cups",
-        "value": 0,
-        "spritename": "six_cups",
+        "name": "Ace of Cups",
+        "value": 11,
+        "spritename": "ace_cups",
         "type": "Cups",
-        "number": 6
+        "number": 1
     },
     {
         "name": "Three of Cups",

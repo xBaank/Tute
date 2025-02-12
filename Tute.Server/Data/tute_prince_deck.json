@@ -35,11 +35,11 @@
         "number": 11
     },
     {
-        "name": "Three of Cups",
-        "value": 11,
-        "spritename": "three_cups",
+        "name": "Two of Cups",
+        "value": 0,
+        "spritename": "two_cups",
         "type": "Cups",
-        "number": 3
+        "number": 2
     },
     {
         "name": "Prince of Clubs",
@@ -56,10 +56,10 @@
         "number": 2
     },
     {
-        "name": "Three of Coins",
+        "name": "Three of cups",
         "value": 10,
-        "spritename": "three_coins",
-        "type": "Coins",
+        "spritename": "three_cups",
+        "type": "Cups",
         "number": 3
     },
     {
@@ -91,18 +91,18 @@
         "number": 7
     },
     {
-        "name": "Ace of Cups",
+        "name": "Five of swrods",
         "value": 0,
         "spritename": "five_swords",
         "type": "Swords",
         "number": 5
     },
     {
-        "name": "Ace of Cups",
-        "value": 11,
-        "spritename": "ace_cups",
+        "name": "Three of Cups",
+        "value": 10,
+        "spritename": "three_cups",
         "type": "Cups",
-        "number": 1
+        "number": 3
     },
     {
         "name": "Six of Swords",

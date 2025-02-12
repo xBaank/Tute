@@ -19,7 +19,6 @@ namespace Assets.Scripts.Managers
 
         public event Action OnRoomDataUpdated;
 
-
         private void Awake()
         {
             Client.OnJoinEvent += OnPlayerJoin;
@@ -39,10 +38,7 @@ namespace Assets.Scripts.Managers
 
         private void OnPlayerJoin(Player player)
         {
-
-            var isAlready = GameRoom.Players.Any(i =>
-               i.ConnectionId == player.ConnectionId
-           );
+            var isAlready = GameRoom.Players.Any(i => i.ConnectionId == player.ConnectionId);
             if (isAlready)
                 return;
             GameRoom.Players.Add(player);

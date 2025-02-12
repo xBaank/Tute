@@ -32,7 +32,7 @@ namespace Tute.Shared.Models
         public CardType PinteType { get; set; }
 
         [Key(7)]
-        public int MoveIndex { get; set; }
+        public Guid? WinnerId { get; set; }
     }
 
     public partial class GameDataResponse

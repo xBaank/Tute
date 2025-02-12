@@ -79,8 +79,10 @@ namespace Assets.Scripts
                 tmp_name.text = string.Empty;
                 return;
             }
-            tmp_room.text = $"<b><color=grey>Room</color></b>: {GamingHubManager.Instance.GameRoom.RoomName}";
-            tmp_name.text = $"<b><color=grey>Name</color></b>: {GamingHubManager.Instance.GameRoom.Player.Name}";
+            tmp_room.text =
+                $"<b><color=grey>Room</color></b>: {GamingHubManager.Instance.GameRoom.RoomName}";
+            tmp_name.text =
+                $"<b><color=grey>Name</color></b>: {GamingHubManager.Instance.GameRoom.Player.Name}";
         }
 
         private void RenderChangedData()
@@ -97,21 +99,24 @@ namespace Assets.Scripts
             RenderPlayerList();
         }
 
-        private void StartGame() => GamingHubManager.Instance.Client.StartAsync().AsUniTask().Forget();
+        private void StartGame() =>
+            GamingHubManager.Instance.Client.StartAsync().AsUniTask().Forget();
 
         private void RenderPlayerList()
         {
-            if (textContainer.IsDestroyed()) return;
-            if (!textContainer.activeSelf) return;
+            if (textContainer.IsDestroyed())
+                return;
+            if (!textContainer.activeSelf)
+                return;
 
             //Remove all if player is not in a room
             if (GamingHubManager.Instance.GameRoom is null)
             {
-
                 for (var i = 0; i < textContainer.transform.childCount; i++)
                 {
                     var go = textContainer.transform.GetChild(i).gameObject;
-                    if (!go.IsDestroyed()) Destroy(textContainer.transform.GetChild(i).gameObject);
+                    if (!go.IsDestroyed())
+                        Destroy(textContainer.transform.GetChild(i).gameObject);
                     textsByPlayer.Clear();
                 }
                 return;
@@ -122,7 +127,8 @@ namespace Assets.Scripts
             {
                 if (!GamingHubManager.Instance.GameRoom.Players.Contains(item.Key))
                 {
-                    if (!item.Value.IsDestroyed()) Destroy(item.Value);
+                    if (!item.Value.IsDestroyed())
+                        Destroy(item.Value);
                     textsByPlayer.Remove(item.Key);
                 }
             }
@@ -132,7 +138,9 @@ namespace Assets.Scripts
             {
                 var leaderTag = item.IsLeader ? "<b><color=orange>(Leader)</color></b>" : "";
                 var text = $"- {leaderTag} {item.Name}";
-                var tmpText = !textsByPlayer.ContainsKey(item) ? Instantiate(playerNamePrefab, textContainer.transform) : textsByPlayer[item];
+                var tmpText = !textsByPlayer.ContainsKey(item)
+                    ? Instantiate(playerNamePrefab, textContainer.transform)
+                    : textsByPlayer[item];
                 tmpText.richText = true;
                 tmpText.text = text;
                 tmpText.horizontalAlignment = HorizontalAlignmentOptions.Center;
