@@ -88,7 +88,7 @@ namespace Assets.Scripts.Managers
 
         public async UniTask LeaveRoom()
         {
-            if (GameRoom.Player is null)
+            if (GameRoom?.Player is null)
                 return;
             await Client.LeaveAsync();
             GameRoom = null;
