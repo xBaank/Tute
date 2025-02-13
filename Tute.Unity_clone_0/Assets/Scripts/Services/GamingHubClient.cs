@@ -29,6 +29,7 @@ namespace Assets.Scripts.Services
         public event Action OnStartEvent;
         public event Action<List<GameDataResponse>> OnFinishEvent;
         public event Action<string, Player> OnMessageEvent;
+        public event Action OnDisconnected;
 
         public bool IsConnected { get; private set; }
         public string Target => channel?.Target ?? string.Empty;
@@ -41,6 +42,7 @@ namespace Assets.Scripts.Services
                 this
             );
             IsConnected = true;
+            WaitForDisconnectAsync().AsUniTask().Forget();
         }
 
         public ValueTask ConnectAsync(string host, int port) =>
@@ -60,13 +62,18 @@ namespace Assets.Scripts.Services
         public ValueTask LeaveAsync() => client.LeaveAsync();
 
         // dispose client-connection before channel.ShutDownAsync is important!
-        public Task DisposeAsync() => client.DisposeAsync();
+        public Task DisposeAsync()
+        {
+            return client.DisposeAsync();
+        }
 
         // You can watch connection state, use this for retry etc.
-        public Task WaitForDisconnectAsync()
+        public async Task WaitForDisconnectAsync()
         {
+            await client.WaitForDisconnect();
             IsConnected = false;
-            return client.WaitForDisconnect();
+            channel = null;
+            OnDisconnected?.Invoke();
         }
 
         public ValueTask MakeMove(CardData card) => client.MakeMove(card);

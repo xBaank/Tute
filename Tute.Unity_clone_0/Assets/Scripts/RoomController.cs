@@ -40,15 +40,22 @@ namespace Assets.Scripts
         [SerializeField]
         private Button exitButton;
 
+        [SerializeField]
+        private TMP_Text tmp_status;
+
+        [SerializeField]
+        private TMP_Text tmp_serverInfo;
+
         private readonly SemaphoreSlim semaphoreSlim = new(1);
         private Dictionary<Player, TMP_Text> textsByPlayer = new();
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
-            RenderChangedData();
+            RenderChangedData().Forget();
 
-            GamingHubManager.Instance.OnRoomDataUpdated += RenderChangedData;
+            GamingHubManager.Instance.OnRoomDataUpdated += () => RenderChangedData().Forget();
+            GamingHubManager.Instance.Client.OnDisconnected += () => RenderChangedData().Forget();
 
             joinButton.onClick.RemoveAllListeners();
             startButton.onClick.RemoveAllListeners();
@@ -85,8 +92,28 @@ namespace Assets.Scripts
                 $"<b><color=grey>Name</color></b>: {GamingHubManager.Instance.GameRoom.Player.Name}";
         }
 
-        private void RenderChangedData()
+        private void RenderServerStatus()
         {
+            var status = GamingHubManager.Instance.Client.IsConnected ? "<color=green>Online</color>" : "<color=red>Offline</color>";
+            tmp_status.text = $"<b>Server</b> {status}";
+        }
+
+        private void RenderServerInfo()
+        {
+            if (!GamingHubManager.Instance.Client.IsConnected)
+            {
+                tmp_serverInfo.text = string.Empty;
+                return;
+            }
+            var info = $"<color=green>{GamingHubManager.Instance.Client.Target}</color>";
+            tmp_serverInfo.text = $"<b>{info}</b>";
+        }
+
+        private async UniTask RenderChangedData()
+        {
+            await UniTask.Yield(PlayerLoopTiming.Update);
+            RenderServerStatus();
+            RenderServerInfo();
             RenderRoomName();
             RenderPlayerList();
         }
