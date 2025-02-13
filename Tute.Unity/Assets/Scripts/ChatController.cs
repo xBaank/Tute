@@ -35,8 +35,12 @@ namespace Assets.Scripts
 
         private void OnDestroy()
         {
-            if (Client is not null)
-                Client.OnMessageEvent -= OnMessage;
+            Client.OnMessageEvent -= OnMessage;
+            Client.OnJoinEvent -= i => OnSystemMessage($"El jugador {i.Name} se ha unido");
+            Client.OnLeaveEvent -= i => OnSystemMessage($"El jugador {i.Name} se ha ido");
+            Client.OnStartEvent -= () => OnSystemMessage("La partida ha comenzado");
+            Client.OnFinishEvent -= (data) =>
+                OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
         }
 
         private void SendChatMessage(string message) =>

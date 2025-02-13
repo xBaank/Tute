@@ -79,9 +79,6 @@ namespace Assets.Scripts
                 )
                 .Forget();
 
-            //TODO take from input
-            Client.ConnectAsync("localhost", 5000).AsUniTask().Forget();
-
             Client.OnGameDataEvent += OnGameData;
             Client.OnUsedCardEvent += OnUsedCard;
             Client.OnChangedPinteEvent += OnChangedPinte;
@@ -90,6 +87,19 @@ namespace Assets.Scripts
             Client.OnDiezDelMonteEvent += OnDiezDelMonte;
             Client.OnStartEvent += () => OnStart().Forget();
             Client.OnFinishEvent += (i) => OnFinish(i).Forget();
+        }
+
+        private void OnDestroy()
+        {
+            Client.OnGameDataEvent -= OnGameData;
+            Client.OnUsedCardEvent -= OnUsedCard;
+            Client.OnChangedPinteEvent -= OnChangedPinte;
+            Client.OnCanteEvent -= OnCante;
+            Client.OnTuteEvent -= OnTute;
+            Client.OnDiezDelMonteEvent -= OnDiezDelMonte;
+            //TODO check lambdas
+            Client.OnStartEvent -= () => OnStart().Forget();
+            Client.OnFinishEvent -= (i) => OnFinish(i).Forget();
         }
 
         private async UniTaskVoid OnStart() => await MenuManager.Instance.UnloadMenu();

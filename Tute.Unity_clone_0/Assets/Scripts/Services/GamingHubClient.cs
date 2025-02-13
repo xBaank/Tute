@@ -36,6 +36,8 @@ namespace Assets.Scripts.Services
 
         public async ValueTask ConnectAsync(ChannelBase grpcChannel)
         {
+            if (IsConnected) throw new InvalidOperationException("Already connected");
+
             channel = grpcChannel;
             client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
                 grpcChannel,
@@ -64,7 +66,7 @@ namespace Assets.Scripts.Services
         // dispose client-connection before channel.ShutDownAsync is important!
         public Task DisposeAsync()
         {
-            return client.DisposeAsync();
+            return client?.DisposeAsync();
         }
 
         // You can watch connection state, use this for retry etc.
