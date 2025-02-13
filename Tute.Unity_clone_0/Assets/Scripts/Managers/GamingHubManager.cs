@@ -26,6 +26,7 @@ namespace Assets.Scripts.Managers
             Client.OnUpdatedEvent += OnPlayerUpdated;
             Client.OnGameDataEvent += SetCurrentState;
             Client.OnFinishEvent += (_) => CurrentData = null;
+            Client.OnDisconnected += () => GameRoom = null;
 
             CreateInstance();
         }
