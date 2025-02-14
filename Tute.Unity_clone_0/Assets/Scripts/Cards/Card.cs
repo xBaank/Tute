@@ -21,11 +21,13 @@ namespace Assets.Scripts.Cards
         internal AudioController AudioController { get; set; }
         private CancellationTokenSource _cancellationTokenSource = new();
 
-        public event Func<CardData, UniTask> Clicked;
+        public event Func<CardData, UniTask> OnClick;
+        private CancellationToken _cancellationToken;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
+            _cancellationToken = destroyCancellationToken;
             animator = GetComponent<Animator>();
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             spriteRenderer.sprite = Sprite;
@@ -49,7 +51,7 @@ namespace Assets.Scripts.Cards
         {
             startDif = Vector2.zero;
             AudioController.PlayFlick();
-            await CardRowManager.DragCard(this, destroyCancellationToken);
+            await CardRowManager.DragCard(this, _cancellationToken);
         }
 
         private async UniTaskVoid FollowCardWithMouse(CancellationToken cancellationToken = default)
@@ -81,7 +83,7 @@ namespace Assets.Scripts.Cards
             _cancellationTokenSource = new();
             if (Vector2.Distance(startPosition, transform.position) < 0.1f)
             {
-                Clicked?.Invoke(CardData).Forget();
+                OnClick?.Invoke(CardData).Forget();
                 return;
             }
 
@@ -89,6 +91,11 @@ namespace Assets.Scripts.Cards
                 return;
 
             DragCards().Forget();
+        }
+
+        private void OnDestroy()
+        {
+            OnClick = null;
         }
     }
 }

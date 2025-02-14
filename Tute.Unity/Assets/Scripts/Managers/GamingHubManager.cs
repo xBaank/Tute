@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Assets.Scripts.Services;
 using Cysharp.Net.Http;
 using Cysharp.Threading.Tasks;
@@ -19,20 +21,39 @@ namespace Assets.Scripts.Managers
 
         public event Action OnRoomDataUpdated;
 
+        private CancellationToken _cancellationToken;
+
         private void Awake()
         {
+            _cancellationToken = destroyCancellationToken;
+
             Client.OnJoinEvent += OnPlayerJoin;
             Client.OnLeaveEvent += OnPlayerLeaved;
             Client.OnUpdatedEvent += OnPlayerUpdated;
             Client.OnGameDataEvent += SetCurrentState;
-            Client.OnFinishEvent += (_) => CurrentData = null;
-            Client.OnDisconnected += () =>
-            {
-                GameRoom = null;
-                MenuManager.Instance.LoadServerMenu().Forget();
-            };
+            Client.OnFinishEvent += ClearCurrentData;
+            Client.OnDisconnected += OnDisconneted;
 
             CreateInstance();
+        }
+
+
+        private void OnDestroy()
+        {
+            Client.OnJoinEvent -= OnPlayerJoin;
+            Client.OnLeaveEvent -= OnPlayerLeaved;
+            Client.OnUpdatedEvent -= OnPlayerUpdated;
+            Client.OnGameDataEvent -= SetCurrentState;
+            Client.OnFinishEvent -= ClearCurrentData;
+            Client.OnDisconnected -= OnDisconneted;
+        }
+
+        private void ClearCurrentData(List<GameDataResponse> _) => CurrentData = null;
+        private async void OnDisconneted()
+        {
+            await UniTask.Yield();
+            GameRoom = null;
+            MenuManager.Instance.LoadServerMenu(_cancellationToken).Forget();
         }
 
         private UniTask SetCurrentState(GameDataResponse gameDataResponse)

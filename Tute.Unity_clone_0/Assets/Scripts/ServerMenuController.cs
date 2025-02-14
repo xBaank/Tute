@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Assets.Scripts.Managers;
 using Cysharp.Threading.Tasks;
 using MagicOnion;
@@ -33,9 +34,13 @@ namespace Assets.Scripts
         [SerializeField]
         private Button tmp_exitButton;
 
+        private CancellationToken _cancellationToken;
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
+            _cancellationToken = destroyCancellationToken;
+
             tmp_serverAdress.text = "http://localhost:5000";
             connectButton.onClick.RemoveAllListeners();
             disconnectButton.onClick.RemoveAllListeners();
@@ -44,34 +49,40 @@ namespace Assets.Scripts
 
             RenderData().Forget();
 
-            GamingHubManager.Instance.Client.OnDisconnected += () => RenderData().Forget();
+            GamingHubManager.Instance.Client.OnDisconnected += RenderDataForget;
+            connectButton.onClick.AddListener(ConnectForget);
+            disconnectButton.onClick.AddListener(DisposeForget);
+            selectButton.onClick.AddListener(LoadGameForget);
+            tmp_exitButton.onClick.AddListener(Exit);
+        }
 
-            connectButton.onClick.AddListener(() =>
-            {
-                Connect().Forget();
-            });
+        private void OnDestroy()
+        {
+            GamingHubManager.Instance.Client.OnDisconnected -= RenderDataForget;
+            connectButton.onClick.RemoveListener(ConnectForget);
+            disconnectButton.onClick.RemoveListener(DisposeForget);
+            selectButton.onClick.RemoveListener(LoadGameForget);
+            tmp_exitButton.onClick.RemoveListener(Exit);
+        }
 
-            disconnectButton.onClick.AddListener(() =>
-            {
-                GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
-            });
 
-            selectButton.onClick.AddListener(() =>
+        private void RenderDataForget() => RenderData().Forget();
+        private void ConnectForget() => Connect().Forget();
+        private void DisposeForget() => GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
+        private void LoadGameForget()
+        {
+            if (GamingHubManager.Instance.Client?.IsConnected == true)
             {
-                if (GamingHubManager.Instance.Client?.IsConnected == true)
-                {
-                    MenuManager.Instance.LoadGame().Forget();
-                }
-            });
-
-            tmp_exitButton.onClick.AddListener(() =>
-            {
+                MenuManager.Instance.LoadGame(_cancellationToken).Forget();
+            }
+        }
+        private void Exit()
+        {
 #if UNITY_EDITOR
-                EditorApplication.isPlaying = false;
+            EditorApplication.isPlaying = false;
 #else
                 Application.Quit();
 #endif
-            });
         }
 
         private async UniTask Connect()

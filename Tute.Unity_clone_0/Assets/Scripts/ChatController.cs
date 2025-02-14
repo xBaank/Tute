@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Managers;
 using Assets.Scripts.Services;
@@ -21,27 +23,35 @@ namespace Assets.Scripts
 
         private GamingHubClient Client => GamingHubManager.Instance.Client;
 
+        private CancellationToken _cancellationToken;
+
+
         private void Start()
         {
-            Client.OnMessageEvent += OnMessage;
-            inputField.onSubmit.RemoveAllListeners();
+            _cancellationToken = destroyCancellationToken;
+
             inputField.onSubmit.AddListener(SendChatMessage);
-            Client.OnJoinEvent += i => OnSystemMessage($"El jugador {i.Name} se ha unido");
-            Client.OnLeaveEvent += i => OnSystemMessage($"El jugador {i.Name} se ha ido");
-            Client.OnStartEvent += () => OnSystemMessage("La partida ha comenzado");
-            Client.OnFinishEvent += (data) =>
-                OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
+            Client.OnMessageEvent += OnMessage;
+            Client.OnJoinEvent += SendJoinMessage;
+            Client.OnLeaveEvent += SendLeaveMessage;
+            Client.OnStartEvent += SendStartMessage;
+            Client.OnFinishEvent += SendFinishMessage;
         }
 
         private void OnDestroy()
         {
+            inputField.onSubmit.RemoveListener(SendChatMessage);
             Client.OnMessageEvent -= OnMessage;
-            Client.OnJoinEvent -= i => OnSystemMessage($"El jugador {i.Name} se ha unido");
-            Client.OnLeaveEvent -= i => OnSystemMessage($"El jugador {i.Name} se ha ido");
-            Client.OnStartEvent -= () => OnSystemMessage("La partida ha comenzado");
-            Client.OnFinishEvent -= (data) =>
-                OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
+            Client.OnJoinEvent -= SendJoinMessage;
+            Client.OnLeaveEvent -= SendLeaveMessage;
+            Client.OnStartEvent -= SendStartMessage;
+            Client.OnFinishEvent -= SendFinishMessage;
         }
+
+        private void SendJoinMessage(Player player) => OnSystemMessage($"El jugador {player.Name} se ha unido");
+        private void SendLeaveMessage(Player player) => OnSystemMessage($"El jugador {player.Name} se ha ido");
+        private void SendStartMessage() => OnSystemMessage("La partida ha comenzado");
+        private void SendFinishMessage(List<GameDataResponse> data) => OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
 
         private void SendChatMessage(string message) =>
             Client.SendMessage(message).AsUniTask().Forget();
@@ -62,11 +72,13 @@ namespace Assets.Scripts
 
         public void Hide()
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             gameObject.SetActive(false);
         }
 
         public void Show()
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             gameObject.SetActive(true);
         }
     }

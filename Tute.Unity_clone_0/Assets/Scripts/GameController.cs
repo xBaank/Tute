@@ -63,9 +63,12 @@ namespace Assets.Scripts
         private Player SelfPlayer => GamingHubManager.Instance.GameRoom?.Player;
         private GameDataResponse CurrentData => GamingHubManager.Instance.CurrentData;
         private GamingHubClient Client => GamingHubManager.Instance.Client;
+        private CancellationToken _cancellationToken;
 
         private void Start()
         {
+            _cancellationToken = destroyCancellationToken;
+
             _cardRowManager = new CardRowManager(
                 stackPosition.position.x,
                 stackPosition.position.y,
@@ -75,7 +78,8 @@ namespace Assets.Scripts
             MenuManager
                 .Instance.SetupMenu(
                     onLoadMenu: chatController.Hide,
-                    onUnloadMenu: chatController.Show
+                    onUnloadMenu: chatController.Show,
+                    _cancellationToken
                 )
                 .Forget();
 
@@ -85,8 +89,8 @@ namespace Assets.Scripts
             Client.OnCanteEvent += OnCante;
             Client.OnTuteEvent += OnTute;
             Client.OnDiezDelMonteEvent += OnDiezDelMonte;
-            Client.OnStartEvent += () => OnStart().Forget();
-            Client.OnFinishEvent += (i) => OnFinish(i).Forget();
+            Client.OnStartEvent += StartForget;
+            Client.OnFinishEvent += OnFinishForget;
         }
 
         private void OnDestroy()
@@ -97,12 +101,15 @@ namespace Assets.Scripts
             Client.OnCanteEvent -= OnCante;
             Client.OnTuteEvent -= OnTute;
             Client.OnDiezDelMonteEvent -= OnDiezDelMonte;
-            //TODO check lambdas
-            Client.OnStartEvent -= () => OnStart().Forget();
-            Client.OnFinishEvent -= (i) => OnFinish(i).Forget();
+            Client.OnStartEvent -= StartForget;
+            Client.OnFinishEvent -= OnFinishForget;
+            DOTween.Clear();
         }
 
-        private async UniTaskVoid OnStart() => await MenuManager.Instance.UnloadMenu();
+        private void StartForget() => OnStart().Forget();
+        private void OnFinishForget(List<GameDataResponse> data) => OnFinish(data).Forget();
+
+        private async UniTaskVoid OnStart() => await MenuManager.Instance.UnloadMenu(_cancellationToken);
 
         private async UniTaskVoid OnFinish(IList<GameDataResponse> playerDatas)
         {
@@ -122,7 +129,7 @@ namespace Assets.Scripts
                 _pinte = null;
 
                 await UniTask.WaitForSeconds(2);
-                await MenuManager.Instance.LoadMenu();
+                await MenuManager.Instance.LoadMenu(_cancellationToken);
             }
             finally
             {
@@ -134,8 +141,9 @@ namespace Assets.Scripts
         {
             foreach ((var index, var item) in data.WithIndex())
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 var card = Instantiate(cardPrefab, transform);
-                card.Clicked += MakeMove;
+                card.OnClick += MakeMove;
                 card.CardData = item;
                 card.CardRowManager = _cardRowManager;
                 card.AudioController = audioController;
@@ -148,6 +156,7 @@ namespace Assets.Scripts
 
         private CardNoBehaviour InstanceUsedCard(CardData item)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             var card = Instantiate(noBehaviorCardPrefab, transform);
             card.CardData = item;
             card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
@@ -158,6 +167,7 @@ namespace Assets.Scripts
 
         private Pinte InstancePinte(CardData item)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             var card = Instantiate(pintePrefab, transform);
             card.CardData = item;
             card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
@@ -302,7 +312,7 @@ namespace Assets.Scripts
                 if (!newUsedCards.Any() && !gameDataResponse.UsedCards.Any())
                 {
                     const float time = 0.25f;
-                    await UniTask.WaitForSeconds(1, cancellationToken: destroyCancellationToken);
+                    await UniTask.WaitForSeconds(1, cancellationToken: _cancellationToken);
                     var moveTasks = _currentUsedCardsGo
                         .Select(i =>
                             winned
