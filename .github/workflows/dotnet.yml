@@ -62,7 +62,7 @@ jobs:
        run: dotnet tool restore
      - name: Restore nuget packages
        run: dotnet nugetforunity restore Tute.Unity
-     - name: Build Tute
+     - name: Build Tute Windows
        uses: game-ci/unity-builder@v4
        env:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -71,7 +71,24 @@ jobs:
        with:
         projectPath: ./Tute.Unity
         targetPlatform: StandaloneWindows64
-     - uses: actions/upload-artifact@v4
+        buildName: Tute-Windows
+     - name: Build Tute Android
+       uses: game-ci/unity-builder@v4
+       env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
        with:
-          name: Tute-client
-          path: build
+        projectPath: ./Tute.Unity
+        targetPlatform: Android
+        buildName: Tute-Android
+     - name: Upload windows client
+       uses: actions/upload-artifact@v4
+       with:
+          name: Tute-windows
+          path: build/Tute-Windows
+     - name: Upload windows client
+       uses: actions/upload-artifact@v4
+       with:
+          name: Tute-android
+          path: build/Tute-Android
