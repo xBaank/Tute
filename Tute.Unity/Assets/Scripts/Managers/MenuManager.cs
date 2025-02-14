@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Tute.Shared.Models;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Managers
@@ -31,14 +32,14 @@ namespace Assets.Scripts.Managers
             {
                 await UniTask.WaitUntil(
                     () =>
-                        Input.GetKeyDown(KeyCode.Escape)
+                        Keyboard.current.cKey.wasPressedThisFrame
                         && GamingHubManager.Instance.State == GameState.Playing
                 );
                 if (await LoadMenu())
                     onLoadMenu?.Invoke();
                 await UniTask.WaitUntil(
                     () =>
-                        Input.GetKeyDown(KeyCode.Escape)
+                        Keyboard.current.cKey.wasPressedThisFrame
                         && GamingHubManager.Instance.State == GameState.Playing
                 );
                 if (await UnloadMenu())

@@ -121,7 +121,7 @@ namespace Assets.Scripts
                 _nextPlayer = null;
                 _pinte = null;
 
-                await UniTask.WaitUntil(() => Input.anyKey);
+                await UniTask.WaitForSeconds(2);
                 await MenuManager.Instance.LoadMenu();
             }
             finally
