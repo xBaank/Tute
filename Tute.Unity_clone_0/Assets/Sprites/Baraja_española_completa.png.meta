@@ -1,0 +1,1500 @@
+fileFormatVersion: 2
+guid: e5e1230e46bc9d54f8facd0d8dcd6e6a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5777236985353785760
+    second: "Baraja_espa\xF1ola_completa_0"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 2
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 12
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ace_coins
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 549d26817f7c0f1419ddaf8253c1feff
+      internalID: 977477526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: two_coins
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8e504ba0844289c4ba441d5ca354e505
+      internalID: -1936558699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: three_coins
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 83fa4a52269c61b4ebffba19d765d7d7
+      internalID: 101927201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: four_coins
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c671e1a432090345b29655ee1f9f674
+      internalID: 905475845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: five_coins
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd558116ad997df4e85e9a1174576285
+      internalID: -535220105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: six_coins
+      rect:
+        serializedVersion: 2
+        x: 1040
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b426f3069c50bb4ab0198a5dccb9e5c
+      internalID: 943913619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: seven_coins
+      rect:
+        serializedVersion: 2
+        x: 1248
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bfd0ddb6706cda94fb13bffe87b744c7
+      internalID: -1325172285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_7"
+      rect:
+        serializedVersion: 2
+        x: 1456
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f75fabb4276dd845b882dd641b726ed
+      internalID: -1008676534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_8"
+      rect:
+        serializedVersion: 2
+        x: 1664
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 336f2929d3fb4024a8571721b8abb36e
+      internalID: 1396887555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: jack_coins
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f5a4d16655a4ba4bad165ed110b305c
+      internalID: -605632118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: knight_coins
+      rect:
+        serializedVersion: 2
+        x: 2080
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5bf9d1d96ce70b848948c2ebd45c51f1
+      internalID: -390069446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: king_coins
+      rect:
+        serializedVersion: 2
+        x: 2288
+        y: 1276
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9766d9a5e08ba4645b67eab201617da4
+      internalID: -1377867582
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ace_cups
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4cc806742a9fbe74fada1825b3829cf8
+      internalID: 1718552454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: two_cups
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 909783ac745c0f147adbe2cbd11d168d
+      internalID: -659941548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: three_cups
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3957e4782ad571d4eb84559c96c5e6b4
+      internalID: 363675722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: four_cups
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7578816eac92f04383519fa8691f3ca
+      internalID: -1442128896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: five_cups
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63f3921ab8378c14196c8c9a35df4a3a
+      internalID: -1316207501
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: six_cups
+      rect:
+        serializedVersion: 2
+        x: 1040
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9bbe1d73f1e9b4498c510eb8904b6cd
+      internalID: -2049474903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: seven_cups
+      rect:
+        serializedVersion: 2
+        x: 1248
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f8f877b7aaddb7b40b8c0cfa5e182511
+      internalID: -2050969020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_19"
+      rect:
+        serializedVersion: 2
+        x: 1456
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8fe91860d2035434880496d471cedb91
+      internalID: -329278862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_20"
+      rect:
+        serializedVersion: 2
+        x: 1664
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bacc9ffe410bdc748a208f3bc21522dc
+      internalID: 935490119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: jack_cups
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: beab23eaeeeedbd4cbe0d14ed70500bf
+      internalID: -801603584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: knight_cups
+      rect:
+        serializedVersion: 2
+        x: 2080
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68e9bceeb77ca6a45ba2fcf968f69841
+      internalID: -1597808206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: king_cups
+      rect:
+        serializedVersion: 2
+        x: 2288
+        y: 957
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9888f753b387e82479a1f5e2e945d619
+      internalID: -713047821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ace_swords
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a11a01db33a21e4898cda7923bacadd
+      internalID: -1147586007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: two_swords
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7290a862717f95643acd6b5eb65d780e
+      internalID: 1299053496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: three_swords
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 67311209bf1e4b54289ab6bbcfa3a7d6
+      internalID: 861377307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: four_swords
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10629a0dee4e8274fb9ffdc1af9eea7f
+      internalID: -900064734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: five_swords
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32a481a8ed736be40beb965b3ae784d5
+      internalID: 153489234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: six_swords
+      rect:
+        serializedVersion: 2
+        x: 1040
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ff9d6708f83f66d40ae30f756b390233
+      internalID: 1671015882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: seven_swords
+      rect:
+        serializedVersion: 2
+        x: 1248
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ae837107909aeba438662f5f6ad0c138
+      internalID: -1189704870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_31"
+      rect:
+        serializedVersion: 2
+        x: 1456
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1009573455286504ca12271f35e9d879
+      internalID: 2065647639
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_32"
+      rect:
+        serializedVersion: 2
+        x: 1664
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d66d7d3acce69842b288486dfb3b544
+      internalID: -518893019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: jack_swords
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d11f2ffeab953294a915bea5a5efce34
+      internalID: -205196925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: knight_swords
+      rect:
+        serializedVersion: 2
+        x: 2080
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 78614749ad091c24c9fcbf0025a83bee
+      internalID: 1117802127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: king_swords
+      rect:
+        serializedVersion: 2
+        x: 2288
+        y: 638
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60223afaaeb20b14f850c74c78cb9082
+      internalID: -956889576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ace_clubs
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e883ba33372a12844a4fecea60ab9379
+      internalID: -4168985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: two_clubs
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 19b2e919213f6f34992ba643361d0da2
+      internalID: -659001167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: three_clubs
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 489a1eff003ec874084e54109cee508f
+      internalID: -749690467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: four_clubs
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d90cf94e429721842b8753ec77c2fea5
+      internalID: -1225632264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: five_clubs
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fc2c7afe45b67ba47a712fbb52e89ca8
+      internalID: 1728589049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: six_clubs
+      rect:
+        serializedVersion: 2
+        x: 1040
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8734dbad0b969de4a80add8d299a0675
+      internalID: 2026092168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: seven_clubs
+      rect:
+        serializedVersion: 2
+        x: 1248
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2470a10c8d9ee347bb7560393b41760
+      internalID: -1228428510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_43"
+      rect:
+        serializedVersion: 2
+        x: 1456
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1abb24ccbf66e02469532523a91cd59a
+      internalID: 636296626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_44"
+      rect:
+        serializedVersion: 2
+        x: 1664
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f3a9279d23b3534896c628ce343570a
+      internalID: -927528000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: jack_clubs
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ff531279dd76474a8522bb2bc38bb44
+      internalID: 940562631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: knight_clubs
+      rect:
+        serializedVersion: 2
+        x: 2080
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 977ed1c4d8aa10948bb34151149713d0
+      internalID: -306948943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: king_clubs
+      rect:
+        serializedVersion: 2
+        x: 2288
+        y: 319
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0698f4bc9475b5f46a9220ccc8715c46
+      internalID: -1171906277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_48"
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 116c6924f9bcc3842acb6f9959ecfbec
+      internalID: 351646605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_49"
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b5592e089891c5f498e459c3b40252c5
+      internalID: -589337376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_50"
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0b561099ac20934fbe5c7d1386286d0
+      internalID: 1147181616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_51"
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eb7200420f5376b4eb278d3bfe86ac4d
+      internalID: 1613394575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_52"
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ba57c0701ae80740bead4feaccefe88
+      internalID: 152078322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_53"
+      rect:
+        serializedVersion: 2
+        x: 1040
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45701b91d84f7fa48b3d71d3205443c3
+      internalID: 726393387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_54"
+      rect:
+        serializedVersion: 2
+        x: 1248
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 740365939647ac143bfcf3b492272523
+      internalID: -1260435828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_55"
+      rect:
+        serializedVersion: 2
+        x: 1456
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 44ae8d2d75daef74eafd9503392d38ce
+      internalID: -1970062650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_56"
+      rect:
+        serializedVersion: 2
+        x: 1664
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 74a31ff4da918204cb7362151b780563
+      internalID: -1504168405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_57"
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7929a3a5739e75c4d97aea8ecb03f537
+      internalID: 1189170177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_58"
+      rect:
+        serializedVersion: 2
+        x: 2080
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6cb5205c342292f40aae1f4e9f852aa5
+      internalID: -1851557812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Baraja_espa\xF1ola_completa_59"
+      rect:
+        serializedVersion: 2
+        x: 2288
+        y: 0
+        width: 208
+        height: 319
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3d1409493e4bdb040bb86b9df058f450
+      internalID: -1387708437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 675f97c8021f1ef4697f132e71f1e22d
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      "Baraja_espa\xF1ola_completa_19": -329278862
+      "Baraja_espa\xF1ola_completa_20": 935490119
+      "Baraja_espa\xF1ola_completa_31": 2065647639
+      "Baraja_espa\xF1ola_completa_32": -518893019
+      "Baraja_espa\xF1ola_completa_43": 636296626
+      "Baraja_espa\xF1ola_completa_44": -927528000
+      "Baraja_espa\xF1ola_completa_48": 351646605
+      "Baraja_espa\xF1ola_completa_49": -589337376
+      "Baraja_espa\xF1ola_completa_50": 1147181616
+      "Baraja_espa\xF1ola_completa_51": 1613394575
+      "Baraja_espa\xF1ola_completa_52": 152078322
+      "Baraja_espa\xF1ola_completa_53": 726393387
+      "Baraja_espa\xF1ola_completa_54": -1260435828
+      "Baraja_espa\xF1ola_completa_55": -1970062650
+      "Baraja_espa\xF1ola_completa_56": -1504168405
+      "Baraja_espa\xF1ola_completa_57": 1189170177
+      "Baraja_espa\xF1ola_completa_58": -1851557812
+      "Baraja_espa\xF1ola_completa_59": -1387708437
+      "Baraja_espa\xF1ola_completa_7": -1008676534
+      "Baraja_espa\xF1ola_completa_8": 1396887555
+      ace_clubs: -4168985
+      ace_coins: 977477526
+      ace_cups: 1718552454
+      ace_swords: -1147586007
+      five_clubs: 1728589049
+      five_coins: -535220105
+      five_cups: -1316207501
+      five_swords: 153489234
+      four_clubs: -1225632264
+      four_coins: 905475845
+      four_cups: -1442128896
+      four_swords: -900064734
+      jack_clubs: 940562631
+      jack_coins: -605632118
+      jack_cups: -801603584
+      jack_swords: -205196925
+      king_clubs: -1171906277
+      king_coins: -1377867582
+      king_cups: -713047821
+      king_swords: -956889576
+      knight_clubs: -306948943
+      knight_coins: -390069446
+      knight_cups: -1597808206
+      knight_swords: 1117802127
+      seven_clubs: -1228428510
+      seven_coins: -1325172285
+      seven_cups: -2050969020
+      seven_swords: -1189704870
+      six_clubs: 2026092168
+      six_coins: 943913619
+      six_cups: -2049474903
+      six_swords: 1671015882
+      three_clubs: -749690467
+      three_coins: 101927201
+      three_cups: 363675722
+      three_swords: 861377307
+      two_clubs: -659001167
+      two_coins: -1936558699
+      two_cups: -659941548
+      two_swords: 1299053496
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

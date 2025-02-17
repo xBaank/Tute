@@ -77,7 +77,8 @@ public class GameController(
         gameRoom.UsedCardsByConnection = [];
         gameRoom.Cards = gameCards;
         //TODO should persist next player between games
-        gameRoom.NextPlayer ??= gameRoom.Players.First();
+        gameRoom.StartIndex ??= 0;
+        gameRoom.NextPlayer = gameRoom.Players[gameRoom.StartIndex.Value];
         gameRoom.WinnerId = null;
 
         //Init players data
@@ -450,6 +451,7 @@ public class GameController(
             .FirstOrDefault();
         if (winner is not null)
             winner.WinsCount++;
+        if (gameRoom.StartIndex++ == gameRoom.Players.Count) gameRoom.StartIndex = 0;
         room.All.OnFinished(GetAllPlayersData());
     }
 

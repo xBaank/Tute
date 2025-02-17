@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Managers;
 using Assets.Scripts.Services;
@@ -24,12 +23,9 @@ namespace Assets.Scripts
 
         private GamingHubClient Client => GamingHubManager.Instance.Client;
 
-        private CancellationToken _cancellationToken;
-
 
         private void Start()
         {
-            _cancellationToken = destroyCancellationToken;
 
             inputField.onSubmit.AddListener(SendChatMessage);
             Client.OnMessageEvent += OnMessage;
@@ -82,18 +78,6 @@ namespace Assets.Scripts
             var tmp_text = Instantiate(chatMessagePrefab, content.transform);
             tmp_text.color = Color.cyan;
             tmp_text.text = $"{message}";
-        }
-
-        public void Hide()
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-            gameObject.SetActive(false);
-        }
-
-        public void Show()
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-            gameObject.SetActive(true);
         }
     }
 }

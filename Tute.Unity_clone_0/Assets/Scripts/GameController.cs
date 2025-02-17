@@ -81,13 +81,7 @@ namespace Assets.Scripts
             );
 
             MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
-            OnLoadMenu();
-
-            MenuManager.Instance.HandleMenu(
-                    onLoadMenu: OnLoadMenu,
-                    onUnloadMenu: OnUnloadMenu,
-                    _cancellationToken
-            ).Forget();
+            MenuManager.Instance.HandleMenu(token: _cancellationToken).Forget();
 
             Client.OnGameDataEvent += OnGameData;
             Client.OnUsedCardEvent += OnUsedCard;
@@ -98,11 +92,7 @@ namespace Assets.Scripts
             Client.OnStartEvent += StartForget;
             Client.OnFinishEvent += OnFinishForget;
 
-            menu.onClick.AddListener(() =>
-            {
-                MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
-                OnLoadMenu();
-            });
+            menu.onClick.AddListener(() => MenuManager.Instance.SwapMenu(_cancellationToken).Forget());
         }
 
         private void OnDestroy()
@@ -118,25 +108,12 @@ namespace Assets.Scripts
             DOTween.Clear();
         }
 
-        internal void OnLoadMenu()
-        {
-            chatController.Hide();
-            menu.gameObject.SetActive(false);
-        }
-
-        internal void OnUnloadMenu()
-        {
-            chatController.Show();
-            menu.gameObject.SetActive(true);
-        }
-
         private void StartForget() => OnStart().Forget();
         private void OnFinishForget(List<GameDataResponse> data) => OnFinish(data).Forget();
 
         private async UniTaskVoid OnStart()
         {
             await MenuManager.Instance.UnloadMenu(_cancellationToken);
-            OnUnloadMenu();
         }
 
         private async UniTaskVoid OnFinish(IList<GameDataResponse> _)
@@ -159,7 +136,6 @@ namespace Assets.Scripts
 
                 await UniTask.WaitUntil(() => InputSystem.actions.FindAction("Escape").WasReleasedThisFrame());
                 await MenuManager.Instance.LoadMenu(_cancellationToken);
-                OnLoadMenu();
             }
             finally
             {

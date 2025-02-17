@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using Tute.Shared.Models;
 using UnityEngine.InputSystem;
@@ -16,7 +15,7 @@ namespace Assets.Scripts.Managers
             CreateInstance();
         }
 
-        public async UniTask HandleMenu(Action onLoadMenu = null, Action onUnloadMenu = null, CancellationToken token = default)
+        public async UniTask HandleMenu(CancellationToken token = default)
         {
             while (!token.IsCancellationRequested)
             {
@@ -25,15 +24,8 @@ namespace Assets.Scripts.Managers
                         InputSystem.actions.FindAction("Escape").WasPressedThisFrame()
                         && GamingHubManager.Instance.State == GameState.Playing
                 );
-                if (await LoadMenu(token))
-                    onLoadMenu?.Invoke();
-                await UniTask.WaitUntil(
-                    () =>
-                        InputSystem.actions.FindAction("Escape").WasPressedThisFrame()
-                        && GamingHubManager.Instance.State == GameState.Playing
-                );
-                if (await UnloadMenu(token))
-                    onUnloadMenu?.Invoke();
+
+                await SwapMenu(token);
             }
         }
 
@@ -67,5 +59,8 @@ namespace Assets.Scripts.Managers
             IsMenuLoaded = false;
             return true;
         }
+
+        public async UniTask<bool> SwapMenu(CancellationToken token) =>
+            IsMenuLoaded == true ? await UnloadMenu(token) : await LoadMenu(token);
     }
 }

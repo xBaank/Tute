@@ -26,6 +26,8 @@ public class GameRoom
 
     public Guid? WinnerId { get; set; }
 
+    public int? StartIndex { get; set; }
+
     public required bool HaveShuffle { get; init; }
 
     public List<CardData> Shuffled() =>

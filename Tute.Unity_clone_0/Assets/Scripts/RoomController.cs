@@ -43,34 +43,40 @@ namespace Assets.Scripts
         [SerializeField]
         private Button exitButton;
 
+        [SerializeField]
+        private Button closeMenu;
+
         private readonly SemaphoreSlim semaphoreSlim = new(1);
-        private Dictionary<Player, TMP_Text> textsByPlayer = new();
+        private readonly Dictionary<Player, TMP_Text> textsByPlayer = new();
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
-            if (GamingHubManager.Instance.State == GameState.Playing)
-            {
-                leaveButton.gameObject.SetActive(true);
-            }
-            else
-            {
-                leaveButton.gameObject.SetActive(false);
-            }
-
             RenderChangedData().Forget();
 
-            GamingHubManager.Instance.OnRoomDataUpdated += () => RenderChangedData().Forget();
-            GamingHubManager.Instance.Client.OnDisconnected += () => RenderChangedData().Forget();
+            GamingHubManager.Instance.OnRoomDataUpdated += RenderChangedDataForget;
+            GamingHubManager.Instance.Client.OnDisconnected += RenderChangedDataForget;
 
             joinButton.onClick.RemoveAllListeners();
             startButton.onClick.RemoveAllListeners();
             leaveButton.onClick.RemoveAllListeners();
             exitButton.onClick.RemoveAllListeners();
+            closeMenu.onClick.RemoveAllListeners();
             joinButton.onClick.AddListener(Join);
             startButton.onClick.AddListener(StartGame);
-            leaveButton.onClick.AddListener(LeaveRoom);
+            leaveButton.onClick.AddListener(LeaveRoomForget);
             exitButton.onClick.AddListener(LeaveServer);
+            closeMenu.onClick.AddListener(() => MenuManager.Instance.UnloadMenu(default).Forget());
+        }
+
+        private void OnDestroy()
+        {
+            GamingHubManager.Instance.OnRoomDataUpdated -= RenderChangedDataForget;
+            GamingHubManager.Instance.Client.OnDisconnected -= RenderChangedDataForget;
+            joinButton.onClick.RemoveListener(Join);
+            startButton.onClick.RemoveListener(StartGame);
+            leaveButton.onClick.RemoveListener(LeaveRoomForget);
+            exitButton.onClick.RemoveListener(LeaveServer);
         }
 
         private async void Join()
@@ -100,9 +106,12 @@ namespace Assets.Scripts
                 $"<b><color=grey>Name</color></b>: {GamingHubManager.Instance.GameRoom.Player.Name}";
         }
 
+        private void RenderChangedDataForget() => RenderChangedData().Forget();
+
         private async UniTask RenderChangedData()
         {
-            await UniTask.Yield(PlayerLoopTiming.Update);
+            await UniTask.Yield();
+            UpdateMenu();
             RenderRoomName();
             RenderPlayerList();
         }
@@ -112,19 +121,29 @@ namespace Assets.Scripts
             GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
         }
 
+        private void LeaveRoomForget() => LeaveRoom().Forget();
 
-        private void LeaveRoom()
+        private async UniTask LeaveRoom()
         {
-            GamingHubManager.Instance.LeaveRoom().Forget();
+            await GamingHubManager.Instance.LeaveRoom();
             tmp_room.text = string.Empty;
             tmp_name.text = string.Empty;
-            leaveButton.gameObject.SetActive(false);
+            UpdateMenu();
             RenderPlayerList();
         }
 
         private void StartGame()
         {
             GamingHubManager.Instance.Client.StartAsync().AsUniTask().Forget();
+        }
+
+        private void UpdateMenu()
+        {
+            if (closeMenu == null || startButton == null) return;
+
+            var showPlayingButtons = GamingHubManager.Instance.State == GameState.Playing;
+            closeMenu.gameObject.SetActive(showPlayingButtons);
+            startButton.gameObject.SetActive(!showPlayingButtons && GamingHubManager.Instance.GameRoom?.Player.IsLeader == true);
         }
 
         private void RenderPlayerList()
