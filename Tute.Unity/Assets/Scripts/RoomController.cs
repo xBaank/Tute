@@ -146,11 +146,16 @@ namespace Assets.Scripts
 
         private void UpdateMenu()
         {
-            if (closeMenu == null || startButton == null || joinButton == null) return;
+            if (closeMenu == null || startButton == null || joinButton == null)
+                return;
             var showPlayingButtons = GamingHubManager.Instance.State == GameState.Playing;
-            joinButton.gameObject.SetActive(!showPlayingButtons && GamingHubManager.Instance.GameRoom == null);
+            joinButton.gameObject.SetActive(
+                !showPlayingButtons && GamingHubManager.Instance.GameRoom == null
+            );
             closeMenu.gameObject.SetActive(showPlayingButtons);
-            startButton.gameObject.SetActive(!showPlayingButtons && GamingHubManager.Instance.GameRoom?.Player.IsLeader == true);
+            startButton.gameObject.SetActive(
+                !showPlayingButtons && GamingHubManager.Instance.GameRoom?.Player.IsLeader == true
+            );
         }
 
         private void RenderPlayerList()

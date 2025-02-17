@@ -37,7 +37,6 @@ namespace Assets.Scripts.Managers
             CreateInstance();
         }
 
-
         private void OnDestroy()
         {
             Client.OnJoinEvent -= OnPlayerJoin;
@@ -49,6 +48,7 @@ namespace Assets.Scripts.Managers
         }
 
         private void ClearCurrentData(List<GameDataResponse> _) => CurrentData = null;
+
         private async void OnDisconneted()
         {
             await UniTask.Yield();

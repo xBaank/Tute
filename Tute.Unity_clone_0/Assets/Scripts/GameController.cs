@@ -92,7 +92,9 @@ namespace Assets.Scripts
             Client.OnStartEvent += StartForget;
             Client.OnFinishEvent += OnFinishForget;
 
-            menu.onClick.AddListener(() => MenuManager.Instance.SwapMenu(_cancellationToken).Forget());
+            menu.onClick.AddListener(
+                () => MenuManager.Instance.SwapMenu(_cancellationToken).Forget()
+            );
         }
 
         private void OnDestroy()
@@ -109,6 +111,7 @@ namespace Assets.Scripts
         }
 
         private void StartForget() => OnStart().Forget();
+
         private void OnFinishForget(List<GameDataResponse> data) => OnFinish(data).Forget();
 
         private async UniTaskVoid OnStart()
@@ -133,8 +136,9 @@ namespace Assets.Scripts
                 _nextPlayer = null;
                 _pinte = null;
 
-
-                await UniTask.WaitUntil(() => InputSystem.actions.FindAction("Escape").WasReleasedThisFrame());
+                await UniTask.WaitUntil(
+                    () => InputSystem.actions.FindAction("Escape").WasReleasedThisFrame()
+                );
                 await MenuManager.Instance.LoadMenu(_cancellationToken);
             }
             finally

@@ -18,8 +18,8 @@ namespace Assets.Scripts.Extensions
             }
         }
 
-        public static IEnumerable<GameDataResponse> GetOrdered(this IEnumerable<GameDataResponse> gameDataResponses) => gameDataResponses
-                .OrderByDescending(i => i.GainedCards.Sum(i => i.Value));
-
+        public static IEnumerable<GameDataResponse> GetOrdered(
+            this IEnumerable<GameDataResponse> gameDataResponses
+        ) => gameDataResponses.OrderByDescending(i => i.GainedCards.Sum(i => i.Value));
     }
 }

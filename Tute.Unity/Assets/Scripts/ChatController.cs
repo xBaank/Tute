@@ -23,10 +23,8 @@ namespace Assets.Scripts
 
         private GamingHubClient Client => GamingHubManager.Instance.Client;
 
-
         private void Start()
         {
-
             inputField.onSubmit.AddListener(SendChatMessage);
             Client.OnMessageEvent += OnMessage;
             Client.OnJoinEvent += SendJoinMessage;
@@ -45,20 +43,29 @@ namespace Assets.Scripts
             Client.OnFinishEvent -= SendFinishMessage;
         }
 
-        private void SendJoinMessage(Player player) => OnSystemMessage($"El jugador {player.Name} se ha unido");
-        private void SendLeaveMessage(Player player) => OnSystemMessage($"El jugador {player.Name} se ha ido");
+        private void SendJoinMessage(Player player) =>
+            OnSystemMessage($"El jugador {player.Name} se ha unido");
+
+        private void SendLeaveMessage(Player player) =>
+            OnSystemMessage($"El jugador {player.Name} se ha ido");
+
         private void SendStartMessage() => OnSystemMessage("La partida ha comenzado");
+
         private void SendFinishMessage(List<GameDataResponse> data)
         {
             foreach (var (index, item) in data.GetOrdered().WithIndex())
             {
                 if (index == 0)
                 {
-                    OnSystemMessage($"El ganador es {item.PlayerData.Player.Name} con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos");
+                    OnSystemMessage(
+                        $"El ganador es {item.PlayerData.Player.Name} con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos"
+                    );
                 }
                 else
                 {
-                    OnSystemMessage($"El jugador {item.PlayerData.Player.Name} ha perdido con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos");
+                    OnSystemMessage(
+                        $"El jugador {item.PlayerData.Player.Name} ha perdido con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos"
+                    );
                 }
             }
         }

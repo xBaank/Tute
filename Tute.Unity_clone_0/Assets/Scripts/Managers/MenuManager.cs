@@ -32,13 +32,17 @@ namespace Assets.Scripts.Managers
         public async UniTask LoadGame(CancellationToken token)
         {
             IsMenuLoaded = false;
-            await SceneManager.LoadSceneAsync("InGame", LoadSceneMode.Single).WithCancellation(token);
+            await SceneManager
+                .LoadSceneAsync("InGame", LoadSceneMode.Single)
+                .WithCancellation(token);
         }
 
         public async UniTask<bool> LoadServerMenu(CancellationToken token)
         {
             IsMenuLoaded = false;
-            await SceneManager.LoadSceneAsync("ServerMenu", LoadSceneMode.Single).WithCancellation(token);
+            await SceneManager
+                .LoadSceneAsync("ServerMenu", LoadSceneMode.Single)
+                .WithCancellation(token);
             return true;
         }
 
@@ -46,7 +50,9 @@ namespace Assets.Scripts.Managers
         {
             if (IsMenuLoaded)
                 return false;
-            await SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Additive).WithCancellation(token);
+            await SceneManager
+                .LoadSceneAsync("Menu", LoadSceneMode.Additive)
+                .WithCancellation(token);
             IsMenuLoaded = true;
             return true;
         }

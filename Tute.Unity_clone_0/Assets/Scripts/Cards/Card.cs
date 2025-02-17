@@ -9,6 +9,7 @@ using UnityEngine.InputSystem;
 namespace Assets.Scripts.Cards
 {
     internal interface IPointHandler : IPointerDownHandler, IPointerUpHandler { }
+
     public class Card : MonoBehaviour, IPointHandler
     {
         private SpriteRenderer spriteRenderer;
@@ -44,7 +45,9 @@ namespace Assets.Scripts.Cards
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var position = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue()) + (Vector3)startDif;
+                var position =
+                    Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())
+                    + (Vector3)startDif;
                 transform.position = position + new Vector3(0, 0, 10);
                 await UniTask.Yield();
             }

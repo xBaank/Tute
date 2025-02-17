@@ -36,10 +36,11 @@ public class CRTPostEffecter : MonoBehaviour
     public bool isLetterBox = false;
     public bool isLetterBoxEdgeBlur = false;
     public LeterBoxType letterBoxType;
+
     public enum LeterBoxType
     {
         Black,
-        Blur
+        Blur,
     }
 
     public bool isFilmDirt = false;
@@ -122,23 +123,23 @@ public class CRTPostEffecter : MonoBehaviour
             }
             else
             {
-                material.SetInteger(_WhiteNoiseOnOff, 0); 
+                material.SetInteger(_WhiteNoiseOnOff, 0);
             }
         }
         //////
-        
-        material.SetInteger(_LetterBoxOnOff, isLetterBox ? 0 : 1); 
-        //material.SetInteger(_LetterBoxEdgeBlurOnOff, isLetterBoxEdgeBlur ? 0 : 1); 
+
+        material.SetInteger(_LetterBoxOnOff, isLetterBox ? 0 : 1);
+        //material.SetInteger(_LetterBoxEdgeBlurOnOff, isLetterBoxEdgeBlur ? 0 : 1);
         material.SetInteger(_LetterBoxType, (int)letterBoxType);
 
-        material.SetInteger(_ScanlineOnOff, isScanline ? 1 : 0); 
+        material.SetInteger(_ScanlineOnOff, isScanline ? 1 : 0);
         material.SetInteger(_MonochormeOnOff, isMonochrome ? 1 : 0);
         material.SetFloat(_FlickeringStrength, flickeringStrength);
         material.SetFloat(_FlickeringCycle, flickeringCycle);
         material.SetFloat(_ChromaticAberrationStrength, chromaticAberrationStrength);
         material.SetInteger(_ChromaticAberrationOnOff, isChromaticAberration ? 1 : 0);
         material.SetInteger(_MultipleGhostOnOff, isMultipleGhost ? 1 : 0);
-        material.SetFloat(_MultipleGhostStrength, multipleGhostStrength); 
+        material.SetFloat(_MultipleGhostStrength, multipleGhostStrength);
         material.SetInteger(_FilmDirtOnOff, isFilmDirt ? 1 : 0);
         material.SetTexture(_FilmDirtTex, filmDirtTex);
 
@@ -147,10 +148,10 @@ public class CRTPostEffecter : MonoBehaviour
         material.SetFloat(_SlippageInterval, slippageInterval);
         material.SetFloat(_SlippageNoiseOnOff, isSlippageNoise ? Random.Range(0, 1f) : 1);
         material.SetFloat(_SlippageScrollSpeed, slippageScrollSpeed);
-        material.SetFloat(_SlippageStrength, slippageStrength); 
+        material.SetFloat(_SlippageStrength, slippageStrength);
         material.SetFloat(_SlippageSize, slippageSize);
         //////
-        
+
         //////Screen Jump Noise
         screenJumpTimeLeft -= 0.01f;
         if (screenJumpTimeLeft <= 0)
@@ -188,6 +189,5 @@ public class CRTPostEffecter : MonoBehaviour
             Graphics.Blit(src, dest, material);
         }
         //////
-
     }
 }

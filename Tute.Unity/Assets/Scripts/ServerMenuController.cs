@@ -67,10 +67,13 @@ namespace Assets.Scripts
             tmp_exitButton.onClick.RemoveListener(Exit);
         }
 
-
         private void RenderDataForget() => RenderData().Forget();
+
         private void ConnectForget() => Connect().Forget();
-        private void DisposeForget() => GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
+
+        private void DisposeForget() =>
+            GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
+
         private void LoadGameForget()
         {
             if (GamingHubManager.Instance.Client?.IsConnected == true)
@@ -78,12 +81,13 @@ namespace Assets.Scripts
                 MenuManager.Instance.LoadGame(_cancellationToken).Forget();
             }
         }
+
         private void Exit()
         {
 #if UNITY_EDITOR
             EditorApplication.isPlaying = false;
 #else
-                Application.Quit();
+            Application.Quit();
 #endif
         }
 
@@ -91,7 +95,9 @@ namespace Assets.Scripts
         {
             PlayerPrefs.SetString("server_adress", tmp_serverAdress.text);
             var uri = new Uri(tmp_serverAdress.text);
-            await GamingHubManager.Instance.Client.ConnectAsync(GrpcChannelx.ForTarget(new GrpcChannelTarget(uri.Host, uri.Port, true)));
+            await GamingHubManager.Instance.Client.ConnectAsync(
+                GrpcChannelx.ForTarget(new GrpcChannelTarget(uri.Host, uri.Port, true))
+            );
             RenderServerInfo();
             RenderServerStatus();
         }
@@ -105,7 +111,9 @@ namespace Assets.Scripts
 
         private void RenderServerStatus()
         {
-            var status = GamingHubManager.Instance.Client.IsConnected ? "<color=green>Online</color>" : "<color=red>Offline</color>";
+            var status = GamingHubManager.Instance.Client.IsConnected
+                ? "<color=green>Online</color>"
+                : "<color=red>Offline</color>";
             tmp_status.text = $"<b>Server</b> {status}";
         }
 
