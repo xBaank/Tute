@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Assets.Scripts.Extensions;
 using Assets.Scripts.Managers;
@@ -51,7 +52,20 @@ namespace Assets.Scripts
         private void SendJoinMessage(Player player) => OnSystemMessage($"El jugador {player.Name} se ha unido");
         private void SendLeaveMessage(Player player) => OnSystemMessage($"El jugador {player.Name} se ha ido");
         private void SendStartMessage() => OnSystemMessage("La partida ha comenzado");
-        private void SendFinishMessage(List<GameDataResponse> data) => OnSystemMessage($"El ganador es {data.GetWinner().PlayerData.Player.Name}");
+        private void SendFinishMessage(List<GameDataResponse> data)
+        {
+            foreach (var (index, item) in data.GetOrdered().WithIndex())
+            {
+                if (index == 0)
+                {
+                    OnSystemMessage($"El ganador es {item.PlayerData.Player.Name} con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos");
+                }
+                else
+                {
+                    OnSystemMessage($"El jugador {item.PlayerData.Player.Name} ha perdido con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos");
+                }
+            }
+        }
 
         private void SendChatMessage(string message) =>
             Client.SendMessage(message).AsUniTask().Forget();

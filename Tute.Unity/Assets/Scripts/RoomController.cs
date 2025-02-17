@@ -49,6 +49,15 @@ namespace Assets.Scripts
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
+            if (GamingHubManager.Instance.State == GameState.Playing)
+            {
+                leaveButton.gameObject.SetActive(true);
+            }
+            else
+            {
+                leaveButton.gameObject.SetActive(false);
+            }
+
             RenderChangedData().Forget();
 
             GamingHubManager.Instance.OnRoomDataUpdated += () => RenderChangedData().Forget();
@@ -109,11 +118,14 @@ namespace Assets.Scripts
             GamingHubManager.Instance.LeaveRoom().Forget();
             tmp_room.text = string.Empty;
             tmp_name.text = string.Empty;
+            leaveButton.gameObject.SetActive(false);
             RenderPlayerList();
         }
 
-        private void StartGame() =>
+        private void StartGame()
+        {
             GamingHubManager.Instance.Client.StartAsync().AsUniTask().Forget();
+        }
 
         private void RenderPlayerList()
         {

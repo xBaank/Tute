@@ -33,20 +33,6 @@ namespace Assets.Scripts.Cards
             spriteRenderer.sprite = Sprite;
         }
 
-        private void OnMouseDrag()
-        {
-            if (CardRowManager.IsOrdering)
-                return;
-
-            var mouseX = Mouse.current.position.x.ReadValue();
-            var mouseY = Mouse.current.position.y.ReadValue();
-
-            var mousePos = Camera.main.ScreenToWorldPoint(new(mouseX, mouseY, 0)) + (Vector3)startDif;
-            Vector3 newPos = new(mousePos.x, mousePos.y, -5f);
-            transform.Rotate(Vector3.zero);
-            transform.position = newPos;
-        }
-
         private async UniTaskVoid DragCards()
         {
             startDif = Vector2.zero;

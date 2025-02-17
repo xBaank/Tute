@@ -11,6 +11,7 @@ using DG.Tweening;
 using Grpc.Core;
 using Tute.Shared.Models;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Assets.Scripts
@@ -79,13 +80,14 @@ namespace Assets.Scripts
                 1.1f
             );
 
-            MenuManager
-                .Instance.SetupMenu(
+            MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
+            OnLoadMenu();
+
+            MenuManager.Instance.HandleMenu(
                     onLoadMenu: OnLoadMenu,
                     onUnloadMenu: OnUnloadMenu,
                     _cancellationToken
-                )
-                .Forget();
+            ).Forget();
 
             Client.OnGameDataEvent += OnGameData;
             Client.OnUsedCardEvent += OnUsedCard;
@@ -116,13 +118,13 @@ namespace Assets.Scripts
             DOTween.Clear();
         }
 
-        private void OnLoadMenu()
+        internal void OnLoadMenu()
         {
             chatController.Hide();
             menu.gameObject.SetActive(false);
         }
 
-        private void OnUnloadMenu()
+        internal void OnUnloadMenu()
         {
             chatController.Show();
             menu.gameObject.SetActive(true);
@@ -131,9 +133,13 @@ namespace Assets.Scripts
         private void StartForget() => OnStart().Forget();
         private void OnFinishForget(List<GameDataResponse> data) => OnFinish(data).Forget();
 
-        private async UniTaskVoid OnStart() => await MenuManager.Instance.UnloadMenu(_cancellationToken);
+        private async UniTaskVoid OnStart()
+        {
+            await MenuManager.Instance.UnloadMenu(_cancellationToken);
+            OnUnloadMenu();
+        }
 
-        private async UniTaskVoid OnFinish(IList<GameDataResponse> playerDatas)
+        private async UniTaskVoid OnFinish(IList<GameDataResponse> _)
         {
             await _currentSemaphore.WaitAsync();
 
@@ -150,8 +156,10 @@ namespace Assets.Scripts
                 _nextPlayer = null;
                 _pinte = null;
 
-                await UniTask.WaitForSeconds(2);
+
+                await UniTask.WaitUntil(() => InputSystem.actions.FindAction("Escape").WasReleasedThisFrame());
                 await MenuManager.Instance.LoadMenu(_cancellationToken);
+                OnLoadMenu();
             }
             finally
             {

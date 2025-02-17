@@ -2,7 +2,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Tute.Shared.Models;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
@@ -12,21 +11,12 @@ namespace Assets.Scripts.Managers
     {
         private bool IsMenuLoaded;
 
-        [SerializeField]
-        private InputAction escape;
-
         private void Awake()
         {
             CreateInstance();
         }
 
-        public async UniTaskVoid SetupMenu(Action onLoadMenu = null, Action onUnloadMenu = null, CancellationToken token = default)
-        {
-            await LoadMenu(token);
-            await HandleMenu(onLoadMenu, onUnloadMenu, token);
-        }
-
-        private async UniTask HandleMenu(Action onLoadMenu, Action onUnloadMenu, CancellationToken token)
+        public async UniTask HandleMenu(Action onLoadMenu = null, Action onUnloadMenu = null, CancellationToken token = default)
         {
             while (!token.IsCancellationRequested)
             {

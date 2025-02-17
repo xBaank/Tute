@@ -66,8 +66,8 @@ namespace Assets.Scripts.Services
         // dispose client-connection before channel.ShutDownAsync is important!
         public async Task DisposeAsync()
         {
-            await client?.DisposeAsync();
-            await channel?.ShutdownAsync();
+            if (client is not null) await client.DisposeAsync();
+            if (channel is not null) await channel.ShutdownAsync();
         }
 
         // You can watch connection state, use this for retry etc.
