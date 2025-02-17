@@ -52,8 +52,8 @@ jobs:
           path: Tute.Unity/Library
           key: Library-Tute.Unity-Windows
           restore-keys: |
-            Library-Tute.Unity-
-            Library-
+            Library-Tute.Unity-Windows
+            Library-Windows
      - name: Setup .NET
        uses: actions/setup-dotnet@v4
        with:
@@ -76,7 +76,7 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
           name: Tute-windows
-          path: build/Tute-Windows
+          path: build/StandaloneWindows64
   build-android-client:
      runs-on: ubuntu-latest
      steps:
@@ -86,8 +86,8 @@ jobs:
           path: Tute.Unity/Library
           key: Library-Tute.Unity-Android
           restore-keys: |
-            Library-Tute.Unity-
-            Library-
+            Library-Tute.Unity-Android
+            Library-Android
      - name: Setup .NET
        uses: actions/setup-dotnet@v4
        with:
@@ -117,4 +117,4 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
           name: Tute-android
-          path: build/Tute-Android
+          path: build/Android
