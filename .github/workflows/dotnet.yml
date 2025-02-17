@@ -43,14 +43,14 @@ jobs:
       with:
         name: Tute-server-osx64
         path: Tute.Server/bin/Release/net9.0/osx-x64/publish
-  build-client:
+  build-windows-client:
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v4
      - uses: actions/cache@v4
        with:
           path: Tute.Unity/Library
-          key: Library-Tute.Unity-TargetPlatform
+          key: Library-Tute.Unity-Windows
           restore-keys: |
             Library-Tute.Unity-
             Library-
@@ -72,6 +72,30 @@ jobs:
         projectPath: ./Tute.Unity
         targetPlatform: StandaloneWindows64
         buildName: Tute-Windows
+     - name: Upload windows client
+       uses: actions/upload-artifact@v4
+       with:
+          name: Tute-windows
+          path: build/Tute-Windows
+build-android-client:
+     runs-on: ubuntu-latest
+     steps:
+     - uses: actions/checkout@v4
+     - uses: actions/cache@v4
+       with:
+          path: Tute.Unity/Library
+          key: Library-Tute.Unity-Android
+          restore-keys: |
+            Library-Tute.Unity-
+            Library-
+     - name: Setup .NET
+       uses: actions/setup-dotnet@v4
+       with:
+        dotnet-version: 9.0.x
+     - name: Restore tools
+       run: dotnet tool restore
+     - name: Restore nuget packages
+       run: dotnet nugetforunity restore Tute.Unity
      - name: Build Tute Android
        uses: game-ci/unity-builder@v4
        env:
@@ -82,12 +106,7 @@ jobs:
         projectPath: ./Tute.Unity
         targetPlatform: Android
         buildName: Tute-Android
-     - name: Upload windows client
-       uses: actions/upload-artifact@v4
-       with:
-          name: Tute-windows
-          path: build/Tute-Windows
-     - name: Upload windows client
+     - name: Upload android client
        uses: actions/upload-artifact@v4
        with:
           name: Tute-android
