@@ -11,6 +11,8 @@ using DG.Tweening;
 using Grpc.Core;
 using Tute.Shared.Models;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -52,6 +54,9 @@ namespace Assets.Scripts
         [SerializeField]
         private AudioController audioController;
 
+        [SerializeField]
+        private Button menu;
+
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
         private readonly SemaphoreSlim _currentSemaphore = new(1);
@@ -91,6 +96,8 @@ namespace Assets.Scripts
             Client.OnDiezDelMonteEvent += OnDiezDelMonte;
             Client.OnStartEvent += StartForget;
             Client.OnFinishEvent += OnFinishForget;
+
+            menu.onClick.AddListener(() => InputSystem.actions.FindAction("Escape").Enable());
         }
 
         private void OnDestroy()
