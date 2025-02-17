@@ -38,13 +38,10 @@ namespace Assets.Scripts
         private Button startButton;
 
         [SerializeField]
+        private Button leaveButton;
+
+        [SerializeField]
         private Button exitButton;
-
-        [SerializeField]
-        private TMP_Text tmp_status;
-
-        [SerializeField]
-        private TMP_Text tmp_serverInfo;
 
         private readonly SemaphoreSlim semaphoreSlim = new(1);
         private Dictionary<Player, TMP_Text> textsByPlayer = new();
@@ -59,10 +56,12 @@ namespace Assets.Scripts
 
             joinButton.onClick.RemoveAllListeners();
             startButton.onClick.RemoveAllListeners();
+            leaveButton.onClick.RemoveAllListeners();
             exitButton.onClick.RemoveAllListeners();
             joinButton.onClick.AddListener(Join);
             startButton.onClick.AddListener(StartGame);
-            exitButton.onClick.AddListener(ExitRoom);
+            leaveButton.onClick.AddListener(LeaveRoom);
+            exitButton.onClick.AddListener(LeaveServer);
         }
 
         private async void Join()
@@ -92,33 +91,20 @@ namespace Assets.Scripts
                 $"<b><color=grey>Name</color></b>: {GamingHubManager.Instance.GameRoom.Player.Name}";
         }
 
-        private void RenderServerStatus()
-        {
-            var status = GamingHubManager.Instance.Client.IsConnected ? "<color=green>Online</color>" : "<color=red>Offline</color>";
-            tmp_status.text = $"<b>Server</b> {status}";
-        }
-
-        private void RenderServerInfo()
-        {
-            if (!GamingHubManager.Instance.Client.IsConnected)
-            {
-                tmp_serverInfo.text = string.Empty;
-                return;
-            }
-            var info = $"<color=green>{GamingHubManager.Instance.Client.Target}</color>";
-            tmp_serverInfo.text = $"<b>{info}</b>";
-        }
-
         private async UniTask RenderChangedData()
         {
             await UniTask.Yield(PlayerLoopTiming.Update);
-            RenderServerStatus();
-            RenderServerInfo();
             RenderRoomName();
             RenderPlayerList();
         }
 
-        private void ExitRoom()
+        private void LeaveServer()
+        {
+            GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
+        }
+
+
+        private void LeaveRoom()
         {
             GamingHubManager.Instance.LeaveRoom().Forget();
             tmp_room.text = string.Empty;
