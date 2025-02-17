@@ -77,7 +77,7 @@ jobs:
        with:
           name: Tute-windows
           path: build/Tute-Windows
-build-android-client:
+  build-android-client:
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v4
