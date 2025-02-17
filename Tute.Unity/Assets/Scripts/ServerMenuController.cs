@@ -41,7 +41,9 @@ namespace Assets.Scripts
         {
             _cancellationToken = destroyCancellationToken;
 
-            tmp_serverAdress.text = "http://localhost:5000";
+            var defaultAdress = PlayerPrefs.GetString("server_adress", tmp_serverAdress.text);
+            tmp_serverAdress.text = defaultAdress;
+
             connectButton.onClick.RemoveAllListeners();
             disconnectButton.onClick.RemoveAllListeners();
             selectButton.onClick.RemoveAllListeners();
@@ -87,6 +89,7 @@ namespace Assets.Scripts
 
         private async UniTask Connect()
         {
+            PlayerPrefs.SetString("server_adress", tmp_serverAdress.text);
             var uri = new Uri(tmp_serverAdress.text);
             await GamingHubManager.Instance.Client.ConnectAsync(GrpcChannelx.ForTarget(new GrpcChannelTarget(uri.Host, uri.Port, true)));
             RenderServerInfo();

@@ -67,6 +67,11 @@ namespace Assets.Scripts
             leaveButton.onClick.AddListener(LeaveRoomForget);
             exitButton.onClick.AddListener(LeaveServer);
             closeMenu.onClick.AddListener(() => MenuManager.Instance.UnloadMenu(default).Forget());
+
+            var name = PlayerPrefs.GetString("name", tmp_playerName.text);
+            var room = PlayerPrefs.GetString("room", tmp_roomName.text);
+            tmp_playerName.text = name;
+            tmp_roomName.text = room;
         }
 
         private void OnDestroy()
@@ -84,6 +89,8 @@ namespace Assets.Scripts
             await semaphoreSlim.WaitAsync();
             try
             {
+                PlayerPrefs.SetString("name", tmp_playerName.text);
+                PlayerPrefs.SetString("room", tmp_roomName.text);
                 await GamingHubManager.Instance.JoinRoom(tmp_roomName.text, tmp_playerName.text);
             }
             finally
@@ -139,9 +146,9 @@ namespace Assets.Scripts
 
         private void UpdateMenu()
         {
-            if (closeMenu == null || startButton == null) return;
-
+            if (closeMenu == null || startButton == null || joinButton == null) return;
             var showPlayingButtons = GamingHubManager.Instance.State == GameState.Playing;
+            joinButton.gameObject.SetActive(!showPlayingButtons && GamingHubManager.Instance.GameRoom == null);
             closeMenu.gameObject.SetActive(showPlayingButtons);
             startButton.gameObject.SetActive(!showPlayingButtons && GamingHubManager.Instance.GameRoom?.Player.IsLeader == true);
         }
