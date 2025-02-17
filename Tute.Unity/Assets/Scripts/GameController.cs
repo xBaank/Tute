@@ -11,7 +11,6 @@ using DG.Tweening;
 using Grpc.Core;
 using Tute.Shared.Models;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Assets.Scripts
@@ -82,8 +81,8 @@ namespace Assets.Scripts
 
             MenuManager
                 .Instance.SetupMenu(
-                    onLoadMenu: chatController.Hide,
-                    onUnloadMenu: chatController.Show,
+                    onLoadMenu: OnLoadMenu,
+                    onUnloadMenu: OnUnloadMenu,
                     _cancellationToken
                 )
                 .Forget();
@@ -97,7 +96,11 @@ namespace Assets.Scripts
             Client.OnStartEvent += StartForget;
             Client.OnFinishEvent += OnFinishForget;
 
-            menu.onClick.AddListener(() => InputSystem.actions.FindAction("Escape").Enable());
+            menu.onClick.AddListener(() =>
+            {
+                MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
+                OnLoadMenu();
+            });
         }
 
         private void OnDestroy()
@@ -111,6 +114,18 @@ namespace Assets.Scripts
             Client.OnStartEvent -= StartForget;
             Client.OnFinishEvent -= OnFinishForget;
             DOTween.Clear();
+        }
+
+        private void OnLoadMenu()
+        {
+            chatController.Hide();
+            menu.gameObject.SetActive(false);
+        }
+
+        private void OnUnloadMenu()
+        {
+            chatController.Show();
+            menu.gameObject.SetActive(true);
         }
 
         private void StartForget() => OnStart().Forget();

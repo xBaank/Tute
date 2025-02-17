@@ -64,9 +64,10 @@ namespace Assets.Scripts.Services
         public ValueTask LeaveAsync() => client.LeaveAsync();
 
         // dispose client-connection before channel.ShutDownAsync is important!
-        public Task DisposeAsync()
+        public async Task DisposeAsync()
         {
-            return client?.DisposeAsync();
+            await client?.DisposeAsync();
+            await channel?.ShutdownAsync();
         }
 
         // You can watch connection state, use this for retry etc.

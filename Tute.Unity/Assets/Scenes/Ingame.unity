@@ -238,7 +238,7 @@ GameObject:
   - component: {fileID: 391898313}
   - component: {fileID: 391898312}
   m_Layer: 5
-  m_Name: Button
+  m_Name: Menu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1692,7 +1692,7 @@ MonoBehaviour:
   - {fileID: -589337376, guid: e5e1230e46bc9d54f8facd0d8dcd6e6a, type: 3}
   chatController: {fileID: 1212716632}
   audioController: {fileID: 1826904828}
-  menu: {fileID: 0}
+  menu: {fileID: 391898312}
 --- !u!82 &1456519718
 AudioSource:
   m_ObjectHideFlags: 0
