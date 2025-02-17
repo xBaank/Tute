@@ -65,7 +65,7 @@ namespace Assets.Scripts
             joinButton.onClick.AddListener(Join);
             startButton.onClick.AddListener(StartGame);
             leaveButton.onClick.AddListener(LeaveRoomForget);
-            exitButton.onClick.AddListener(LeaveServer);
+            exitButton.onClick.AddListener(LeaveServerForget);
             closeMenu.onClick.AddListener(() => MenuManager.Instance.UnloadMenu(default).Forget());
 
             var name = PlayerPrefs.GetString("name", tmp_playerName.text);
@@ -81,7 +81,7 @@ namespace Assets.Scripts
             joinButton.onClick.RemoveListener(Join);
             startButton.onClick.RemoveListener(StartGame);
             leaveButton.onClick.RemoveListener(LeaveRoomForget);
-            exitButton.onClick.RemoveListener(LeaveServer);
+            exitButton.onClick.RemoveListener(LeaveServerForget);
         }
 
         private async void Join()
@@ -123,13 +123,14 @@ namespace Assets.Scripts
             RenderPlayerList();
         }
 
-        private void LeaveServer()
+        private void LeaveServerForget() => LeaveServer().Forget();
+        private async UniTask LeaveServer()
         {
+            if (GamingHubManager.Instance.GameRoom != null) await LeaveRoom();
             GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
         }
 
         private void LeaveRoomForget() => LeaveRoom().Forget();
-
         private async UniTask LeaveRoom()
         {
             await GamingHubManager.Instance.LeaveRoom();
@@ -146,12 +147,14 @@ namespace Assets.Scripts
 
         private void UpdateMenu()
         {
-            if (closeMenu == null || startButton == null || joinButton == null)
+            if (closeMenu == null || startButton == null || joinButton == null || leaveButton == null)
                 return;
+
             var showPlayingButtons = GamingHubManager.Instance.State == GameState.Playing;
             joinButton.gameObject.SetActive(
                 !showPlayingButtons && GamingHubManager.Instance.GameRoom == null
             );
+            leaveButton.gameObject.SetActive(GamingHubManager.Instance.GameRoom != null);
             closeMenu.gameObject.SetActive(showPlayingButtons);
             startButton.gameObject.SetActive(
                 !showPlayingButtons && GamingHubManager.Instance.GameRoom?.Player.IsLeader == true

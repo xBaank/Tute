@@ -53,6 +53,7 @@ namespace Assets.Scripts.Managers
         {
             await UniTask.Yield();
             GameRoom = null;
+            OnRoomDataUpdated?.Invoke();
             MenuManager.Instance.LoadServerMenu(_cancellationToken).Forget();
         }
 
@@ -121,8 +122,6 @@ namespace Assets.Scripts.Managers
 
         public async UniTask LeaveRoom()
         {
-            if (GameRoom?.Player is null)
-                return;
             await Client.LeaveAsync();
             GameRoom = null;
             OnRoomDataUpdated?.Invoke();

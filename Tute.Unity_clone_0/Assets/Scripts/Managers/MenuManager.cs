@@ -9,6 +9,7 @@ namespace Assets.Scripts.Managers
     public class MenuManager : SingletonBase<MenuManager>
     {
         private bool IsMenuLoaded;
+        private SemaphoreSlim _semaphore = new(1);
 
         private void Awake()
         {
@@ -23,7 +24,7 @@ namespace Assets.Scripts.Managers
                     () =>
                         InputSystem.actions.FindAction("Escape").WasPressedThisFrame()
                         && GamingHubManager.Instance.State == GameState.Playing
-                );
+                , cancellationToken: token);
 
                 await SwapMenu(token);
             }
@@ -48,22 +49,42 @@ namespace Assets.Scripts.Managers
 
         public async UniTask<bool> LoadMenu(CancellationToken token)
         {
-            if (IsMenuLoaded)
-                return false;
-            await SceneManager
-                .LoadSceneAsync("Menu", LoadSceneMode.Additive)
-                .WithCancellation(token);
-            IsMenuLoaded = true;
-            return true;
+            await _semaphore.WaitAsync();
+            try
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (IsMenuLoaded)
+                    return false;
+                await SceneManager
+                    .LoadSceneAsync("Menu", LoadSceneMode.Additive)
+                    .WithCancellation(token);
+                IsMenuLoaded = true;
+                return true;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         public async UniTask<bool> UnloadMenu(CancellationToken token)
         {
-            if (!IsMenuLoaded)
-                return false;
-            await SceneManager.UnloadSceneAsync("Menu").WithCancellation(token);
-            IsMenuLoaded = false;
-            return true;
+            await _semaphore.WaitAsync();
+            try
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (!IsMenuLoaded)
+                    return false;
+                await SceneManager.UnloadSceneAsync("Menu").WithCancellation(token);
+                IsMenuLoaded = false;
+                return true;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         public async UniTask<bool> SwapMenu(CancellationToken token) =>
