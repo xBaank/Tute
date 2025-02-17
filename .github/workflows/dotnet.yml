@@ -43,17 +43,17 @@ jobs:
       with:
         name: Tute-server-osx64
         path: Tute.Server/bin/Release/net9.0/osx-x64/publish
-  build-client:
+  build-windows-client:
      runs-on: ubuntu-latest
      steps:
      - uses: actions/checkout@v4
      - uses: actions/cache@v4
        with:
           path: Tute.Unity/Library
-          key: Library-Tute.Unity-TargetPlatform
+          key: Library-Tute.Unity-Windows
           restore-keys: |
-            Library-Tute.Unity-
-            Library-
+            Library-Tute.Unity-Windows
+            Library-Windows
      - name: Setup .NET
        uses: actions/setup-dotnet@v4
        with:
@@ -71,7 +71,58 @@ jobs:
        with:
         projectPath: ./Tute.Unity
         targetPlatform: StandaloneWindows64
-     - uses: actions/upload-artifact@v4
+        buildName: Tute-Windows
+     - name: Upload windows client
+       uses: actions/upload-artifact@v4
        with:
-          name: Tute-client
-          path: build
+          name: Tute-windows
+          path: build/StandaloneWindows64
+  build-android-client:
+     runs-on: ubuntu-latest
+     steps:
+     - uses: actions/checkout@v4
+     - name: Free Disk Space (Ubuntu)
+       uses: jlumbroso/free-disk-space@main
+       with:
+        # this might remove tools that are actually needed,
+        # if set to "true" but frees about 6 GB
+        tool-cache: false
+        
+        # all of these default to true, but feel free to set to
+        # "false" if necessary for your workflow
+        android: false
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+     - uses: actions/cache@v4
+       with:
+          path: Tute.Unity/Library
+          key: Library-Tute.Unity-Android
+          restore-keys: |
+            Library-Tute.Unity-Android
+            Library-Android
+     - name: Setup .NET
+       uses: actions/setup-dotnet@v4
+       with:
+        dotnet-version: 9.0.x
+     - name: Restore tools
+       run: dotnet tool restore
+     - name: Restore nuget packages
+       run: dotnet nugetforunity restore Tute.Unity
+     - name: Build Tute Android
+       uses: game-ci/unity-builder@v4
+       env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+       with:
+        projectPath: ./Tute.Unity
+        targetPlatform: Android
+        buildName: Tute-Android
+     - name: Upload android client
+       uses: actions/upload-artifact@v4
+       with:
+          name: Tute-android
+          path: build/Android
