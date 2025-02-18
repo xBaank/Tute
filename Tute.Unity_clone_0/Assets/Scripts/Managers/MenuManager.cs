@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using Tute.Shared.Models;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
@@ -13,6 +14,7 @@ namespace Assets.Scripts.Managers
 
         private void Awake()
         {
+            Screen.SetResolution(1080, 1920, true);
             CreateInstance();
         }
 
