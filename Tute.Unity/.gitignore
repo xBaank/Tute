@@ -78,3 +78,6 @@ crashlytics-build.properties
 # https://packages.grpc.io/
 [Aa]ssets/Plugins/Google.Protobuf/
 [Aa]ssets/Plugins/Google.Protobuf.meta
+
+#Android build temp folder
+/.utmp/*
