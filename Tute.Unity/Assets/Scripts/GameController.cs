@@ -77,7 +77,7 @@ namespace Assets.Scripts
             _cardRowManager = new CardRowManager(
                 stackPosition.position.x,
                 stackPosition.position.y,
-                1.1f
+                2f
             );
 
             MenuManager.Instance.LoadMenu(_cancellationToken).Forget();

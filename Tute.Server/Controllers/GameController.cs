@@ -451,7 +451,7 @@ public class GameController(
             .FirstOrDefault();
         if (winner is not null)
             winner.WinsCount++;
-        if (gameRoom.StartIndex++ == gameRoom.Players.Count)
+        if (gameRoom.StartIndex++ == gameRoom.Players.Count - 1)
             gameRoom.StartIndex = 0;
         room.All.OnFinished(GetAllPlayersData());
     }
