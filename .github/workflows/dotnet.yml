@@ -45,6 +45,7 @@ jobs:
         path: Tute.Server/bin/Release/net9.0/osx-x64/publish
   build-windows-client:
      runs-on: ubuntu-latest
+     timeout-minutes: 30
      steps:
      - uses: actions/checkout@v4
      - uses: actions/cache@v4
@@ -79,6 +80,7 @@ jobs:
           path: build/StandaloneWindows64
   build-android-client:
      runs-on: ubuntu-latest
+     timeout-minutes: 60
      steps:
      - uses: actions/checkout@v4
      - name: Free Disk Space (Ubuntu)
