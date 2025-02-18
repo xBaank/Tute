@@ -32,6 +32,7 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
             outputHelper.WriteLine(
                 $"Received data for {gameData.PlayerData.Player.Name}, Next player is {gameData.NextPlayer?.Name}"
             );
+            Mock.Object.OnGameData(gameData);
             GameDataResponse = gameData;
         }
         finally

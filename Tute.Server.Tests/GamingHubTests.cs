@@ -311,6 +311,58 @@ public class GamingHubTests : IAsyncDisposable
     }
 
     [Theory(Timeout = 30_000)]
+    [InlineData("deck", false)]
+    public async Task Should_change_next_player_on_next_game(string deckName, bool shuffled)
+    {
+        var clientFake1 = new GamingHubReceiverFake(output);
+        var clientFake2 = new GamingHubReceiverFake(output);
+        var client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake1,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var client2 = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+            _channel,
+            clientFake2,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        var (player1, _) = await client.JoinAsync("test", "first", deckName, shuffled);
+        var (player2, _) = await client2.JoinAsync("test", "second");
+
+        await client.StartAsync();
+
+        clientFake1.GameDataResponse?.NextPlayer.ShouldNotBeNull();
+        clientFake1.GameDataResponse!.NextPlayer?.ConnectionId.ShouldBe(player1.ConnectionId);
+        clientFake2.GameDataResponse?.NextPlayer.ShouldNotBeNull();
+        clientFake2.GameDataResponse!.NextPlayer?.ConnectionId.ShouldBe(player1.ConnectionId);
+
+        var handler1 = GameHandler(
+            clientFake1,
+            client,
+            player1,
+            TestContext.Current.CancellationToken
+        );
+        var handler2 = GameHandler(
+            clientFake2,
+            client2,
+            player2,
+            TestContext.Current.CancellationToken
+        );
+
+        await Task.WhenAll(handler1, handler2);
+
+        await client.StartAsync();
+
+        await clientFake1.Mock.AsyncVerify(i => i.OnGameData(It.IsAny<GameDataResponse>()), Times.AtLeastOnce(), TimeSpan.FromSeconds(5), token: TestContext.Current.CancellationToken);
+        await clientFake2.Mock.AsyncVerify(i => i.OnGameData(It.IsAny<GameDataResponse>()), Times.AtLeastOnce(), TimeSpan.FromSeconds(5), token: TestContext.Current.CancellationToken);
+
+        clientFake1.GameDataResponse?.NextPlayer.ShouldNotBeNull();
+        clientFake1.GameDataResponse!.NextPlayer?.ConnectionId.ShouldBe(player2.ConnectionId);
+        clientFake2.GameDataResponse?.NextPlayer.ShouldNotBeNull();
+        clientFake2.GameDataResponse!.NextPlayer?.ConnectionId.ShouldBe(player2.ConnectionId);
+    }
+
+    [Theory(Timeout = 30_000)]
     [InlineData("short_deck", false)]
     public async Task Should_get_las_diez_del_monte(string deckName, bool shuffled)
     {
