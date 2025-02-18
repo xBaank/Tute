@@ -11,7 +11,6 @@ using DG.Tweening;
 using Grpc.Core;
 using Tute.Shared.Models;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Assets.Scripts
@@ -28,22 +27,19 @@ namespace Assets.Scripts
         private CardNoBehaviour noBehaviorCardPrefab;
 
         [SerializeField]
-        private TextAsset cardsData;
+        private RectTransform stackPosition;
 
         [SerializeField]
-        private Transform stackPosition;
+        private RectTransform spawPosition;
 
         [SerializeField]
-        private Transform spawPosition;
+        private RectTransform usedCardsPosition;
 
         [SerializeField]
-        private Transform usedCardsPosition;
+        private RectTransform pintePosition;
 
         [SerializeField]
-        private Transform pintePosition;
-
-        [SerializeField]
-        private Transform gainedPosition;
+        private RectTransform gainedPosition;
 
         [SerializeField]
         private Sprite[] spriteSheet;
@@ -77,8 +73,16 @@ namespace Assets.Scripts
             _cardRowManager = new CardRowManager(
                 stackPosition.position.x,
                 stackPosition.position.y,
-                2f
+                Camera.main.aspect
             );
+
+            var backCard = new CardData { SpriteName = "back" };
+            var card = InstanceUsedCard(backCard);
+            var card2 = InstanceUsedCard(backCard);
+            card.transform.position = spawPosition.position.ToVector2();
+            card2.transform.position = gainedPosition.position.ToVector2();
+            card.transform.rotation = spawPosition.rotation;
+            card2.transform.rotation = gainedPosition.rotation;
 
             MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
             MenuManager.Instance.HandleMenu(token: _cancellationToken).Forget();
@@ -136,9 +140,7 @@ namespace Assets.Scripts
                 _nextPlayer = null;
                 _pinte = null;
 
-                await UniTask.WaitUntil(
-                    () => InputSystem.actions.FindAction("Escape").WasReleasedThisFrame()
-                );
+                await UniTask.WaitForSeconds(5, cancellationToken: _cancellationToken);
                 await MenuManager.Instance.LoadMenu(_cancellationToken);
             }
             finally
@@ -159,7 +161,8 @@ namespace Assets.Scripts
                 card.AudioController = audioController;
                 card.Sprite = spriteSheet.FirstOrDefault(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
-                card.transform.position = spawPosition.position;
+                card.transform.position = spawPosition.position.ToVector2();
+                card.transform.localScale *= Camera.main.aspect / 1.7f;
                 yield return card;
             }
         }
@@ -169,9 +172,10 @@ namespace Assets.Scripts
             _cancellationToken.ThrowIfCancellationRequested();
             var card = Instantiate(noBehaviorCardPrefab, transform);
             card.CardData = item;
-            card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
+            card.Sprite = spriteSheet.FirstOrDefault(sprite => sprite.name == item.SpriteName);
             card.name = item.Name;
             card.transform.position = new Vector2(0, -10);
+            card.transform.localScale *= Camera.main.aspect / 1.7f;
             return card;
         }
 
@@ -182,7 +186,8 @@ namespace Assets.Scripts
             card.CardData = item;
             card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
             card.name = item.Name;
-            card.transform.position = new Vector2(0, -10);
+            card.transform.position = pintePosition.position.ToVector2();
+            card.transform.localScale *= Camera.main.aspect / 1.7f;
             return card;
         }
 
@@ -272,8 +277,8 @@ namespace Assets.Scripts
                     Destroy(_pinte.gameObject);
                 _pinte = InstancePinte(cardData);
                 _pinte.OnClick += (i) => ChangePinte(i).Forget();
-                _pinte.transform.position = spawPosition.position;
-                _pinte.transform.DOMove(pintePosition.position, 0.1f);
+                _pinte.transform.position = spawPosition.position.ToVector2();
+                _pinte.transform.DOMove(pintePosition.position.ToVector2(), 0.1f);
             }
 
             return UniTask.CompletedTask;
@@ -292,13 +297,10 @@ namespace Assets.Scripts
                 item.transform.position = _cardUsedPosition;
             }
 
+            var targetPosition = usedCardsPosition.transform.position + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right);
             _currentUsedCardsGo.Add(item);
             audioController.PlayFlick();
-            item.transform.DOMove(
-                usedCardsPosition.transform.position
-                    + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right),
-                0.1f
-            );
+            item.transform.DOMove(targetPosition.ToVector2(), 0.1f);
         }
 
         private async UniTask SetData(GameDataResponse gameDataResponse)
@@ -327,7 +329,7 @@ namespace Assets.Scripts
                         .Select(i =>
                             winned
                                 ? i
-                                    .transform.DOMove(gainedPosition.transform.position, time)
+                                    .transform.DOMove(gainedPosition.transform.position.ToVector2(), time)
                                     .AsyncWaitForCompletion()
                                 : i
                                     .transform.DOMove(new Vector2(0, 20), time)

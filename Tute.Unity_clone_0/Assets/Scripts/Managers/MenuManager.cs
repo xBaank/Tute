@@ -10,11 +10,10 @@ namespace Assets.Scripts.Managers
     public class MenuManager : SingletonBase<MenuManager>
     {
         private bool IsMenuLoaded;
-        private SemaphoreSlim _semaphore = new(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         private void Awake()
         {
-            Screen.SetResolution(1080, 1920, true);
             CreateInstance();
         }
 
