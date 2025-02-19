@@ -50,13 +50,12 @@ namespace Assets.Scripts.Managers
 
         public async UniTask<bool> LoadMenu(CancellationToken token)
         {
-            if (IsMenuLoaded)
-                return false;
-
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync(token);
             try
             {
-                token.ThrowIfCancellationRequested();
+                if (IsMenuLoaded)
+                    return false;
+
                 await SceneManager
                     .LoadSceneAsync("Menu", LoadSceneMode.Additive)
                     .WithCancellation(token);
@@ -71,13 +70,12 @@ namespace Assets.Scripts.Managers
 
         public async UniTask<bool> UnloadMenu(CancellationToken token)
         {
-            if (!IsMenuLoaded)
-                return false;
-
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync(token);
             try
             {
-                token.ThrowIfCancellationRequested();
+                if (!IsMenuLoaded)
+                    return false;
+
                 await SceneManager.UnloadSceneAsync("Menu").WithCancellation(token);
                 IsMenuLoaded = false;
                 return true;

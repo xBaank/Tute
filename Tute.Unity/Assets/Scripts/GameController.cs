@@ -64,6 +64,7 @@ namespace Assets.Scripts
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
         private readonly SemaphoreSlim _currentSemaphore = new(1);
+        private bool _isMenuCliked;
         private Player _nextPlayer;
         private CardRowManager _cardRowManager;
         private Vector2 _cardUsedPosition;
@@ -121,7 +122,16 @@ namespace Assets.Scripts
             DOTween.Clear();
         }
 
-        private void SwapMenuForget() => MenuManager.Instance.SwapMenu(_cancellationToken).Forget();
+        private void SwapMenuForget() => SwapMenu().Forget();
+
+        private async UniTask SwapMenu()
+        {
+            if (_isMenuCliked) return;
+            _isMenuCliked = true;
+            await MenuManager.Instance.SwapMenu(_cancellationToken);
+            await UniTask.WaitForSeconds(0.5f, cancellationToken: _cancellationToken);
+            _isMenuCliked = false;
+        }
 
         private void StartForget() => OnStart().Forget();
 
