@@ -13,7 +13,6 @@ namespace Assets.Scripts.Cards
     {
         private SpriteRenderer spriteRenderer;
         private Vector2 startDif;
-        private Vector2 startPosition;
         internal Sprite Sprite { get; set; }
         internal CardRowManager CardRowManager { get; set; }
         internal CardData CardData { get; set; }
@@ -62,7 +61,6 @@ namespace Assets.Scripts.Cards
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            startPosition = transform.position;
             var mousePos = eventData.pointerPressRaycast.worldPosition;
             startDif = transform.position - mousePos;
             CardRowManager.CurrentPosition = transform.position;

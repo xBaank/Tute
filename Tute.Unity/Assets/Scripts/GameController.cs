@@ -9,6 +9,7 @@ using Assets.Scripts.Services;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Grpc.Core;
+using TMPro;
 using Tute.Shared.Models;
 using UnityEngine;
 using UnityEngine.UI;
@@ -53,6 +54,13 @@ namespace Assets.Scripts
         [SerializeField]
         private Button menu;
 
+        [SerializeField]
+        private TMP_Text turnText;
+
+
+        [SerializeField]
+        private TMP_Text pinteText;
+
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
         private readonly SemaphoreSlim _currentSemaphore = new(1);
@@ -80,9 +88,9 @@ namespace Assets.Scripts
             var card = InstanceUsedCard(backCard);
             var card2 = InstanceUsedCard(backCard);
             card.transform.position = spawPosition.position.ToVector2();
-            card2.transform.position = gainedPosition.position.ToVector2();
-            card.transform.rotation = spawPosition.rotation;
-            card2.transform.rotation = gainedPosition.rotation;
+            card.transform.SetPositionAndRotation(new Vector3(card.transform.position.x, card.transform.position.y, -0.1f), spawPosition.rotation);
+            card2.transform.SetPositionAndRotation(gainedPosition.position.ToVector2(), gainedPosition.rotation);
+            RenderTurnText().Forget();
 
             MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
             MenuManager.Instance.HandleMenu(token: _cancellationToken).Forget();
@@ -96,9 +104,7 @@ namespace Assets.Scripts
             Client.OnStartEvent += StartForget;
             Client.OnFinishEvent += OnFinishForget;
 
-            menu.onClick.AddListener(
-                () => MenuManager.Instance.SwapMenu(_cancellationToken).Forget()
-            );
+            menu.onClick.AddListener(SwapMenuForget);
         }
 
         private void OnDestroy()
@@ -111,8 +117,11 @@ namespace Assets.Scripts
             Client.OnDiezDelMonteEvent -= OnDiezDelMonte;
             Client.OnStartEvent -= StartForget;
             Client.OnFinishEvent -= OnFinishForget;
+            menu.onClick.RemoveListener(SwapMenuForget);
             DOTween.Clear();
         }
+
+        private void SwapMenuForget() => MenuManager.Instance.SwapMenu(_cancellationToken).Forget();
 
         private void StartForget() => OnStart().Forget();
 
@@ -139,6 +148,7 @@ namespace Assets.Scripts
                     Destroy(_pinte.gameObject);
                 _nextPlayer = null;
                 _pinte = null;
+                await RenderTurnText();
 
                 await UniTask.WaitForSeconds(5, cancellationToken: _cancellationToken);
                 await MenuManager.Instance.LoadMenu(_cancellationToken);
@@ -262,14 +272,17 @@ namespace Assets.Scripts
             }
         }
 
-        private UniTask OnChangedPinte(CardData cardData)
+        private async UniTask OnChangedPinte(CardData cardData)
         {
             if (cardData == null)
             {
                 if (_pinte != null)
                     Destroy(_pinte.gameObject);
-                return UniTask.CompletedTask;
+
+                return;
             }
+
+
 
             if (_pinte == null || _pinte.CardData.Name != cardData.Name)
             {
@@ -279,9 +292,9 @@ namespace Assets.Scripts
                 _pinte.OnClick += (i) => ChangePinte(i).Forget();
                 _pinte.transform.position = spawPosition.position.ToVector2();
                 _pinte.transform.DOMove(pintePosition.position.ToVector2(), 0.1f);
+                _pinte.transform.DORotate(pintePosition.rotation.eulerAngles, 0.1f);
+                await RenderPinte(cardData.Type);
             }
-
-            return UniTask.CompletedTask;
         }
 
         private void SpawnUsedCard(CardData cardData, Player player)
@@ -301,6 +314,44 @@ namespace Assets.Scripts
             _currentUsedCardsGo.Add(item);
             audioController.PlayFlick();
             item.transform.DOMove(targetPosition.ToVector2(), 0.1f);
+        }
+
+        private async UniTask RenderPinte(CardType cardType)
+        {
+            var text = cardType switch
+            {
+                CardType.Coins => "oros",
+                CardType.Swords => "espadas",
+                CardType.Clubs => "bastos",
+                CardType.Cups => "copas",
+                _ => cardType.ToString(),
+            };
+
+            pinteText.text = $"Pinta en {text}".ToUpperInvariant();
+            pinteText.color = Color.cyan;
+            await UniTask.Yield(cancellationToken: _cancellationToken);
+        }
+
+        private async UniTask RenderTurnText()
+        {
+            if (_nextPlayer is null || SelfPlayer is null)
+            {
+                turnText.text = string.Empty;
+
+            }
+            else if (_nextPlayer.ConnectionId == SelfPlayer.ConnectionId)
+            {
+                turnText.text = "TU TURNO";
+                turnText.color = Color.green;
+            }
+            else if (_nextPlayer is not null)
+            {
+
+                turnText.text = $"TURNO DE <b>{_nextPlayer.Name}</b>";
+                turnText.color = Color.red;
+            }
+
+            await UniTask.Yield(cancellationToken: _cancellationToken);
         }
 
         private async UniTask SetData(GameDataResponse gameDataResponse)
@@ -384,6 +435,7 @@ namespace Assets.Scripts
                 }
 
                 _nextPlayer = gameDataResponse.NextPlayer;
+                await RenderTurnText();
             }
             finally
             {

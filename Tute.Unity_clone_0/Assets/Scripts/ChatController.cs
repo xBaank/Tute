@@ -70,8 +70,11 @@ namespace Assets.Scripts
             }
         }
 
-        private void SendChatMessage(string message) =>
+        private void SendChatMessage(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
             Client.SendMessage(message).AsUniTask().Forget();
+        }
 
         public void OnMessage(string message, Player player)
         {

@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Las 40 en oros
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 76b8d203d87716f4bb59f6df1dab9542, type: 2}
-  m_sharedMaterial: {fileID: 8330122234339048613, guid: 76b8d203d87716f4bb59f6df1dab9542, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9102283e453d8ef4190fa0411a307adc, type: 2}
+  m_sharedMaterial: {fileID: -2849466375734141326, guid: 9102283e453d8ef4190fa0411a307adc, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
