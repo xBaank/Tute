@@ -20,6 +20,7 @@ namespace Assets.Scripts.Cards
 
         public event Func<CardData, UniTask> OnClick;
         private CancellationToken _cancellationToken;
+        private bool isClicked;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
@@ -36,15 +37,30 @@ namespace Assets.Scripts.Cards
             await CardRowManager.DragCard(this, _cancellationToken);
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData) => OnPointerClickTask(eventData).Forget();
+
+        public async UniTask OnPointerClickTask(PointerEventData eventData)
         {
             if (eventData.dragging) return;
 
             if (CardRowManager.IsOrdering)
                 return;
 
-            OnClick?.Invoke(CardData).Forget();
+            if (isClicked)
+                return;
+
+            try
+            {
+                OnClick?.Invoke(CardData).Forget();
+                isClicked = true;
+                await UniTask.WaitForSeconds(0.3f, cancellationToken: _cancellationToken);
+            }
+            finally
+            {
+                isClicked = false;
+            }
         }
+
 
         private void OnDestroy()
         {

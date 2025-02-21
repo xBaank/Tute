@@ -11,6 +11,9 @@ using Tute.Shared.Models;
 
 namespace Tute.Server.Controllers;
 
+#if !DEBUG
+[Heartbeat(Enable = true, Interval = 10_000, Timeout = 5_000)]
+#endif
 public class GameController(
     GameRoom gameRoom,
     Player self,
