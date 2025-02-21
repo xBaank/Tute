@@ -9,9 +9,9 @@ using Assets.Scripts.Services;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Grpc.Core;
+using TMPro;
 using Tute.Shared.Models;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Assets.Scripts
@@ -28,22 +28,19 @@ namespace Assets.Scripts
         private CardNoBehaviour noBehaviorCardPrefab;
 
         [SerializeField]
-        private TextAsset cardsData;
+        private RectTransform stackPosition;
 
         [SerializeField]
-        private Transform stackPosition;
+        private RectTransform spawPosition;
 
         [SerializeField]
-        private Transform spawPosition;
+        private RectTransform usedCardsPosition;
 
         [SerializeField]
-        private Transform usedCardsPosition;
+        private RectTransform pintePosition;
 
         [SerializeField]
-        private Transform pintePosition;
-
-        [SerializeField]
-        private Transform gainedPosition;
+        private RectTransform gainedPosition;
 
         [SerializeField]
         private Sprite[] spriteSheet;
@@ -56,6 +53,12 @@ namespace Assets.Scripts
 
         [SerializeField]
         private Button menu;
+
+        [SerializeField]
+        private TMP_Text turnText;
+
+        [SerializeField]
+        private TMP_Text pinteText;
 
         private readonly List<Card> _currentCardsGo = new();
         private readonly List<CardNoBehaviour> _currentUsedCardsGo = new();
@@ -77,8 +80,16 @@ namespace Assets.Scripts
             _cardRowManager = new CardRowManager(
                 stackPosition.position.x,
                 stackPosition.position.y,
-                2f
+                Camera.main.aspect
             );
+
+            var backCard = new CardData { SpriteName = "back" };
+            var card = InstanceUsedCard(backCard);
+            var card2 = InstanceUsedCard(backCard);
+            card.transform.position = spawPosition.position.ToVector2();
+            card.transform.SetPositionAndRotation(new Vector3(card.transform.position.x, card.transform.position.y, -0.1f), spawPosition.rotation);
+            card2.transform.SetPositionAndRotation(gainedPosition.position.ToVector2(), gainedPosition.rotation);
+            RenderTurnText().Forget();
 
             MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
             MenuManager.Instance.HandleMenu(token: _cancellationToken).Forget();
@@ -92,9 +103,7 @@ namespace Assets.Scripts
             Client.OnStartEvent += StartForget;
             Client.OnFinishEvent += OnFinishForget;
 
-            menu.onClick.AddListener(
-                () => MenuManager.Instance.SwapMenu(_cancellationToken).Forget()
-            );
+            menu.onClick.AddListener(SwapMenuForget);
         }
 
         private void OnDestroy()
@@ -107,8 +116,11 @@ namespace Assets.Scripts
             Client.OnDiezDelMonteEvent -= OnDiezDelMonte;
             Client.OnStartEvent -= StartForget;
             Client.OnFinishEvent -= OnFinishForget;
+            menu.onClick.RemoveListener(SwapMenuForget);
             DOTween.Clear();
         }
+
+        private void SwapMenuForget() => MenuManager.Instance.SwapMenu(_cancellationToken).Forget();
 
         private void StartForget() => OnStart().Forget();
 
@@ -135,10 +147,9 @@ namespace Assets.Scripts
                     Destroy(_pinte.gameObject);
                 _nextPlayer = null;
                 _pinte = null;
+                await RenderTurnText();
 
-                await UniTask.WaitUntil(
-                    () => InputSystem.actions.FindAction("Escape").WasReleasedThisFrame()
-                );
+                await UniTask.WaitForSeconds(5, cancellationToken: _cancellationToken);
                 await MenuManager.Instance.LoadMenu(_cancellationToken);
             }
             finally
@@ -159,7 +170,8 @@ namespace Assets.Scripts
                 card.AudioController = audioController;
                 card.Sprite = spriteSheet.FirstOrDefault(sprite => sprite.name == item.SpriteName);
                 card.name = item.Name;
-                card.transform.position = spawPosition.position;
+                card.transform.position = spawPosition.position.ToVector2();
+                card.transform.localScale *= Camera.main.aspect / 1.7f;
                 yield return card;
             }
         }
@@ -169,9 +181,10 @@ namespace Assets.Scripts
             _cancellationToken.ThrowIfCancellationRequested();
             var card = Instantiate(noBehaviorCardPrefab, transform);
             card.CardData = item;
-            card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
+            card.Sprite = spriteSheet.FirstOrDefault(sprite => sprite.name == item.SpriteName);
             card.name = item.Name;
             card.transform.position = new Vector2(0, -10);
+            card.transform.localScale *= Camera.main.aspect / 1.7f;
             return card;
         }
 
@@ -182,7 +195,8 @@ namespace Assets.Scripts
             card.CardData = item;
             card.Sprite = spriteSheet.First(sprite => sprite.name == item.SpriteName);
             card.name = item.Name;
-            card.transform.position = new Vector2(0, -10);
+            card.transform.position = pintePosition.position.ToVector2();
+            card.transform.localScale *= Camera.main.aspect / 1.7f;
             return card;
         }
 
@@ -257,14 +271,17 @@ namespace Assets.Scripts
             }
         }
 
-        private UniTask OnChangedPinte(CardData cardData)
+        private async UniTask OnChangedPinte(CardData cardData)
         {
             if (cardData == null)
             {
                 if (_pinte != null)
                     Destroy(_pinte.gameObject);
-                return UniTask.CompletedTask;
+
+                return;
             }
+
+
 
             if (_pinte == null || _pinte.CardData.Name != cardData.Name)
             {
@@ -272,11 +289,11 @@ namespace Assets.Scripts
                     Destroy(_pinte.gameObject);
                 _pinte = InstancePinte(cardData);
                 _pinte.OnClick += (i) => ChangePinte(i).Forget();
-                _pinte.transform.position = spawPosition.position;
-                _pinte.transform.DOMove(pintePosition.position, 0.1f);
+                _pinte.transform.position = spawPosition.position.ToVector2();
+                _pinte.transform.DOMove(pintePosition.position.ToVector2(), 0.1f);
+                _pinte.transform.DORotate(pintePosition.rotation.eulerAngles, 0.1f);
+                await RenderPinte(cardData.Type);
             }
-
-            return UniTask.CompletedTask;
         }
 
         private void SpawnUsedCard(CardData cardData, Player player)
@@ -292,13 +309,48 @@ namespace Assets.Scripts
                 item.transform.position = _cardUsedPosition;
             }
 
+            var targetPosition = usedCardsPosition.transform.position + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right);
             _currentUsedCardsGo.Add(item);
             audioController.PlayFlick();
-            item.transform.DOMove(
-                usedCardsPosition.transform.position
-                    + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right),
-                0.1f
-            );
+            item.transform.DOMove(targetPosition.ToVector2(), 0.1f);
+        }
+
+        private async UniTask RenderPinte(CardType cardType)
+        {
+            var text = cardType switch
+            {
+                CardType.Coins => "oros",
+                CardType.Swords => "espadas",
+                CardType.Clubs => "bastos",
+                CardType.Cups => "copas",
+                _ => cardType.ToString(),
+            };
+
+            pinteText.text = $"Pinta en {text}".ToUpperInvariant();
+            pinteText.color = Color.cyan;
+            await UniTask.Yield(cancellationToken: _cancellationToken);
+        }
+
+        private async UniTask RenderTurnText()
+        {
+            if (_nextPlayer is null || SelfPlayer is null)
+            {
+                turnText.text = string.Empty;
+
+            }
+            else if (_nextPlayer.ConnectionId == SelfPlayer.ConnectionId)
+            {
+                turnText.text = "TU TURNO";
+                turnText.color = Color.green;
+            }
+            else if (_nextPlayer is not null)
+            {
+
+                turnText.text = $"TURNO DE <b>{_nextPlayer.Name}</b>";
+                turnText.color = Color.red;
+            }
+
+            await UniTask.Yield(cancellationToken: _cancellationToken);
         }
 
         private async UniTask SetData(GameDataResponse gameDataResponse)
@@ -327,7 +379,7 @@ namespace Assets.Scripts
                         .Select(i =>
                             winned
                                 ? i
-                                    .transform.DOMove(gainedPosition.transform.position, time)
+                                    .transform.DOMove(gainedPosition.transform.position.ToVector2(), time)
                                     .AsyncWaitForCompletion()
                                 : i
                                     .transform.DOMove(new Vector2(0, 20), time)
@@ -382,6 +434,7 @@ namespace Assets.Scripts
                 }
 
                 _nextPlayer = gameDataResponse.NextPlayer;
+                await RenderTurnText();
             }
             finally
             {
@@ -429,6 +482,7 @@ namespace Assets.Scripts
             }
         }
 
+#if UNITY_EDITOR
         private void OnGUI()
         {
             GUI.Label(new Rect(15, 15, 100, 30), $"Leader: {SelfPlayer?.IsLeader}");
@@ -443,5 +497,7 @@ namespace Assets.Scripts
             );
             GUI.Label(new Rect(15, 75, 100, 30), $"Wins: {CurrentData?.PlayerData.WinsCount}");
         }
+
+#endif
     }
 }

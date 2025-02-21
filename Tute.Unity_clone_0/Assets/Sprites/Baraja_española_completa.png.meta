@@ -96,6 +96,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -1178,7 +1191,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: "Baraja_espa\xF1ola_completa_49"
+      name: back
       rect:
         serializedVersion: 2
         x: 208
@@ -1440,7 +1453,6 @@ TextureImporter:
       "Baraja_espa\xF1ola_completa_43": 636296626
       "Baraja_espa\xF1ola_completa_44": -927528000
       "Baraja_espa\xF1ola_completa_48": 351646605
-      "Baraja_espa\xF1ola_completa_49": -589337376
       "Baraja_espa\xF1ola_completa_50": 1147181616
       "Baraja_espa\xF1ola_completa_51": 1613394575
       "Baraja_espa\xF1ola_completa_52": 152078322
@@ -1457,6 +1469,7 @@ TextureImporter:
       ace_coins: 977477526
       ace_cups: 1718552454
       ace_swords: -1147586007
+      back: -589337376
       five_clubs: 1728589049
       five_coins: -535220105
       five_cups: -1316207501

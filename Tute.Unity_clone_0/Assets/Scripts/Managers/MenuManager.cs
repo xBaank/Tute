@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using Tute.Shared.Models;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
@@ -9,7 +10,7 @@ namespace Assets.Scripts.Managers
     public class MenuManager : SingletonBase<MenuManager>
     {
         private bool IsMenuLoaded;
-        private SemaphoreSlim _semaphore = new(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         private void Awake()
         {
@@ -49,13 +50,12 @@ namespace Assets.Scripts.Managers
 
         public async UniTask<bool> LoadMenu(CancellationToken token)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync(token);
             try
             {
-                token.ThrowIfCancellationRequested();
-
                 if (IsMenuLoaded)
                     return false;
+
                 await SceneManager
                     .LoadSceneAsync("Menu", LoadSceneMode.Additive)
                     .WithCancellation(token);
@@ -70,13 +70,12 @@ namespace Assets.Scripts.Managers
 
         public async UniTask<bool> UnloadMenu(CancellationToken token)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync(token);
             try
             {
-                token.ThrowIfCancellationRequested();
-
                 if (!IsMenuLoaded)
                     return false;
+
                 await SceneManager.UnloadSceneAsync("Menu").WithCancellation(token);
                 IsMenuLoaded = false;
                 return true;

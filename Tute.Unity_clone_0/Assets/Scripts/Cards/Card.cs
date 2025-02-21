@@ -8,28 +8,24 @@ using UnityEngine.InputSystem;
 
 namespace Assets.Scripts.Cards
 {
-    internal interface IPointHandler : IPointerDownHandler, IPointerUpHandler { }
 
-    public class Card : MonoBehaviour, IPointHandler
+    public class Card : MonoBehaviour, IPointerClickHandler, IDragHandler, IBeginDragHandler, IEndDragHandler
     {
         private SpriteRenderer spriteRenderer;
-        private Animator animator;
         private Vector2 startDif;
-        private Vector2 startPosition;
         internal Sprite Sprite { get; set; }
         internal CardRowManager CardRowManager { get; set; }
         internal CardData CardData { get; set; }
         internal AudioController AudioController { get; set; }
-        private CancellationTokenSource _cancellationTokenSource = new();
 
         public event Func<CardData, UniTask> OnClick;
         private CancellationToken _cancellationToken;
+        private bool isClicked;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         private void Start()
         {
             _cancellationToken = destroyCancellationToken;
-            animator = GetComponent<Animator>();
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             spriteRenderer.sprite = Sprite;
         }
@@ -41,50 +37,54 @@ namespace Assets.Scripts.Cards
             await CardRowManager.DragCard(this, _cancellationToken);
         }
 
-        private async UniTaskVoid FollowCardWithMouse(CancellationToken cancellationToken = default)
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var position =
-                    Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())
-                    + (Vector3)startDif;
-                transform.position = position + new Vector3(0, 0, 10);
-                await UniTask.Yield();
-            }
-        }
+        public void OnPointerClick(PointerEventData eventData) => OnPointerClickTask(eventData).Forget();
 
-        public void OnPointerDown(PointerEventData eventData)
+        public async UniTask OnPointerClickTask(PointerEventData eventData)
         {
-            startPosition = transform.position;
+            if (eventData.dragging) return;
+
             if (CardRowManager.IsOrdering)
                 return;
 
-            var mousePos = eventData.pointerPressRaycast.worldPosition;
-            startDif = transform.position - mousePos;
-            CardRowManager.CurrentPosition = transform.position;
+            if (isClicked)
+                return;
 
-            FollowCardWithMouse(_cancellationTokenSource.Token).Forget();
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource = new();
-            if (Vector2.Distance(startPosition, transform.position) < 0.1f)
+            try
             {
                 OnClick?.Invoke(CardData).Forget();
-                return;
+                isClicked = true;
+                await UniTask.WaitForSeconds(0.3f, cancellationToken: _cancellationToken);
             }
-
-            if (CardRowManager.IsOrdering)
-                return;
-
-            DragCards().Forget();
+            finally
+            {
+                isClicked = false;
+            }
         }
+
 
         private void OnDestroy()
         {
             OnClick = null;
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            var position =
+                  Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())
+                  + (Vector3)startDif;
+            transform.position = position + new Vector3(0, 0, 10);
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            var mousePos = eventData.pointerPressRaycast.worldPosition;
+            startDif = transform.position - mousePos;
+            CardRowManager.CurrentPosition = transform.position;
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            DragCards().Forget();
         }
     }
 }

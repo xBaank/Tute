@@ -6,13 +6,12 @@ namespace Tute.Server.Controllers;
 
 internal class ChatController(IGroup<IGamingHubReceiver> room, Player self)
 {
-    private readonly List<(Player sender, string message)> messages = [];
 
     public ValueTask SendMessage(string message)
     {
         var max = Math.Min(message.Length, 100);
         var trimmed = message.Trim()[..max];
-        messages.Add((self, trimmed));
+        if (string.IsNullOrWhiteSpace(trimmed)) return ValueTask.CompletedTask;
         room.All.OnMessage(trimmed, self);
         return ValueTask.CompletedTask;
     }
