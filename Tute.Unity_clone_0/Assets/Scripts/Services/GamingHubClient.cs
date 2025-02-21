@@ -9,6 +9,7 @@ using MagicOnion.Unity;
 using Tute.Shared.Constants;
 using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
+using UnityEngine;
 
 namespace Assets.Scripts.Services
 {
@@ -31,6 +32,7 @@ namespace Assets.Scripts.Services
         public event Action<string, Player> OnMessageEvent;
         public event Action OnDisconnected;
 
+        public Version Version { get; private set; }
         public bool IsConnected { get; private set; }
         public string Target => channel?.Target ?? string.Empty;
 
@@ -44,6 +46,19 @@ namespace Assets.Scripts.Services
                 grpcChannel,
                 this
             );
+
+            var serverVersion = new Version(await client.GetVersion());
+            var currentVersion = new Version(Application.version);
+
+            //TODO Check version with unity version and missmatch on screen
+            if (serverVersion.Major != currentVersion.Major || serverVersion.Minor > currentVersion.Minor)
+            {
+                await DisposeAsync().AsUniTask();
+                await WaitForDisconnectAsync().AsUniTask();
+                return;
+            }
+
+            Version = serverVersion;
             IsConnected = true;
             WaitForDisconnectAsync().AsUniTask().Forget();
         }
@@ -78,6 +93,7 @@ namespace Assets.Scripts.Services
         {
             await client.WaitForDisconnect();
             IsConnected = false;
+            Version = null;
             channel = null;
             OnDisconnected?.Invoke();
         }

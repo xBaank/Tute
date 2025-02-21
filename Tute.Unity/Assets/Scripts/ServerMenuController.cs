@@ -32,6 +32,9 @@ namespace Assets.Scripts
         private TMP_Text tmp_serverInfo;
 
         [SerializeField]
+        private TMP_Text tmp_version;
+
+        [SerializeField]
         private Button tmp_exitButton;
 
         private CancellationToken _cancellationToken;
@@ -99,22 +102,33 @@ namespace Assets.Scripts
                 GrpcChannelx.ForTarget(new GrpcChannelTarget(uri.Host, uri.Port, true))
             );
             RenderServerInfo();
-            RenderServerStatus();
+            RenderServerVersion();
         }
 
         private async UniTask RenderData()
         {
-            await UniTask.Yield(PlayerLoopTiming.Update);
-            RenderServerStatus();
+            await UniTask.Yield();
+            RenderVersion();
+            RenderServerVersion();
             RenderServerInfo();
         }
 
-        private void RenderServerStatus()
+        private void RenderVersion()
         {
-            var status = GamingHubManager.Instance.Client.IsConnected
-                ? "<color=green>Online</color>"
-                : "<color=red>Offline</color>";
-            tmp_status.text = $"<b>Server</b> {status}";
+            var version = $"<color=grey><b>{Application.version}</b></color>";
+            tmp_version.text = $"Version {version}";
+        }
+
+        private void RenderServerVersion()
+        {
+            if (!GamingHubManager.Instance.Client.IsConnected)
+            {
+                tmp_status.text = string.Empty;
+                return;
+            }
+
+            var version = $"<color=grey><b>{GamingHubManager.Instance.Client.Version}</b></color>";
+            tmp_status.text = $"Server version {version}";
         }
 
         private void RenderServerInfo()

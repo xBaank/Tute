@@ -20,6 +20,7 @@ namespace Tute.Shared.GamingHub
         ValueTask MakeMove(CardData card);
         ValueTask ChangePinte(CardData card);
         ValueTask SendMessage(string message);
+        ValueTask<string> GetVersion();
     }
 }
 #nullable disable

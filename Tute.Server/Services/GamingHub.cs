@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cysharp.Runtime.Multicast;
@@ -30,7 +31,8 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
-    //TODO fix leave join
+    public ValueTask<string> GetVersion() => ValueTask.FromResult(Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "Unknown");
+
     public async ValueTask<(Player, Player[])> JoinAsync(
         string roomname,
         string name,
