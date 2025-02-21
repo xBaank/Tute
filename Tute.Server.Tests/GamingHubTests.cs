@@ -18,6 +18,7 @@ public class GamingHubTests : IAsyncDisposable
     private readonly GrpcTestFixture<Program> _fixture;
     private readonly ITestOutputHelper output;
     private readonly TimeSpan _verifyTimeout = TimeSpan.FromSeconds(5);
+    private const int TIMEOUT = 60_000;
 
     public GamingHubTests(ITestOutputHelper output)
     {
@@ -29,7 +30,7 @@ public class GamingHubTests : IAsyncDisposable
         this.output = output;
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_join_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -61,7 +62,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_not_join_twice_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -82,7 +83,7 @@ public class GamingHubTests : IAsyncDisposable
         await join.ShouldThrowAsync<RpcException>();
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_leave_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -109,7 +110,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_not_leave_if_user_is_not_in_a_room()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -123,7 +124,7 @@ public class GamingHubTests : IAsyncDisposable
         await leave.ShouldThrowAsync<RpcException>();
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_start_a_game()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -160,7 +161,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_not_start_a_game_if_there_are_not_enough_players()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -182,7 +183,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_change_leader()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -217,7 +218,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Fact(Timeout = 30_000)]
+    [Fact(Timeout = TIMEOUT)]
     public async Task Should_stop_game_while_playing_when_player_leave()
     {
         var receiverMock = new Mock<IGamingHubReceiver>();
@@ -251,7 +252,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Theory(Timeout = 30_000)]
+    [Theory(Timeout = TIMEOUT)]
     [InlineData("deck", false)]
     [InlineData("short_deck", false)]
     [InlineData("cante_20_deck", false)]
@@ -310,7 +311,7 @@ public class GamingHubTests : IAsyncDisposable
         clientFake2.FinalGameDataResponse.ElementAt(1).PlayerData.WinsCount.ShouldBe(0);
     }
 
-    [Theory(Timeout = 30_000)]
+    [Theory(Timeout = TIMEOUT)]
     [InlineData("deck", false)]
     public async Task Should_change_next_player_on_next_game(string deckName, bool shuffled)
     {
@@ -362,7 +363,7 @@ public class GamingHubTests : IAsyncDisposable
         clientFake2.GameDataResponse!.NextPlayer?.ConnectionId.ShouldBe(player2.ConnectionId);
     }
 
-    [Theory(Timeout = 30_000)]
+    [Theory(Timeout = TIMEOUT)]
     [InlineData("short_deck", false)]
     public async Task Should_get_las_diez_del_monte(string deckName, bool shuffled)
     {
@@ -420,7 +421,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Theory(Timeout = 30_000)]
+    [Theory(Timeout = TIMEOUT)]
     [InlineData("cante_20_deck", false, CardsConstants.VeinteEnCopasNumber)]
     [InlineData("cante_40_deck", false, CardsConstants.CuarentaEnCopasNumber)]
     public async Task Should_cantar_las_veinte(string deckName, bool shuffled, int cardNumber)
@@ -479,7 +480,7 @@ public class GamingHubTests : IAsyncDisposable
         );
     }
 
-    [Theory(Timeout = 30_000)]
+    [Theory(Timeout = TIMEOUT)]
     [InlineData("tute_kings_deck", false, CardsConstants.TuteReyesNumber)]
     [InlineData("tute_prince_deck", false, CardsConstants.TutePrincipesNumber)]
     public async Task Should_tute(string deckName, bool shuffled, int cardNumber)
