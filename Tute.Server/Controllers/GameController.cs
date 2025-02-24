@@ -48,9 +48,17 @@ public class GameController(
 
     private async ValueTask ExitSelf()
     {
-        gameRoom.Players?.Remove(self);
-        gameRoom.PlayerDataByConnetion?.Remove(ConnectionId);
-        await room.RemoveAsync(context);
+        await semaphoreSlim.WaitAsync();
+        try
+        {
+            gameRoom.Players?.Remove(self);
+            gameRoom.PlayerDataByConnetion?.Remove(ConnectionId);
+            await room.RemoveAsync(context);
+        }
+        finally
+        {
+            semaphoreSlim.Release();
+        }
         room.Except(ConnectionId).OnLeave(self);
     }
 

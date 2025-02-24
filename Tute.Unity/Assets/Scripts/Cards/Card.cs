@@ -34,7 +34,6 @@ namespace Assets.Scripts.Cards
             _leftClick = InputSystem.actions.FindAction("Left Click");
             _collider2D = GetComponent<Collider2D>();
             CheckDrag().Forget();
-            // CheckClick().Forget();
         }
 
         private async UniTaskVoid CheckDrag()
@@ -104,29 +103,5 @@ namespace Assets.Scripts.Cards
         {
             OnClick = null;
         }
-
-        /*
-        public void OnDrag(PointerEventData eventData)
-        {
-            Debug.Log(_hold.ReadValue<Vector2>());
-            var position =
-                  Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())
-                  + (Vector3)startDif;
-            transform.position = position + new Vector3(0, 0, 10);
-        }
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            var position =
-                 Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())
-                 + (Vector3)startDif;
-            transform.position = position + new Vector3(0, 0, 10);
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            DragCards().Forget();
-        }
-        */
     }
 }
