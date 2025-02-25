@@ -309,10 +309,12 @@ namespace Assets.Scripts
                 item.transform.position = _cardUsedPosition;
             }
 
-            var targetPosition = usedCardsPosition.transform.position + (item.Sprite.bounds.size.x * _currentUsedCardsGo.Count * Vector3.right);
+            var targetPosition = usedCardsPosition.transform.position + (item.transform.localScale.x * item.Sprite.bounds.size.x * 0.7f * _currentUsedCardsGo.Count * Vector3.right);
             _currentUsedCardsGo.Add(item);
             audioController.PlayFlick();
-            item.transform.DOMove(targetPosition.ToVector2(), 0.1f);
+            targetPosition = new Vector3(targetPosition.x, targetPosition.y);
+            targetPosition += Vector3.back * _currentUsedCardsGo.Count;
+            item.transform.DOMove(targetPosition, 0.1f);
         }
 
         private async UniTask RenderPinte(CardType cardType)

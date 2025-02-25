@@ -183,6 +183,11 @@ public class GameController(
         {
             throw new TimeoutException("Server timeouted while assigning cards");
         }
+
+        if (gameCards.Count == 0)
+        {
+            gameRoom.Pinte = null;
+        }
     }
 
     public void CheckTute(Guid winnerId)
