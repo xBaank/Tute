@@ -81,8 +81,28 @@ public class GameController(
 
         room.All.OnStart();
 
-        var gameCards = new Stack<CardData>(gameRoom.Shuffled());
+        var gameCards = InitGameRoom();
+        InitPlayersData();
+        AssignCards(gameCards);
+        var pinte = GetPinte(gameCards);
 
+        EmitGameDataForEachPlayer();
+        room.All.OnChangedPinte(pinte);
+
+        return ValueTask.CompletedTask;
+    }
+
+    private CardData GetPinte(Stack<CardData> gameCards)
+    {
+        var pinte = gameCards.Pop();
+        gameRoom.Pinte = pinte;
+        gameRoom.PinteType = pinte;
+        return pinte;
+    }
+
+    private Stack<CardData> InitGameRoom()
+    {
+        var gameCards = new Stack<CardData>(gameRoom.Shuffled());
         gameRoom.State = GameState.Playing;
         gameRoom.PlayerDataByConnetion ??= [];
         gameRoom.UsedCardsByConnection = [];
@@ -90,7 +110,11 @@ public class GameController(
         gameRoom.StartIndex ??= 0;
         gameRoom.NextPlayer = gameRoom.Players[gameRoom.StartIndex.Value];
         gameRoom.WinnerId = null;
+        return gameCards;
+    }
 
+    private void InitPlayersData()
+    {
         //Init players data
         foreach (var item in gameRoom.Players)
         {
@@ -110,9 +134,15 @@ public class GameController(
                 };
             }
         }
+    }
+
+    private void AssignCards(Stack<CardData> gameCards)
+    {
+        //Timeout to shuffle
+        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
         //Add cards
-        while (true)
+        while (!cancellationTokenSource.IsCancellationRequested)
         {
             var currentplayer = gameRoom.Players.First();
 
@@ -136,14 +166,10 @@ public class GameController(
             }
         }
 
-        var pinte = gameCards.Pop();
-        gameRoom.Pinte = pinte;
-        gameRoom.PinteType = pinte;
-
-        EmitGameDataForEachPlayer();
-        room.All.OnChangedPinte(pinte);
-
-        return ValueTask.CompletedTask;
+        if (cancellationTokenSource.Token.IsCancellationRequested)
+        {
+            throw new TimeoutException("Server timeouted while assigning cards");
+        }
     }
 
     public void CheckTute(Guid winnerId)
