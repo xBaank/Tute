@@ -21,9 +21,16 @@ public class GameController(
     ServiceContext context
 )
 {
+    private static readonly Dictionary<int, int> cardsCountByPlayerCount = new()
+    {
+        [2] = 8,
+        [3] = 12,
+        [4] = 10
+    };
+
+    private readonly SemaphoreSlim semaphoreSlim = new(1);
     private Guid ConnectionId => self.ConnectionId;
     public bool IsPlayerInRoom => gameRoom.Players.Any(i => i.ConnectionId == ConnectionId);
-    private readonly SemaphoreSlim semaphoreSlim = new(1);
 
     public async ValueTask<bool> LeaveAsync()
     {
@@ -35,7 +42,7 @@ public class GameController(
         if (gameRoom.State == GameState.Room)
         {
             await ExitSelf();
-            if (gameRoom.Players.Count == 1)
+            if (gameRoom.Players.Any() && self.IsLeader)
             {
                 var player = gameRoom.Players.First();
                 player.IsLeader = true;
@@ -74,7 +81,7 @@ public class GameController(
             return ValueTask.CompletedTask;
         }
 
-        if (gameRoom.Players.Count != 2)
+        if (gameRoom.Players.Count < 2)
         {
             throw new ReturnStatusException((StatusCode)400, "Not enough players to start");
         }
@@ -82,9 +89,9 @@ public class GameController(
         room.All.OnStart();
 
         var gameCards = InitGameRoom();
+        var pinte = GetPinte(gameCards);
         InitPlayersData();
         AssignCards(gameCards);
-        var pinte = GetPinte(gameCards);
 
         EmitGameDataForEachPlayer();
         room.All.OnChangedPinte(pinte);
@@ -94,7 +101,7 @@ public class GameController(
 
     private CardData GetPinte(Stack<CardData> gameCards)
     {
-        var pinte = gameCards.Pop();
+        var pinte = gameCards.Last();
         gameRoom.Pinte = pinte;
         gameRoom.PinteType = pinte;
         return pinte;
@@ -102,7 +109,12 @@ public class GameController(
 
     private Stack<CardData> InitGameRoom()
     {
-        var gameCards = new Stack<CardData>(gameRoom.Shuffled());
+        var allCardsShuffled = gameRoom.Shuffled();
+        if (gameRoom.Players.Count == 3)
+        {
+            allCardsShuffled = allCardsShuffled.Where(i => i.Number != 2).ToList();
+        }
+        var gameCards = new Stack<CardData>(allCardsShuffled);
         gameRoom.State = GameState.Playing;
         gameRoom.PlayerDataByConnetion ??= [];
         gameRoom.UsedCardsByConnection = [];
@@ -141,6 +153,7 @@ public class GameController(
         //Timeout to shuffle
         var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
+
         //Add cards
         while (!cancellationTokenSource.IsCancellationRequested)
         {
@@ -160,7 +173,7 @@ public class GameController(
                 throw new InvalidOperationException("Error assigning cards");
             }
 
-            if (gameRoom.PlayerDataByConnetion.Values.All(i => i.Cards.Count == 7))
+            if (gameRoom.PlayerDataByConnetion.Values.All(i => i.Cards.Count == cardsCountByPlayerCount[gameRoom.Players.Count]))
             {
                 break;
             }
@@ -240,7 +253,7 @@ public class GameController(
 
     public async ValueTask ChangePinte(CardData card)
     {
-        CheckPlaying();
+        AssertPlaying();
 
         if (gameRoom.NextPlayer?.ConnectionId != ConnectionId)
             throw new ReturnStatusException((StatusCode)400, "It's not your turn");
@@ -293,7 +306,7 @@ public class GameController(
 
     public async ValueTask MakeMove(CardData card)
     {
-        CheckPlaying();
+        AssertPlaying();
 
         if (ConnectionId != gameRoom.NextPlayer?.ConnectionId)
             throw new ReturnStatusException((StatusCode)400, "Not your turn");
@@ -367,10 +380,11 @@ public class GameController(
                 {
                     var isNext = gameRoom.Cards.TryPop(out var nextCard);
                     if (isNext)
+                    {
                         playerCards.Cards.Add(nextCard);
+                    }
                     if (!isNext && gameRoom.Pinte != null)
                     {
-                        playerCards.Cards.Add(gameRoom.Pinte);
                         gameRoom.Pinte = null;
                         room.All.OnChangedPinte(gameRoom.Pinte);
                     }
@@ -505,7 +519,7 @@ public class GameController(
             WinnerId = gameRoom.WinnerId,
         };
 
-    private void CheckPlaying()
+    private void AssertPlaying()
     {
         if (gameRoom.State != GameState.Playing)
             throw new ReturnStatusException((StatusCode)400, "Game is not started");

@@ -110,5 +110,19 @@
         "spritename": "six_swords",
         "type": "Swords",
         "number": 6
+    },
+    {
+        "name": "Six of Swords",
+        "value": 0,
+        "spritename": "six_swords",
+        "type": "Swords",
+        "number": 6
+    },
+    {
+        "name": "Six of Swords",
+        "value": 0,
+        "spritename": "six_swords",
+        "type": "Swords",
+        "number": 6
     }
 ]

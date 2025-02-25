@@ -63,9 +63,9 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
             newPlayer.IsLeader = true;
         }
 
-        if (newGameRoom.Players.Count > 2)
+        if (newGameRoom.Players.Count > 4)
         {
-            throw new ReturnStatusException((StatusCode)400, "Can't add more than 2 players");
+            throw new ReturnStatusException((StatusCode)400, "Can't add more than 4 players");
         }
 
         self = newPlayer;
