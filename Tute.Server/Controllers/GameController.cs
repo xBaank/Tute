@@ -12,7 +12,7 @@ using Tute.Shared.Models;
 namespace Tute.Server.Controllers;
 
 #if !DEBUG
-[Heartbeat(Enable = true, Interval = 10_000, Timeout = 5_000)]
+[Heartbeat(Enable = true, Interval = 15_000, Timeout = 10_000)]
 #endif
 public class GameController(
     GameRoom gameRoom,
@@ -87,7 +87,6 @@ public class GameController(
         gameRoom.PlayerDataByConnetion ??= [];
         gameRoom.UsedCardsByConnection = [];
         gameRoom.Cards = gameCards;
-        //TODO should persist next player between games
         gameRoom.StartIndex ??= 0;
         gameRoom.NextPlayer = gameRoom.Players[gameRoom.StartIndex.Value];
         gameRoom.WinnerId = null;
