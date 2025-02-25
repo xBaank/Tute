@@ -15,12 +15,14 @@ public partial class Program
         builder.Services.AddGrpc();
         builder.Services.AddMagicOnion();
         builder.Services.AddSingleton<ConcurrentDictionary<string, GameRoom>>();
-        builder.WebHost.ConfigureKestrel(
-            (options) =>
-            {
-                options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http2);
-            }
-        );
+        builder
+            .WebHost.UseUrls("http://*:5000")
+            .ConfigureKestrel(
+                (options) =>
+                {
+                    options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http2);
+                }
+            );
 
         var app = builder.Build();
 
