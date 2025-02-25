@@ -25,6 +25,7 @@ namespace Assets.Scripts.Managers
 
         private void Awake()
         {
+            Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
             _cancellationToken = destroyCancellationToken;
 
             Client.OnJoinEvent += OnPlayerJoin;
