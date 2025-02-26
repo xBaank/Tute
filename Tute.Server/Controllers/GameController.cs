@@ -93,10 +93,38 @@ public class GameController(
         room.All.OnChangedPinte(pinte);
         InitPlayersData();
         AssignCards(gameCards);
+        AssignTeams();
         EmitGameDataForEachPlayer();
         room.All.OnChangedPinte(gameRoom.Pinte);
 
         return ValueTask.CompletedTask;
+    }
+
+    private void AssignTeams()
+    {
+        gameRoom.PlayersByTeam.Clear();
+
+        if (gameRoom.Players.Count is 4)
+        {
+            var teams = gameRoom.Players.Index().GroupBy(i => i.Index % 2 == 0);
+            foreach (var (teamIndex, team) in teams.Index())
+            {
+                var players = team.Select(i => i.Item).ToArray();
+                gameRoom.PlayersByTeam[teamIndex] = players;
+                foreach (var item in players)
+                {
+                    gameRoom.PlayerDataByConnetion[item.ConnectionId].TeamIndex = (short)teamIndex;
+                }
+            }
+        }
+        else
+        {
+            foreach (var (teamIndex, player) in gameRoom.Players.Index())
+            {
+                gameRoom.PlayersByTeam[teamIndex] = [player];
+                gameRoom.PlayerDataByConnetion[player.ConnectionId].TeamIndex = teamIndex;
+            }
+        }
     }
 
     private CardData GetPinte(Stack<CardData> gameCards)
@@ -522,6 +550,7 @@ public class GameController(
             GameState = gameRoom.State,
             GainedCards = playerData.GainedCards,
             WinnerId = gameRoom.WinnerId,
+            TeamIndex = playerData.TeamIndex,
         };
 
     private void AssertPlaying()

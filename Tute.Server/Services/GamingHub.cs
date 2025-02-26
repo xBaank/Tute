@@ -75,7 +75,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         newGameRoom.RoomContextsByConnection[ConnectionId] = Context;
         newGameRoom.Players.Add(self);
         gameController = new(gameRoom, self, room, Context);
-        chatController = new(room, self);
+        chatController = new(room, gameRoom, self);
 
         // Typed Server->Client broadcast.
         room.Except(ConnectionId).OnJoin(self);

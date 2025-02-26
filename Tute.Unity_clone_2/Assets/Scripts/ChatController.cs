@@ -53,32 +53,26 @@ namespace Assets.Scripts
 
         private void SendFinishMessage(List<GameDataResponse> data)
         {
-            if (data.Count is 2 or 3) SendFinishMessageFor2Or3Player(data);
-            else if (data.Count is 4) SendFinishMessageFor4Player(data);
-        }
+            var players = data.GroupBy(i => i.TeamIndex)
+                .OrderByDescending(i => i.SelectMany(i => i.GainedCards)
+                .Sum(i => i.Value))
+                .WithIndex();
 
-        private void SendFinishMessageFor2Or3Player(List<GameDataResponse> data)
-        {
-            foreach (var (index, item) in data.GetOrdered().WithIndex())
+            foreach (var (index, item) in players)
             {
+                var playersNames = item.Select(i => i.PlayerData.Player.Name);
+                var teamName = string.Join(" y ", playersNames);
+                var total = item.SelectMany(i => i.GainedCards).Sum(i => i.Value);
+
                 if (index == 0)
                 {
-                    OnSystemMessage(
-                        $"El ganador es {item.PlayerData.Player.Name} con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos"
-                    );
+                    OnSystemMessage($"El ganador es {teamName} con {total} puntos");
                 }
                 else
                 {
-                    OnSystemMessage(
-                        $"El jugador {item.PlayerData.Player.Name} ha perdido con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos"
-                    );
+                    OnSystemMessage($"{teamName} ha perdido con {total} puntos");
                 }
             }
-        }
-
-        private void SendFinishMessageFor4Player(List<GameDataResponse> data)
-        {
-            OnSystemMessage("TODO");
         }
 
         private void SendChatMessage(string message)
@@ -87,11 +81,11 @@ namespace Assets.Scripts
             Client.SendMessage(message).AsUniTask().Forget();
         }
 
-        public void OnMessage(string message, Player player)
+        public void OnMessage(string message, Player player, int teamIndex)
         {
             var tmp_text = Instantiate(chatMessagePrefab, content.transform);
             tmp_text.richText = true;
-            tmp_text.text = $"<color=lightblue>{player.Name}</color> : {message}";
+            tmp_text.text = $"{Utils.GetPlayerName(player.Name, teamIndex)} : {message}";
         }
 
         public void OnSystemMessage(string message)

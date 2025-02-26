@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tute.Shared.Models;
 
 namespace Assets.Scripts.Extensions
 {
@@ -17,9 +16,5 @@ namespace Assets.Scripts.Extensions
                 action(item);
             }
         }
-
-        public static IEnumerable<GameDataResponse> GetOrdered(
-            this IEnumerable<GameDataResponse> gameDataResponses
-        ) => gameDataResponses.OrderByDescending(i => i.GainedCards.Sum(i => i.Value));
     }
 }

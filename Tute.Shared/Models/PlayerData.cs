@@ -18,6 +18,9 @@ namespace Tute.Shared.Models
 
         [Key(3)]
         public int WinsCount { get; set; }
+
+        [Key(4)]
+        public int TeamIndex { get; set; }
     }
 
     public partial class PlayerData
