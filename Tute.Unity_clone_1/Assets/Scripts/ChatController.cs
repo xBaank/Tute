@@ -81,11 +81,11 @@ namespace Assets.Scripts
             Client.SendMessage(message).AsUniTask().Forget();
         }
 
-        public void OnMessage(string message, Player player, int teamIndex)
+        public void OnMessage(string message, Player player)
         {
             var tmp_text = Instantiate(chatMessagePrefab, content.transform);
             tmp_text.richText = true;
-            tmp_text.text = $"{Utils.GetPlayerName(player.Name, teamIndex)} : {message}";
+            tmp_text.text = $"{Utils.GetPlayerName(player.Name, player.TeamIndex)} : {message}";
         }
 
         public void OnSystemMessage(string message)

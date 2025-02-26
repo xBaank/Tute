@@ -108,7 +108,7 @@ namespace Assets.Scripts
                 return;
             }
             var name = GamingHubManager.Instance.GameRoom.Player.Name;
-            var teamIndex = GamingHubManager.Instance.CurrentData?.TeamIndex ?? 0;
+            var teamIndex = GamingHubManager.Instance.GameRoom.Player.TeamIndex;
             tmp_room.text =
                 $"<b><color=grey>Room</color></b>: {GamingHubManager.Instance.GameRoom.RoomName}";
             tmp_name.text =
@@ -198,7 +198,7 @@ namespace Assets.Scripts
             foreach (var item in GamingHubManager.Instance.GameRoom.Players)
             {
                 var leaderTag = item.IsLeader ? "<b><color=orange>(Leader)</color></b>" : "";
-                var text = $"- {leaderTag} {item.Name}";
+                var text = $"- {leaderTag} {Utils.GetPlayerName(item.Name, item.TeamIndex)}";
                 var tmpText = !textsByPlayer.ContainsKey(item)
                     ? Instantiate(playerNamePrefab, textContainer.transform)
                     : textsByPlayer[item];

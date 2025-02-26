@@ -16,6 +16,6 @@ namespace Tute.Shared.GamingHub
         void OnChangedPinte(CardData cardData);
         void OnStart();
         void OnFinished(List<GameDataResponse> allPlayerData);
-        void OnMessage(string message, Player player, int teamIndex = 0);
+        void OnMessage(string message, Player player);
     }
 }

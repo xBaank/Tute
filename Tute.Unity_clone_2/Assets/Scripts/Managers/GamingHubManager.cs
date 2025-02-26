@@ -95,12 +95,14 @@ namespace Assets.Scripts.Managers
             toUpdate.ConnectionId = player.ConnectionId;
             toUpdate.Name = player.Name;
             toUpdate.IsLeader = player.IsLeader;
+            toUpdate.TeamIndex = player.TeamIndex;
 
             if (toUpdate.ConnectionId == GameRoom.Player.ConnectionId)
             {
                 GameRoom.Player.ConnectionId = toUpdate.ConnectionId;
                 GameRoom.Player.Name = toUpdate.Name;
                 GameRoom.Player.IsLeader = toUpdate.IsLeader;
+                GameRoom.Player.TeamIndex = toUpdate.TeamIndex;
             }
 
             OnRoomDataUpdated?.Invoke();

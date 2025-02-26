@@ -46,6 +46,7 @@ public class GameController(
             {
                 var player = gameRoom.Players.First();
                 player.IsLeader = true;
+                player.TeamIndex = -1;
                 room.All.OnUpdated(player);
             }
         }
@@ -111,9 +112,10 @@ public class GameController(
             {
                 var players = team.Select(i => i.Item).ToArray();
                 gameRoom.PlayersByTeam[teamIndex] = players;
-                foreach (var item in players)
+                foreach (var player in players)
                 {
-                    gameRoom.PlayerDataByConnetion[item.ConnectionId].TeamIndex = (short)teamIndex;
+                    player.TeamIndex = teamIndex;
+                    room.All.OnUpdated(player);
                 }
             }
         }
@@ -122,7 +124,8 @@ public class GameController(
             foreach (var (teamIndex, player) in gameRoom.Players.Index())
             {
                 gameRoom.PlayersByTeam[teamIndex] = [player];
-                gameRoom.PlayerDataByConnetion[player.ConnectionId].TeamIndex = teamIndex;
+                player.TeamIndex = teamIndex;
+                room.All.OnUpdated(player);
             }
         }
     }
@@ -218,11 +221,11 @@ public class GameController(
         }
     }
 
-    public void CheckTute(Guid winnerId)
+    public void CheckTute(PlayerData winnerPlayer)
     {
         foreach (var (id, playerData) in gameRoom.PlayerDataByConnetion)
         {
-            if (winnerId != id)
+            if (winnerPlayer.TeamIndex != playerData.TeamIndex)
                 continue;
 
             var tuteKingCards = playerData.Cards.Where(i => i.Number == 12).ToList();
@@ -238,7 +241,7 @@ public class GameController(
             var tute = CardsConstants.GetTute(toUse.First().Number);
 
             gameRoom.PlayerDataByConnetion[ConnectionId].GainedCards.Add(tute);
-            room.All.OnTute(self, tute);
+            room.All.OnTute(playerData.Player, tute);
 
             gameRoom.NextPlayer = null;
             EmitGameDataForEachPlayer();
@@ -247,11 +250,11 @@ public class GameController(
         }
     }
 
-    public void CheckCantes(Guid winnerId)
+    public void CheckCantes(PlayerData winnerPlayer)
     {
         foreach (var (id, playerData) in gameRoom.PlayerDataByConnetion)
         {
-            if (id != winnerId)
+            if (winnerPlayer.TeamIndex != playerData.TeamIndex)
                 continue;
 
             var alreadycantes = playerData
@@ -280,7 +283,7 @@ public class GameController(
 
             var value = CardsConstants.GetCante(king!.Type, gameRoom.PinteType!.Type);
             gameRoom.PlayerDataByConnetion[id].GainedCards.Add(value);
-            room.All.OnCante(self, value);
+            room.All.OnCante(playerData.Player, value);
         }
     }
 
@@ -347,6 +350,7 @@ public class GameController(
         await semaphoreSlim.WaitAsync();
         try
         {
+            //TODO Fix checks for 2 and 3 players
             var typeToUse = gameRoom.UsedCardsByConnection.FirstOrDefault().Value;
             var isTypeDefined = typeToUse is not null;
             var isSameType = card.Type == typeToUse?.Type;
@@ -385,7 +389,7 @@ public class GameController(
                 throw new ReturnStatusException((StatusCode)400, "You must use pinte");
             }
 
-            KeyValuePair<Guid, CardData>? winner = null;
+            (PlayerData winnerPlayer, CardData winnerCard)? winnerCardbyPlayer = null;
             RemovePlayerCard(card, gameRoom);
             var oldNextPlayer = gameRoom.NextPlayer;
             gameRoom.NextPlayer = gameRoom.Players[GetNextPlayerIndex()];
@@ -394,20 +398,20 @@ public class GameController(
 
             if (gameRoom.PlayerDataByConnetion.Count == gameRoom.UsedCardsByConnection.Count)
             {
-                winner = GetWinnerCardByPlayer();
-                var winnerKey = winner.Value.Key;
-                gameRoom.NextPlayer = gameRoom.PlayerDataByConnetion[winnerKey].Player;
-                gameRoom.WinnerId = winnerKey;
+                winnerCardbyPlayer = GetWinnerCardByPlayer();
+                var winnerplayer = winnerCardbyPlayer.Value.winnerPlayer;
+                gameRoom.NextPlayer = winnerplayer.Player;
+                gameRoom.WinnerId = winnerplayer.Player.ConnectionId;
 
-                gameRoom.PlayerDataByConnetion[winnerKey].GainedCards =
+                winnerCardbyPlayer.Value.winnerPlayer.GainedCards =
                 [
-                    .. gameRoom.PlayerDataByConnetion[winnerKey].GainedCards,
+                    .. gameRoom.PlayerDataByConnetion[winnerplayer.Player.ConnectionId].GainedCards,
                     .. gameRoom.UsedCardsByConnection.Values,
                 ];
                 gameRoom.UsedCardsByConnection = [];
 
-                CheckTute(winnerKey);
-                CheckCantes(winnerKey);
+                CheckTute(winnerplayer);
+                CheckCantes(winnerplayer);
 
                 foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerDataByConnetion)
                 {
@@ -436,9 +440,9 @@ public class GameController(
 
             if (isGameFinished)
             {
-                if (winner is not null)
+                if (winnerCardbyPlayer is not null)
                 {
-                    var playerData = gameRoom.PlayerDataByConnetion[winner.Value.Key];
+                    var playerData = winnerCardbyPlayer.Value.winnerPlayer;
                     playerData.GainedCards.Add(CardsConstants.DiezDelMonte);
                     room.All.OnDiezDelMonte(playerData.Player, CardsConstants.DiezDelMonte);
                 }
@@ -465,7 +469,7 @@ public class GameController(
     private List<GameDataResponse> GetAllPlayersData() =>
         gameRoom.PlayerDataByConnetion.Values.Select(CreateDataFor).ToList();
 
-    private KeyValuePair<Guid, CardData> GetWinnerCardByPlayer()
+    private (PlayerData winnerPlayerData, CardData winnerCard) GetWinnerCardByPlayer()
     {
         var firstCard = gameRoom.UsedCardsByConnection.FirstOrDefault().Value;
 
@@ -500,7 +504,8 @@ public class GameController(
             ?? bestByType
             ?? bestByValue
             ?? throw new InvalidOperationException("No winner found");
-        return winner;
+
+        return (gameRoom.PlayerDataByConnetion[winner.Key], winner.Value);
     }
 
     private void RemovePlayerCard(CardData card, GameRoom gameRoom)
@@ -537,6 +542,11 @@ public class GameController(
         if (gameRoom.StartIndex++ == gameRoom.Players.Count - 1)
             gameRoom.StartIndex = 0;
         room.All.OnFinished(GetAllPlayersData());
+        foreach (var item in gameRoom.Players)
+        {
+            item.TeamIndex = -1;
+            room.All.OnUpdated(item);
+        }
     }
 
     private GameDataResponse CreateDataFor(PlayerData playerData) =>

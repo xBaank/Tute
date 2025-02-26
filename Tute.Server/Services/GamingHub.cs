@@ -41,7 +41,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     )
     {
         var newGameRoom = await GetOrCreateRoomAsync(roomname, deckName ?? "deck", shuffled);
-        var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId };
+        var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId, TeamIndex = 3 };
 
         if (gameController?.IsPlayerInRoom == true)
         {
@@ -75,7 +75,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
         newGameRoom.RoomContextsByConnection[ConnectionId] = Context;
         newGameRoom.Players.Add(self);
         gameController = new(gameRoom, self, room, Context);
-        chatController = new(room, gameRoom, self);
+        chatController = new(room, self);
 
         // Typed Server->Client broadcast.
         room.Except(ConnectionId).OnJoin(self);

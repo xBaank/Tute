@@ -29,7 +29,7 @@ namespace Assets.Scripts.Services
         public event Action<Player> OnUpdatedEvent;
         public event Action OnStartEvent;
         public event Action<List<GameDataResponse>> OnFinishEvent;
-        public event Action<string, Player, int> OnMessageEvent;
+        public event Action<string, Player> OnMessageEvent;
         public event Action OnDisconnected;
 
         public Version Version { get; private set; }
@@ -135,7 +135,7 @@ namespace Assets.Scripts.Services
         public void OnDiezDelMonte(Player player, CardData cardData) =>
             OnDiezDelMonteEvent?.Invoke(player, cardData).Forget();
 
-        public void OnMessage(string message, Player player, int teamIndex) =>
-            OnMessageEvent?.Invoke(message, player, teamIndex);
+        public void OnMessage(string message, Player player) =>
+            OnMessageEvent?.Invoke(message, player);
     }
 }
