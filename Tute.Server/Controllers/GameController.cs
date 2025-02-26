@@ -228,8 +228,8 @@ public class GameController(
             if (winnerPlayer.TeamIndex != playerData.TeamIndex)
                 continue;
 
-            var tuteKingCards = playerData.Cards.Where(i => i.Number == 12).ToList();
-            var tutePrinceCards = playerData.Cards.Where(i => i.Number == 11).ToList();
+            var tuteKingCards = playerData.Cards.Where(i => i.Number is 12).ToList();
+            var tutePrinceCards = playerData.Cards.Where(i => i.Number is 11).ToList();
 
             if (tuteKingCards.Count != 4 && tutePrinceCards.Count != 4)
             {
@@ -240,7 +240,7 @@ public class GameController(
 
             var tute = CardsConstants.GetTute(toUse.First().Number);
 
-            gameRoom.PlayerDataByConnetion[ConnectionId].GainedCards.Add(tute);
+            playerData.GainedCards.Add(tute);
             room.All.OnTute(playerData.Player, tute);
 
             gameRoom.NextPlayer = null;
@@ -282,7 +282,7 @@ public class GameController(
             }
 
             var value = CardsConstants.GetCante(king!.Type, gameRoom.PinteType!.Type);
-            gameRoom.PlayerDataByConnetion[id].GainedCards.Add(value);
+            playerData.GainedCards.Add(value);
             room.All.OnCante(playerData.Player, value);
         }
     }
@@ -350,43 +350,40 @@ public class GameController(
         await semaphoreSlim.WaitAsync();
         try
         {
-            //TODO Fix checks for 2 and 3 players
-            var typeToUse = gameRoom.UsedCardsByConnection.FirstOrDefault().Value;
-            var isTypeDefined = typeToUse is not null;
-            var isSameType = card.Type == typeToUse?.Type;
-            var isPinte = card.Type == gameRoom.PinteType?.Type;
-            var isGreaterCard =
-                isTypeDefined
-                && (
-                    card.Value > typeToUse!.Value
-                    || card.Value == typeToUse!.Value && card.Number > typeToUse.Number
-                );
-            var hasGreaterCard = gameRoom
-                .PlayerDataByConnetion[ConnectionId]
-                .Cards.Any(i => i.Type == typeToUse?.Type && i.Value > typeToUse?.Value);
-            var hasSameType = gameRoom
-                .PlayerDataByConnetion[ConnectionId]
-                .Cards.Any(i => i.Type == typeToUse?.Type);
-            var hasPinte = gameRoom
-                .PlayerDataByConnetion[ConnectionId]
-                .Cards.Any(i => i.Type == gameRoom.PinteType?.Type);
-
-            if (isTypeDefined && !isSameType && hasSameType)
+            //TODO Improve checks for 2 and 3 players
+            if (gameRoom.UsedCardsByConnection.Count > 0)
             {
-                throw new ReturnStatusException((StatusCode)400, "You must use same type");
-            }
+                var typeToUse = gameRoom.UsedCardsByConnection.First().Value;
+                var isSameType = card.Type == typeToUse.Type;
+                var isPinte = card.Type == gameRoom.PinteType?.Type;
+                var isGreaterCard = card.Value > typeToUse.Value || card.Value == typeToUse!.Value && card.Number > typeToUse.Number;
+                var hasGreaterCard = gameRoom
+                    .PlayerDataByConnetion[ConnectionId]
+                    .Cards.Any(i => i.Type == typeToUse.Type && i.Value > typeToUse?.Value);
+                var hasSameType = gameRoom
+                    .PlayerDataByConnetion[ConnectionId]
+                    .Cards.Any(i => i.Type == typeToUse.Type);
+                var hasPinte = gameRoom
+                    .PlayerDataByConnetion[ConnectionId]
+                    .Cards.Any(i => i.Type == gameRoom.PinteType?.Type);
 
-            if (isTypeDefined && isSameType && !isGreaterCard && hasGreaterCard)
-            {
-                throw new ReturnStatusException(
-                    (StatusCode)400,
-                    "You must use same type with greater value"
-                );
-            }
+                if (!isSameType && hasSameType)
+                {
+                    throw new ReturnStatusException((StatusCode)400, "You must use same type");
+                }
 
-            if (isTypeDefined && !hasSameType && !isPinte && hasPinte)
-            {
-                throw new ReturnStatusException((StatusCode)400, "You must use pinte");
+                if (isSameType && !isGreaterCard && hasGreaterCard)
+                {
+                    throw new ReturnStatusException(
+                        (StatusCode)400,
+                        "You must use same type with greater value"
+                    );
+                }
+
+                if (!hasSameType && !isPinte && hasPinte)
+                {
+                    throw new ReturnStatusException((StatusCode)400, "You must use pinte");
+                }
             }
 
             (PlayerData winnerPlayer, CardData winnerCard)? winnerCardbyPlayer = null;

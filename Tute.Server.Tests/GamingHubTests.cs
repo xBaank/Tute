@@ -462,7 +462,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake1.Mock.AsyncVerify(
             i =>
                 i.OnCante(
-                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
@@ -472,7 +472,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake2.Mock.AsyncVerify(
             i =>
                 i.OnCante(
-                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
@@ -523,7 +523,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake1.Mock.AsyncVerify(
             i =>
                 i.OnTute(
-                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
@@ -533,7 +533,7 @@ public class GamingHubTests : IAsyncDisposable
         await clientFake2.Mock.AsyncVerify(
             i =>
                 i.OnTute(
-                    It.Is<Player>(i => i.ConnectionId == player2.ConnectionId),
+                    It.Is<Player>(i => i.ConnectionId == player1.ConnectionId),
                     It.Is<CardData>(i => i.Number == cardNumber)
                 ),
             Times.Once(),
