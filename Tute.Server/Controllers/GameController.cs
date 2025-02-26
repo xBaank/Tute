@@ -90,11 +90,11 @@ public class GameController(
 
         var gameCards = InitGameRoom();
         var pinte = GetPinte(gameCards);
+        room.All.OnChangedPinte(pinte);
         InitPlayersData();
         AssignCards(gameCards);
-
         EmitGameDataForEachPlayer();
-        room.All.OnChangedPinte(pinte);
+        room.All.OnChangedPinte(gameRoom.Pinte);
 
         return ValueTask.CompletedTask;
     }
@@ -366,7 +366,7 @@ public class GameController(
 
             if (gameRoom.PlayerDataByConnetion.Count == gameRoom.UsedCardsByConnection.Count)
             {
-                winner = GetWinner(gameRoom);
+                winner = GetWinnerCardByPlayer();
                 var winnerKey = winner.Value.Key;
                 gameRoom.NextPlayer = gameRoom.PlayerDataByConnetion[winnerKey].Player;
                 gameRoom.WinnerId = winnerKey;
@@ -427,7 +427,7 @@ public class GameController(
 
     private void EmitGameDataForEachPlayer()
     {
-        foreach (var (playerConnectionId, playerCards) in gameRoom.PlayerDataByConnetion)
+        foreach (var (playerConnectionId, _) in gameRoom.PlayerDataByConnetion)
         {
             room.Single(playerConnectionId)
                 .OnGameData(CreateDataFor(gameRoom.PlayerDataByConnetion[playerConnectionId]));
@@ -437,7 +437,7 @@ public class GameController(
     private List<GameDataResponse> GetAllPlayersData() =>
         gameRoom.PlayerDataByConnetion.Values.Select(CreateDataFor).ToList();
 
-    private KeyValuePair<Guid, CardData> GetWinner(GameRoom gameRoom)
+    private KeyValuePair<Guid, CardData> GetWinnerCardByPlayer()
     {
         var firstCard = gameRoom.UsedCardsByConnection.FirstOrDefault().Value;
 

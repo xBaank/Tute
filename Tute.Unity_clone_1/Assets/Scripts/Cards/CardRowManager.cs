@@ -122,7 +122,7 @@ namespace Assets.Scripts.Cards
             await card.transform
                 .DOMove(targetPosition, 0.15f)
                 .SetEase(Ease.InOutExpo)
-                .AsyncWaitForCompletion();
+                .WithCancellation(cancellationToken);
         }
     }
 }

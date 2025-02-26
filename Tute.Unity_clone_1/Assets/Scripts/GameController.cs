@@ -12,6 +12,7 @@ using Grpc.Core;
 using TMPro;
 using Tute.Shared.Models;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Assets.Scripts
@@ -149,7 +150,7 @@ namespace Assets.Scripts
                 _pinte = null;
                 await RenderTurnText();
 
-                await UniTask.WaitForSeconds(5, cancellationToken: _cancellationToken);
+                await UniTask.WaitUntil(() => InputSystem.actions.FindAction("Left Click").WasPressedThisFrame(), cancellationToken: _cancellationToken);
                 await MenuManager.Instance.LoadMenu(_cancellationToken);
             }
             finally
@@ -290,8 +291,8 @@ namespace Assets.Scripts
                 _pinte = InstancePinte(cardData);
                 _pinte.OnClick += (i) => ChangePinte(i).Forget();
                 _pinte.transform.position = spawPosition.position.ToVector2();
-                _pinte.transform.DOMove(pintePosition.position.ToVector2(), 0.1f);
-                _pinte.transform.DORotate(pintePosition.rotation.eulerAngles, 0.1f);
+                _pinte.transform.DOMove(pintePosition.position.ToVector2(), 0.1f).WithCancellation(_pinte.GetCancellationTokenOnDestroy()).Forget();
+                _pinte.transform.DORotate(pintePosition.rotation.eulerAngles, 0.1f).WithCancellation(_pinte.GetCancellationTokenOnDestroy()).Forget();
                 await RenderPinte(cardData.Type);
             }
         }
@@ -314,7 +315,7 @@ namespace Assets.Scripts
             audioController.PlayFlick();
             targetPosition = new Vector3(targetPosition.x, targetPosition.y);
             targetPosition += Vector3.back * _currentUsedCardsGo.Count;
-            item.transform.DOMove(targetPosition, 0.1f);
+            item.transform.DOMove(targetPosition, 0.1f).WithCancellation(item.GetCancellationTokenOnDestroy());
         }
 
         private async UniTask RenderPinte(CardType cardType)
@@ -382,28 +383,27 @@ namespace Assets.Scripts
                             winned
                                 ? i
                                     .transform.DOMove(gainedPosition.transform.position.ToVector2(), time)
-                                    .AsyncWaitForCompletion()
+                                    .WithCancellation(i.GetCancellationTokenOnDestroy())
                                 : i
                                     .transform.DOMove(new Vector2(0, 20), time)
-                                    .AsyncWaitForCompletion()
-                        )
-                        .ToList();
+                                    .WithCancellation(i.GetCancellationTokenOnDestroy())
+                        ).ToList();
                     var rotateTasks = _currentUsedCardsGo
                         .Select(i =>
                             winned
                                 ? i
                                     .transform.DORotate(new Vector3(0, 0, 90), time)
-                                    .AsyncWaitForCompletion()
+                                    .WithCancellation(i.GetCancellationTokenOnDestroy())
                                 : i
                                     .transform.DORotate(new Vector3(0, 0, 90), time)
-                                    .AsyncWaitForCompletion()
+                                   .WithCancellation(i.GetCancellationTokenOnDestroy())
                         )
                         .ToList();
 
-                    var tasks = new List<List<Task>>() { moveTasks, rotateTasks }
+                    var tasks = new List<List<UniTask>>() { moveTasks, rotateTasks }
                         .SelectMany(i => i)
                         .ToList();
-                    await Task.WhenAll(tasks);
+                    await UniTask.WhenAll(tasks);
 
                     foreach (var item in _currentUsedCardsGo)
                     {

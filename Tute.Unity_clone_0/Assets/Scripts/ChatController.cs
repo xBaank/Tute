@@ -53,6 +53,12 @@ namespace Assets.Scripts
 
         private void SendFinishMessage(List<GameDataResponse> data)
         {
+            if (data.Count is 2 or 3) SendFinishMessageFor2Or3Player(data);
+            else if (data.Count is 4) SendFinishMessageFor4Player(data);
+        }
+
+        private void SendFinishMessageFor2Or3Player(List<GameDataResponse> data)
+        {
             foreach (var (index, item) in data.GetOrdered().WithIndex())
             {
                 if (index == 0)
@@ -68,6 +74,11 @@ namespace Assets.Scripts
                     );
                 }
             }
+        }
+
+        private void SendFinishMessageFor4Player(List<GameDataResponse> data)
+        {
+            OnSystemMessage("TODO");
         }
 
         private void SendChatMessage(string message)
