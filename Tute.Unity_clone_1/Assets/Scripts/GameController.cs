@@ -81,7 +81,7 @@ namespace Assets.Scripts
             _cardRowManager = new CardRowManager(
                 stackPosition.position.x,
                 stackPosition.position.y,
-                Camera.main.aspect / 2
+                Camera.main.aspect / 1.7f
             );
 
             var backCard = new CardData { SpriteName = "back" };

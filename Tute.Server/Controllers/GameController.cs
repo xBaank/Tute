@@ -141,6 +141,7 @@ public class GameController(
     private Stack<CardData> InitGameRoom()
     {
         var allCardsShuffled = gameRoom.Shuffled();
+        //For three players we remove the 2 cards
         if (gameRoom.Players.Count == 3)
         {
             allCardsShuffled = allCardsShuffled.Where(i => i.Number != 2).ToList();
@@ -181,7 +182,7 @@ public class GameController(
 
     private void AssignCards(Stack<CardData> gameCards)
     {
-        //Timeout to shuffle
+        //Timeout to assign
         var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
 
