@@ -57,11 +57,12 @@ jobs:
      - uses: actions/checkout@v4
      - uses: actions/cache@v4
        with:
-          path: Tute.Unity/Library
-          key: Library-Tute.Unity-Windows
-          restore-keys: |
-            Library-Tute.Unity-Windows
-            Library-Windows
+        path: Tute.Unity/Library
+        key: Library-Tute.Unity-Windows-${{ runner.os }}-${{ hashFiles('**/Tute.Unity/**/*.csproj') }}
+        restore-keys: |
+          Library-Tute.Unity-Windows-${{ runner.os }}-
+          Library-Tute.Unity-Windows-
+          Library-Windows
      - name: Setup .NET
        uses: actions/setup-dotnet@v4
        with:
@@ -109,9 +110,10 @@ jobs:
      - uses: actions/cache@v4
        with:
           path: Tute.Unity/Library
-          key: Library-Tute.Unity-Android
+          key: Library-Tute.Unity-Android-${{ runner.os }}-${{ hashFiles('**/Tute.Unity/**/*.csproj') }}
           restore-keys: |
-            Library-Tute.Unity-Android
+            Library-Tute.Unity-Android-${{ runner.os }}-
+            Library-Tute.Unity-Android-
             Library-Android
      - name: Setup .NET
        uses: actions/setup-dotnet@v4
