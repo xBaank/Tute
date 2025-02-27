@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Assets.Scripts.Services;
-using Cysharp.Net.Http;
 using Cysharp.Threading.Tasks;
 using Grpc.Net.Client;
+using GrpcWebSocketBridge.Client;
 using MagicOnion.Unity;
 using Tute.Shared.Models;
 using UnityEngine;
@@ -143,11 +143,19 @@ namespace Assets.Scripts.Managers
                     () =>
                         new GrpcChannelOptions()
                         {
-                            HttpHandler = new YetAnotherHttpHandler() { Http2Only = true },
-                            DisposeHttpClient = true,
+                            HttpHandler = new GrpcWebSocketBridgeHandler()
                         }
                 )
             );
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void InitializeSynchronizationContext()
+        {
+            Debug.Log("AAAAAA");
+            SynchronizationContext.SetSynchronizationContext(null);
+        }
+#endif
     }
 }

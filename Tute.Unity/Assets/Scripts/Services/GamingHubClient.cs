@@ -37,7 +37,7 @@ namespace Assets.Scripts.Services
         public bool IsConnected { get; private set; }
         public string Target => channel?.Target ?? string.Empty;
 
-        public async ValueTask ConnectAsync(ChannelBase grpcChannel)
+        public async UniTask ConnectAsync(ChannelBase grpcChannel)
         {
             if (IsConnected)
                 throw new InvalidOperationException("Ya estas conectado");
@@ -48,7 +48,7 @@ namespace Assets.Scripts.Services
                 client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
                     grpcChannel,
                     this
-                );
+                ).AsUniTask();
             }
             catch (Exception ex)
             {
@@ -63,16 +63,16 @@ namespace Assets.Scripts.Services
             if (serverVersion.Major != currentVersion.Major || serverVersion.Minor > currentVersion.Minor)
             {
                 await DisposeAsync().AsUniTask();
-                await WaitForDisconnectAsync().AsUniTask();
+                await WaitForDisconnectAsync();
                 throw new InvalidOperationException($"La version del cliente {currentVersion} no corresponde con la del servidor {serverVersion}");
             }
 
             ServerVersion = serverVersion;
             IsConnected = true;
-            WaitForDisconnectAsync().AsUniTask().Forget();
+            WaitForDisconnectAsync().Forget();
         }
 
-        public ValueTask ConnectAsync(string host, int port) =>
+        public UniTask ConnectAsync(string host, int port) =>
             ConnectAsync(GrpcChannelx.ForTarget(new GrpcChannelTarget(host, port, true)));
 
         public async ValueTask<(Player, Player[])> JoinAsync(string roomName, string playername)
@@ -89,7 +89,7 @@ namespace Assets.Scripts.Services
         public ValueTask LeaveAsync() => client.LeaveAsync();
 
         // dispose client-connection before channel.ShutDownAsync is important!
-        public async Task DisposeAsync()
+        public async UniTask DisposeAsync()
         {
             if (client is not null)
                 await client.DisposeAsync();
@@ -98,7 +98,7 @@ namespace Assets.Scripts.Services
         }
 
         // You can watch connection state, use this for retry etc.
-        public async Task WaitForDisconnectAsync()
+        public async UniTask WaitForDisconnectAsync()
         {
             await client.WaitForDisconnect();
             IsConnected = false;

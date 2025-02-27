@@ -143,9 +143,7 @@ namespace Assets.Scripts.Managers
                     () =>
                         new GrpcChannelOptions()
                         {
-
-                            HttpHandler = new GrpcWebSocketBridgeHandler(),
-                            DisposeHttpClient = true,
+                            HttpHandler = new GrpcWebSocketBridgeHandler()
                         }
                 )
             );
@@ -155,6 +153,7 @@ namespace Assets.Scripts.Managers
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void InitializeSynchronizationContext()
         {
+            Debug.Log("AAAAAA");
             SynchronizationContext.SetSynchronizationContext(null);
         }
 #endif

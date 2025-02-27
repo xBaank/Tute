@@ -80,4 +80,7 @@ crashlytics-build.properties
 [Aa]ssets/Plugins/Google.Protobuf.meta
 
 #Android build temp folder
-.utmp/*
+/.utmp/*
+
+#Definitions
+!*.rsp

@@ -129,7 +129,7 @@ namespace Assets.Scripts
         private async UniTask LeaveServer()
         {
             if (GamingHubManager.Instance.GameRoom != null) await LeaveRoom();
-            GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
+            GamingHubManager.Instance.Client.DisposeAsync().Forget();
         }
 
         private void LeaveRoomForget() => LeaveRoom().Forget();

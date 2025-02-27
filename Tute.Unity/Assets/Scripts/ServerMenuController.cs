@@ -78,7 +78,7 @@ namespace Assets.Scripts
         private void ConnectForget() => Connect().Forget();
 
         private void DisposeForget() =>
-            GamingHubManager.Instance.Client.DisposeAsync().AsUniTask().Forget();
+            GamingHubManager.Instance.Client.DisposeAsync().Forget();
 
         private void LoadGameForget()
         {

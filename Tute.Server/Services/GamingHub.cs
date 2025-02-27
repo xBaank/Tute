@@ -12,7 +12,6 @@ using Tute.Shared.GamingHub;
 using Tute.Shared.Models;
 
 namespace Tute.Server.Services;
-
 public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     : StreamingHubBase<IGamingHub, IGamingHubReceiver>,
         IGamingHub

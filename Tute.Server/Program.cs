@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Tute.Server.Services;
 
@@ -34,7 +33,7 @@ public partial class Program
             .ConfigureKestrel(
                 (options) =>
                 {
-                    options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http1AndHttp2);
+                    //options.ConfigureEndpointDefaults(lo => lo.Protocols = HttpProtocols.Http1AndHttp2);
                 }
             );
 
