@@ -32,7 +32,7 @@ namespace Assets.Scripts.Services
         public event Action<string, Player> OnMessageEvent;
         public event Action OnDisconnected;
 
-        public Version Version { get; private set; }
+        public Version ServerVersion { get; private set; }
         public bool IsConnected { get; private set; }
         public string Target => channel?.Target ?? string.Empty;
 
@@ -58,7 +58,7 @@ namespace Assets.Scripts.Services
                 return;
             }
 
-            Version = serverVersion;
+            ServerVersion = serverVersion;
             IsConnected = true;
             WaitForDisconnectAsync().AsUniTask().Forget();
         }
@@ -93,7 +93,7 @@ namespace Assets.Scripts.Services
         {
             await client.WaitForDisconnect();
             IsConnected = false;
-            Version = null;
+            ServerVersion = null;
             channel = null;
             OnDisconnected?.Invoke();
         }

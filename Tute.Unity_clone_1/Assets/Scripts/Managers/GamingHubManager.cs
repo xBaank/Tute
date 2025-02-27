@@ -17,7 +17,7 @@ namespace Assets.Scripts.Managers
         public GameRoom GameRoom { get; private set; }
         public GamingHubClient Client { get; } = new();
         public GameDataResponse CurrentData { get; private set; }
-        public GameState State => CurrentData?.GameState ?? default;
+        public GameState State => CurrentData?.GameState ?? GameState.Room;
 
         public event Action OnRoomDataUpdated;
 
@@ -54,6 +54,7 @@ namespace Assets.Scripts.Managers
         {
             await UniTask.Yield();
             GameRoom = null;
+            CurrentData = null;
             OnRoomDataUpdated?.Invoke();
             MenuManager.Instance.LoadServerMenu(_cancellationToken).Forget();
         }
@@ -127,6 +128,7 @@ namespace Assets.Scripts.Managers
         {
             await Client.LeaveAsync();
             GameRoom = null;
+            CurrentData = null;
             OnRoomDataUpdated?.Invoke();
         }
     }

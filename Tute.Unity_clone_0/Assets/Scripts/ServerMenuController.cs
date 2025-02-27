@@ -127,7 +127,7 @@ namespace Assets.Scripts
                 return;
             }
 
-            var version = $"<color=grey><b>{GamingHubManager.Instance.Client.Version}</b></color>";
+            var version = $"<color=grey><b>{GamingHubManager.Instance.Client.ServerVersion}</b></color>";
             tmp_status.text = $"Server version {version}";
         }
 

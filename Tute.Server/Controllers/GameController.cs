@@ -351,40 +351,7 @@ public class GameController(
         try
         {
             //TODO Improve checks for 2 and 3 players
-            if (gameRoom.UsedCardsByConnection.Count > 0)
-            {
-                var typeToUse = gameRoom.UsedCardsByConnection.First().Value;
-                var isSameType = card.Type == typeToUse.Type;
-                var isPinte = card.Type == gameRoom.PinteType?.Type;
-                var isGreaterCard = card.Value > typeToUse.Value || card.Value == typeToUse!.Value && card.Number > typeToUse.Number;
-                var hasGreaterCard = gameRoom
-                    .PlayerDataByConnetion[ConnectionId]
-                    .Cards.Any(i => i.Type == typeToUse.Type && i.Value > typeToUse?.Value);
-                var hasSameType = gameRoom
-                    .PlayerDataByConnetion[ConnectionId]
-                    .Cards.Any(i => i.Type == typeToUse.Type);
-                var hasPinte = gameRoom
-                    .PlayerDataByConnetion[ConnectionId]
-                    .Cards.Any(i => i.Type == gameRoom.PinteType?.Type);
-
-                if (!isSameType && hasSameType)
-                {
-                    throw new ReturnStatusException((StatusCode)400, "You must use same type");
-                }
-
-                if (isSameType && !isGreaterCard && hasGreaterCard)
-                {
-                    throw new ReturnStatusException(
-                        (StatusCode)400,
-                        "You must use same type with greater value"
-                    );
-                }
-
-                if (!hasSameType && !isPinte && hasPinte)
-                {
-                    throw new ReturnStatusException((StatusCode)400, "You must use pinte");
-                }
-            }
+            CheckCardCanBeUsed(card);
 
             (PlayerData winnerPlayer, CardData winnerCard)? winnerCardbyPlayer = null;
             RemovePlayerCard(card, gameRoom);
@@ -451,6 +418,33 @@ public class GameController(
         finally
         {
             semaphoreSlim.Release();
+        }
+    }
+
+    private void CheckCardCanBeUsed(CardData card)
+    {
+        if (gameRoom.UsedCardsByConnection.Count == 0) return;
+
+        var playerCards = gameRoom.PlayerDataByConnetion[ConnectionId].Cards;
+        var firstCard = gameRoom.UsedCardsByConnection.Values.First();
+        var greatestCard = gameRoom.UsedCardsByConnection.Values.Where(i => i.Type == firstCard.Type).MaxBy(i => i.Value);
+        var typesToUse = gameRoom.UsedCardsByConnection.Values.Select(i => i.Type).Distinct().ToList();
+
+        var usableCardsByPlayer = playerCards.Where(i => typesToUse.Contains(i.Type)).ToList();
+
+        if (!typesToUse.Contains(card.Type) && usableCardsByPlayer.Any(i => typesToUse.Contains(i.Type)))
+        {
+            throw new ReturnStatusException((StatusCode)400, "You must use same type");
+        }
+
+        if (card.Value <= greatestCard?.Value && usableCardsByPlayer.Any(i => i.Value > greatestCard?.Value))
+        {
+            throw new ReturnStatusException((StatusCode)400, "You must use greater card");
+        }
+
+        if (!usableCardsByPlayer.Any(i => typesToUse.Contains(i.Type)) && usableCardsByPlayer.Any(i => i.Type == gameRoom.PinteType?.Type))
+        {
+            throw new ReturnStatusException((StatusCode)400, "You must use pinte");
         }
     }
 
