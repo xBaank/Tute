@@ -33,6 +33,9 @@ namespace Tute.Shared.Models
 
         [Key(7)]
         public Guid? WinnerId { get; set; }
+
+        [Key(8)]
+        public int TeamIndex { get; set; }
     }
 
     public partial class GameDataResponse

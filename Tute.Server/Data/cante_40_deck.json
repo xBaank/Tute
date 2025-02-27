@@ -105,10 +105,24 @@
         "number": 1
     },
     {
-        "name": "Six of Swords",
+        "name": "Six of cups",
         "value": 0,
-        "spritename": "six_swords",
-        "type": "Swords",
+        "spritename": "six_cups",
+        "type": "Cups",
+        "number": 6
+    },
+    {
+        "name": "Six of cups",
+        "value": 0,
+        "spritename": "six_cups",
+        "type": "Cups",
+        "number": 6
+    },
+    {
+        "name": "Six of cups",
+        "value": 0,
+        "spritename": "six_cups",
+        "type": "Cups",
         "number": 6
     }
 ]

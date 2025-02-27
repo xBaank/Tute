@@ -41,8 +41,10 @@ namespace Assets.Scripts.Cards
             while (!_cancellationToken.IsCancellationRequested)
             {
                 var holdPos = Camera.main.ScreenToWorldPoint(_hold.ReadValue<Vector2>()).ToVector2();
-                if (_leftClick.WasPressedThisFrame() && _collider2D.OverlapPoint(holdPos))
+                var collider = Physics2D.OverlapPoint(holdPos);
+                if (_leftClick.WasPressedThisFrame() && _collider2D == collider)
                 {
+                    await UniTask.NextFrame(cancellationToken: _cancellationToken);
                     startDif = transform.position.ToVector2() - holdPos;
                     CardRowManager.CurrentPosition = transform.position;
                     var (startPos, endPos) = await MoveTask();
@@ -78,7 +80,7 @@ namespace Assets.Scripts.Cards
             {
                 OnClick?.Invoke(CardData).Forget();
                 _isClicked = true;
-                await UniTask.WaitForSeconds(0.3f, cancellationToken: _cancellationToken);
+                await UniTask.WhenAll(CardRowManager.UpdateCardPositions(_cancellationToken), UniTask.WaitForSeconds(0.3f, cancellationToken: _cancellationToken));
             }
             finally
             {
@@ -92,7 +94,7 @@ namespace Assets.Scripts.Cards
             while (_leftClick.IsPressed())
             {
                 var position = Camera.main.ScreenToWorldPoint(_hold.ReadValue<Vector2>()).ToVector2() + startDif;
-                transform.position = position.ToVector3();
+                transform.position = position.ToVector3() + new Vector3(0, 0, -9);
                 await UniTask.Yield(cancellationToken: _cancellationToken);
             }
             return (startPos, transform.position.ToVector2());

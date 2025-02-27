@@ -17,7 +17,7 @@ namespace Assets.Scripts.Managers
         public GameRoom GameRoom { get; private set; }
         public GamingHubClient Client { get; } = new();
         public GameDataResponse CurrentData { get; private set; }
-        public GameState State => CurrentData?.GameState ?? default;
+        public GameState State => CurrentData?.GameState ?? GameState.Room;
 
         public event Action OnRoomDataUpdated;
 
@@ -25,6 +25,7 @@ namespace Assets.Scripts.Managers
 
         private void Awake()
         {
+            Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
             _cancellationToken = destroyCancellationToken;
 
             Client.OnJoinEvent += OnPlayerJoin;
@@ -53,6 +54,7 @@ namespace Assets.Scripts.Managers
         {
             await UniTask.Yield();
             GameRoom = null;
+            CurrentData = null;
             OnRoomDataUpdated?.Invoke();
             MenuManager.Instance.LoadServerMenu(_cancellationToken).Forget();
         }
@@ -94,12 +96,14 @@ namespace Assets.Scripts.Managers
             toUpdate.ConnectionId = player.ConnectionId;
             toUpdate.Name = player.Name;
             toUpdate.IsLeader = player.IsLeader;
+            toUpdate.TeamIndex = player.TeamIndex;
 
             if (toUpdate.ConnectionId == GameRoom.Player.ConnectionId)
             {
                 GameRoom.Player.ConnectionId = toUpdate.ConnectionId;
                 GameRoom.Player.Name = toUpdate.Name;
                 GameRoom.Player.IsLeader = toUpdate.IsLeader;
+                GameRoom.Player.TeamIndex = toUpdate.TeamIndex;
             }
 
             OnRoomDataUpdated?.Invoke();
@@ -124,6 +128,7 @@ namespace Assets.Scripts.Managers
         {
             await Client.LeaveAsync();
             GameRoom = null;
+            CurrentData = null;
             OnRoomDataUpdated?.Invoke();
         }
     }

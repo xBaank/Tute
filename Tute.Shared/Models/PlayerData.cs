@@ -24,5 +24,9 @@ namespace Tute.Shared.Models
     {
         [IgnoreMember]
         public IEnumerable<CardData> Cantes => CardsConstants.GetCantes(GainedCards);
+
+        [IgnoreMember]
+        public int TeamIndex => Player.TeamIndex;
+
     }
 }

@@ -66,7 +66,7 @@ namespace Assets.Scripts
             startButton.onClick.AddListener(StartGame);
             leaveButton.onClick.AddListener(LeaveRoomForget);
             exitButton.onClick.AddListener(LeaveServerForget);
-            closeMenu.onClick.AddListener(() => MenuManager.Instance.UnloadMenu(default).Forget());
+            closeMenu.onClick.AddListener(() => MenuManager.Instance.UnloadRoomMenu(default).Forget());
 
             var name = PlayerPrefs.GetString("name", tmp_playerName.text);
             var room = PlayerPrefs.GetString("room", tmp_roomName.text);
@@ -107,10 +107,12 @@ namespace Assets.Scripts
                 tmp_name.text = string.Empty;
                 return;
             }
+            var name = GamingHubManager.Instance.GameRoom.Player.Name;
+            var teamIndex = GamingHubManager.Instance.GameRoom.Player.TeamIndex;
             tmp_room.text =
                 $"<b><color=grey>Room</color></b>: {GamingHubManager.Instance.GameRoom.RoomName}";
             tmp_name.text =
-                $"<b><color=grey>Name</color></b>: {GamingHubManager.Instance.GameRoom.Player.Name}";
+                $"<b><color=grey>Name</color></b>: {Utils.GetPlayerName(name, teamIndex)}";
         }
 
         private void RenderChangedDataForget() => RenderChangedData().Forget();
@@ -196,7 +198,7 @@ namespace Assets.Scripts
             foreach (var item in GamingHubManager.Instance.GameRoom.Players)
             {
                 var leaderTag = item.IsLeader ? "<b><color=orange>(Leader)</color></b>" : "";
-                var text = $"- {leaderTag} {item.Name}";
+                var text = $"- {leaderTag} {Utils.GetPlayerName(item.Name, item.TeamIndex)}";
                 var tmpText = !textsByPlayer.ContainsKey(item)
                     ? Instantiate(playerNamePrefab, textContainer.transform)
                     : textsByPlayer[item];

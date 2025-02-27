@@ -53,19 +53,24 @@ namespace Assets.Scripts
 
         private void SendFinishMessage(List<GameDataResponse> data)
         {
-            foreach (var (index, item) in data.GetOrdered().WithIndex())
+            var players = data.GroupBy(i => i.TeamIndex)
+                .OrderByDescending(i => i.SelectMany(i => i.GainedCards)
+                .Sum(i => i.Value))
+                .WithIndex();
+
+            foreach (var (index, item) in players)
             {
+                var playersNames = item.Select(i => i.PlayerData.Player.Name);
+                var teamName = string.Join(" y ", playersNames);
+                var total = item.SelectMany(i => i.GainedCards).Sum(i => i.Value);
+
                 if (index == 0)
                 {
-                    OnSystemMessage(
-                        $"El ganador es {item.PlayerData.Player.Name} con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos"
-                    );
+                    OnSystemMessage($"El ganador es {teamName} con {total} puntos");
                 }
                 else
                 {
-                    OnSystemMessage(
-                        $"El jugador {item.PlayerData.Player.Name} ha perdido con {item.PlayerData.GainedCards.Sum(i => i.Value)} puntos"
-                    );
+                    OnSystemMessage($"{teamName} ha perdido con {total} puntos");
                 }
             }
         }
@@ -80,7 +85,7 @@ namespace Assets.Scripts
         {
             var tmp_text = Instantiate(chatMessagePrefab, content.transform);
             tmp_text.richText = true;
-            tmp_text.text = $"<color=lightblue>{player.Name}</color> : {message}";
+            tmp_text.text = $"{Utils.GetPlayerName(player.Name, player.TeamIndex)} : {message}";
         }
 
         public void OnSystemMessage(string message)

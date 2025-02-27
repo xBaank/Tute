@@ -30,6 +30,8 @@ public class GameRoom
 
     public required bool HaveShuffle { get; init; }
 
+    public Dictionary<int, Player[]> PlayersByTeam { get; set; } = [];
+
     public List<CardData> Shuffled() =>
         HaveShuffle ? [.. InitialDeck.Shuffled()] : [.. InitialDeck];
 }

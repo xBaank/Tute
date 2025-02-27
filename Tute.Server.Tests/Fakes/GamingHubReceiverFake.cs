@@ -11,7 +11,7 @@ internal class GamingHubReceiverFake(ITestOutputHelper outputHelper) : IGamingHu
     public List<GameDataResponse>? FinalGameDataResponse { get; private set; }
     public TaskCompletionSource IsFinished { get; set; } = new();
 
-    private SemaphoreSlim _semaphore = new(1);
+    private readonly SemaphoreSlim _semaphore = new(1);
 
     public void OnCante(Player player, CardData cante) => Mock.Object.OnCante(player, cante);
 

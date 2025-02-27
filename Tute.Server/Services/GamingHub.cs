@@ -41,7 +41,7 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
     )
     {
         var newGameRoom = await GetOrCreateRoomAsync(roomname, deckName ?? "deck", shuffled);
-        var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId };
+        var newPlayer = new Player() { Name = name, ConnectionId = ConnectionId, TeamIndex = 3 };
 
         if (gameController?.IsPlayerInRoom == true)
         {
@@ -63,9 +63,9 @@ public class GamingHub(ConcurrentDictionary<string, GameRoom> gameRooms)
             newPlayer.IsLeader = true;
         }
 
-        if (newGameRoom.Players.Count > 2)
+        if (newGameRoom.Players.Count > 4)
         {
-            throw new ReturnStatusException((StatusCode)400, "Can't add more than 2 players");
+            throw new ReturnStatusException((StatusCode)400, "Can't add more than 4 players");
         }
 
         self = newPlayer;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Grpc.Core;
@@ -32,20 +33,28 @@ namespace Assets.Scripts.Services
         public event Action<string, Player> OnMessageEvent;
         public event Action OnDisconnected;
 
-        public Version Version { get; private set; }
+        public Version ServerVersion { get; private set; }
         public bool IsConnected { get; private set; }
         public string Target => channel?.Target ?? string.Empty;
 
         public async ValueTask ConnectAsync(ChannelBase grpcChannel)
         {
             if (IsConnected)
-                throw new InvalidOperationException("Already connected");
+                throw new InvalidOperationException("Ya estas conectado");
 
             channel = grpcChannel;
-            client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
-                grpcChannel,
-                this
-            );
+            try
+            {
+                client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+                    grpcChannel,
+                    this
+                );
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                throw new IOException($"No se puede conectar al servidor {grpcChannel.Target}");
+            }
 
             var serverVersion = new Version(await client.GetVersion());
             var currentVersion = new Version(Application.version);
@@ -55,10 +64,10 @@ namespace Assets.Scripts.Services
             {
                 await DisposeAsync().AsUniTask();
                 await WaitForDisconnectAsync().AsUniTask();
-                return;
+                throw new InvalidOperationException($"La version del cliente {currentVersion} no corresponde con la del servidor {serverVersion}");
             }
 
-            Version = serverVersion;
+            ServerVersion = serverVersion;
             IsConnected = true;
             WaitForDisconnectAsync().AsUniTask().Forget();
         }
@@ -71,8 +80,8 @@ namespace Assets.Scripts.Services
             var (self, roomPlayers) = await client.JoinAsync(
                 roomName,
                 playername,
-                DecksConstants.Cante20Deck.DeckName,
-                false
+                DecksConstants.NormalDeck.DeckName,
+                true
             );
             return (self, roomPlayers);
         }
@@ -93,7 +102,7 @@ namespace Assets.Scripts.Services
         {
             await client.WaitForDisconnect();
             IsConnected = false;
-            Version = null;
+            ServerVersion = null;
             channel = null;
             OnDisconnected?.Invoke();
         }
