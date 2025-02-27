@@ -35,6 +35,9 @@ namespace Assets.Scripts
         private TMP_Text tmp_version;
 
         [SerializeField]
+        private TMP_Text tmp_errorMessage;
+
+        [SerializeField]
         private Button tmp_exitButton;
 
         private CancellationToken _cancellationToken;
@@ -98,16 +101,25 @@ namespace Assets.Scripts
         {
             PlayerPrefs.SetString("server_adress", tmp_serverAdress.text);
             var uri = new Uri(tmp_serverAdress.text);
-            await GamingHubManager.Instance.Client.ConnectAsync(
-                GrpcChannelx.ForTarget(new GrpcChannelTarget(uri.Host, uri.Port, true))
-            );
-            RenderServerInfo();
-            RenderServerVersion();
+            try
+            {
+                await GamingHubManager.Instance.Client.ConnectAsync(
+                    GrpcChannelx.ForTarget(new GrpcChannelTarget(uri.Host, uri.Port, true))
+                );
+            }
+            catch (Exception ex)
+            {
+                RenderErrorMessage(ex.Message);
+                throw;
+            }
+
+            await RenderData();
         }
 
         private async UniTask RenderData()
         {
             await UniTask.Yield();
+            RenderErrorMessage(string.Empty);
             RenderVersion();
             RenderServerVersion();
             RenderServerInfo();
@@ -140,6 +152,11 @@ namespace Assets.Scripts
             }
             var info = $"<color=green>{GamingHubManager.Instance.Client.Target}</color>";
             tmp_serverInfo.text = $"<b>{info}</b>";
+        }
+
+        private void RenderErrorMessage(string message)
+        {
+            tmp_errorMessage.text = message;
         }
     }
 }

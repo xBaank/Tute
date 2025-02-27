@@ -66,7 +66,7 @@ namespace Assets.Scripts
             startButton.onClick.AddListener(StartGame);
             leaveButton.onClick.AddListener(LeaveRoomForget);
             exitButton.onClick.AddListener(LeaveServerForget);
-            closeMenu.onClick.AddListener(() => MenuManager.Instance.UnloadMenu(default).Forget());
+            closeMenu.onClick.AddListener(() => MenuManager.Instance.UnloadRoomMenu(default).Forget());
 
             var name = PlayerPrefs.GetString("name", tmp_playerName.text);
             var room = PlayerPrefs.GetString("room", tmp_roomName.text);

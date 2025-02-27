@@ -92,7 +92,7 @@ namespace Assets.Scripts
             card2.transform.SetPositionAndRotation(gainedPosition.position.ToVector2(), gainedPosition.rotation);
             RenderTurnText().Forget();
 
-            MenuManager.Instance.LoadMenu(_cancellationToken).Forget();
+            MenuManager.Instance.LoadRoomMenu(_cancellationToken).Forget();
             MenuManager.Instance.HandleMenu(token: _cancellationToken).Forget();
 
             Client.OnGameDataEvent += OnGameData;
@@ -129,7 +129,7 @@ namespace Assets.Scripts
 
         private async UniTaskVoid OnStart()
         {
-            await MenuManager.Instance.UnloadMenu(_cancellationToken);
+            await MenuManager.Instance.UnloadRoomMenu(_cancellationToken);
         }
 
         private async UniTaskVoid OnFinish(IList<GameDataResponse> _)
@@ -151,7 +151,7 @@ namespace Assets.Scripts
                 await RenderTurnText();
 
                 await UniTask.WaitUntil(() => InputSystem.actions.FindAction("Left Click").WasPressedThisFrame(), cancellationToken: _cancellationToken);
-                await MenuManager.Instance.LoadMenu(_cancellationToken);
+                await MenuManager.Instance.LoadRoomMenu(_cancellationToken);
             }
             finally
             {

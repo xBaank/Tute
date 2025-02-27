@@ -9,7 +9,8 @@ namespace Assets.Scripts.Managers
 {
     public class MenuManager : SingletonBase<MenuManager>
     {
-        private bool IsMenuLoaded;
+        private bool IsRoomMenuLoaded = false;
+        private bool IsServerMenuLoaded = true;
         private readonly SemaphoreSlim _semaphore = new(1);
 
         private void Awake()
@@ -33,33 +34,34 @@ namespace Assets.Scripts.Managers
 
         public async UniTask LoadGame(CancellationToken token)
         {
-            IsMenuLoaded = false;
-            await SceneManager
-                .LoadSceneAsync("InGame", LoadSceneMode.Single)
-                .WithCancellation(token);
+            await _semaphore.WaitAsync(token);
+            try
+            {
+                IsRoomMenuLoaded = false;
+                IsServerMenuLoaded = false;
+                await SceneManager
+                    .LoadSceneAsync("InGame", LoadSceneMode.Single)
+                    .WithCancellation(token);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         public async UniTask<bool> LoadServerMenu(CancellationToken token)
         {
-            IsMenuLoaded = false;
-            await SceneManager
-                .LoadSceneAsync("ServerMenu", LoadSceneMode.Single)
-                .WithCancellation(token);
-            return true;
-        }
-
-        public async UniTask<bool> LoadMenu(CancellationToken token)
-        {
             await _semaphore.WaitAsync(token);
             try
             {
-                if (IsMenuLoaded)
+                if (IsServerMenuLoaded)
                     return false;
 
+                IsRoomMenuLoaded = false;
+                IsServerMenuLoaded = true;
                 await SceneManager
-                    .LoadSceneAsync("Menu", LoadSceneMode.Additive)
+                    .LoadSceneAsync("ServerMenu", LoadSceneMode.Single)
                     .WithCancellation(token);
-                IsMenuLoaded = true;
                 return true;
             }
             finally
@@ -68,16 +70,36 @@ namespace Assets.Scripts.Managers
             }
         }
 
-        public async UniTask<bool> UnloadMenu(CancellationToken token)
+        public async UniTask<bool> LoadRoomMenu(CancellationToken token)
         {
             await _semaphore.WaitAsync(token);
             try
             {
-                if (!IsMenuLoaded)
+                if (IsRoomMenuLoaded)
+                    return false;
+
+                await SceneManager
+                    .LoadSceneAsync("Menu", LoadSceneMode.Additive)
+                    .WithCancellation(token);
+                IsRoomMenuLoaded = true;
+                return true;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async UniTask<bool> UnloadRoomMenu(CancellationToken token)
+        {
+            await _semaphore.WaitAsync(token);
+            try
+            {
+                if (!IsRoomMenuLoaded)
                     return false;
 
                 await SceneManager.UnloadSceneAsync("Menu").WithCancellation(token);
-                IsMenuLoaded = false;
+                IsRoomMenuLoaded = false;
                 return true;
             }
             finally
@@ -87,6 +109,6 @@ namespace Assets.Scripts.Managers
         }
 
         public async UniTask<bool> SwapMenu(CancellationToken token) =>
-            IsMenuLoaded == true ? await UnloadMenu(token) : await LoadMenu(token);
+            IsRoomMenuLoaded == true ? await UnloadRoomMenu(token) : await LoadRoomMenu(token);
     }
 }

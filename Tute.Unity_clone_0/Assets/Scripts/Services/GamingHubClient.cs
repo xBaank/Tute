@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Grpc.Core;
@@ -39,13 +40,21 @@ namespace Assets.Scripts.Services
         public async ValueTask ConnectAsync(ChannelBase grpcChannel)
         {
             if (IsConnected)
-                throw new InvalidOperationException("Already connected");
+                throw new InvalidOperationException("Ya estas conectado");
 
             channel = grpcChannel;
-            client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
-                grpcChannel,
-                this
-            );
+            try
+            {
+                client = await StreamingHubClient.ConnectAsync<IGamingHub, IGamingHubReceiver>(
+                    grpcChannel,
+                    this
+                );
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                throw new IOException($"No se puede conectar al servidor {grpcChannel.Target}");
+            }
 
             var serverVersion = new Version(await client.GetVersion());
             var currentVersion = new Version(Application.version);
@@ -55,7 +64,7 @@ namespace Assets.Scripts.Services
             {
                 await DisposeAsync().AsUniTask();
                 await WaitForDisconnectAsync().AsUniTask();
-                return;
+                throw new InvalidOperationException($"La version del cliente {currentVersion} no corresponde con la del servidor {serverVersion}");
             }
 
             ServerVersion = serverVersion;
